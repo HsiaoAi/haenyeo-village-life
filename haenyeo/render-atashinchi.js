@@ -1766,7 +1766,8 @@ function drawVillage(){
   // characters
   for(const n of NPCS){ if(n.atHome)continue; drawPerson(n.x,n.y,{skin:n.skin,scarf:n.scarf,look:n.look,face:n.face||1,moving:n.moving,phase:n.anim,idle:n.phase}); }
   if(scene!=='title'){
-    if(P.sitting) drawPlayerOnLounger(tc);
+    if(P.sitting && P.sitAt==='bulteok') drawPlayerSittingByFire(P.x,P.y,tc);
+    else if(P.sitting) drawPlayerOnLounger(tc);
     else if(P.swimming) drawPlayerSwimming(P.x,P.y,tc,P.face,(typeof G!=='undefined'&&G.suit==='modern'));
     else drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   }
@@ -2034,6 +2035,31 @@ function drawBeachLoungeSet(g,x,y,s,t){
 /* the player stretched out on the right deck chair — head back on the rest,
    legs along the seat, eyes closed, listening to the waves. Drawn over the
    lounge set at its chair origin (world 140,588). */
+/* the player sitting on the warm stone by the bulteok fire — knees up, hands warming, facing the hearth */
+function drawPlayerSittingByFire(x,y,t){
+  const sway=Math.sin(t*1.6)*0.5;
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='rgba(74,58,44,.22)';ctx.beginPath();ctx.ellipse(0,11,15,4.5,0,0,7);ctx.fill();
+  ctx.translate(0,sway*0.4);
+  // folded legs (knees drawn up in front), then feet
+  inked(ctx,'#3f5e7a',2.4);
+  ctx.beginPath();ctx.ellipse(-6,7,6.5,4.2,0,0,7);fillStroke(ctx);
+  ctx.beginPath();ctx.ellipse(6,7,6.5,4.2,0,0,7);fillStroke(ctx);
+  inked(ctx,'#2a2228',2);ctx.beginPath();ctx.ellipse(-10,10,3,2,0,0,7);fillStroke(ctx);ctx.beginPath();ctx.ellipse(10,10,3,2,0,0,7);fillStroke(ctx);
+  // lowered, rounded torso
+  inked(ctx,MIN.verm,3);rr(ctx,-8.5,-9,17,15,7);fillStroke(ctx);
+  // arms resting forward on the knees, round hands held to the warmth
+  inked(ctx,MIN.verm,2.2);rr(ctx,-11,-1,4.5,8,2);fillStroke(ctx);rr(ctx,6.5,-1,4.5,8,2);fillStroke(ctx);
+  inked(ctx,'#eccaa2',1.8);ctx.beginPath();ctx.arc(-8,6,2.5,0,7);fillStroke(ctx);ctx.beginPath();ctx.arc(8,6,2.5,0,7);fillStroke(ctx);
+  // ponytail + head, facing the fire (up)
+  const hy=-17;
+  inked(ctx,'#2a2018',2);ctx.beginPath();ctx.ellipse(-7.5,-13,3,6.5,0.35,0,7);fillStroke(ctx);
+  inked(ctx,'#eccaa2',2.6);ctx.beginPath();ctx.arc(0,hy,9.5,0,7);fillStroke(ctx);
+  ctx.fillStyle=MIN.ink;ctx.beginPath();ctx.arc(-2.6,hy,1.1,0,7);ctx.arc(2.6,hy,1.1,0,7);ctx.fill();
+  ctx.strokeStyle='rgba(208,90,60,.5)';ctx.lineWidth=1.4;   // warm cheeks by the fire
+  ctx.beginPath();ctx.arc(-5,hy+3,1.3,0,7);ctx.arc(5,hy+3,1.3,0,7);ctx.stroke();
+  ctx.restore();
+}
 function drawPlayerOnLounger(t){
   const g=ctx; g.save(); g.translate(140,588);
   const skin='#eccaa2', TOP=MIN.verm, BOT='#3f5e7a', hairCol='#2a2018';

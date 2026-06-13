@@ -486,7 +486,10 @@ function rectHit(x,y){
 function updateVillage(dt){
   if(P.sitting){
     const wantMove=keys['arrowleft']||keys['a']||keys['arrowright']||keys['d']||keys['arrowup']||keys['w']||keys['arrowdown']||keys['s']||(joy.on&&joy.moved);
-    if(G.time>=1080||wantMove){ standFromLounger(); }   // 18:00 — the lounge set is packed away
+    if(P.sitAt==='bulteok'){
+      if(wantMove){ P.sitting=false; P.sitAt=null; }            // get up from the fire and walk
+      else { P.moving=false; $('clkTime').textContent=fmtTime(G.time); refreshPrompt(); return; }
+    } else if(G.time>=1080||wantMove){ standFromLounger(); }    // 18:00 — the lounge set is packed away
     else { P.moving=false;
       if(G.energy<100){ G.energy=Math.min(100,G.energy+dt*ENERGY_REST_RATE); updateEnergyHud(); }   // a rest recovers stamina
       $('clkTime').textContent=fmtTime(G.time); refreshPrompt(); return; }
@@ -646,7 +649,7 @@ function nearest(){
 let current=null;
 function refreshPrompt(){
   current=nearest();
-  if(P.sitting) current={type:'lounger'};
+  if(P.sitting && P.sitAt!=='bulteok') current={type:'lounger'};
   const el=$('prompt');
   if(!current){el.classList.remove('show');return;}
   let txt='';
@@ -993,8 +996,11 @@ function bulteokRest(){
   G.energy = Math.min(100, G.energy + 40);     // warm up and catch your breath
   updateEnergyHud();
   $('clkTime').textContent = fmtTime(G.time);
+  // settle onto the warm stone by the fire (a seated rest until you get up and move)
+  P.x = bulteokB.x + bulteokB.w/2; P.y = bulteokB.y + bulteokB.h + 6; P.face = 1;
+  P.sitting = true; P.sitAt = 'bulteok'; P.moving = false;
   $('pBulteok').classList.add('hidden'); scene='village';
-  toast('Warmed up by the fire · +stamina');
+  toast('Warming up by the fire · +stamina');
 }
 $('bulteokRest').onclick=()=>{ bulteokRest(); };
 
