@@ -16,12 +16,12 @@
 
 /* ---- dishes: each made from today's catch; freshest catch → finest plates ---- */
 const DISHES=[
-  {id:'sora',   kr:'소라무침',   name:'Spiced conch',          ing:{conch:1},             price:60,  col:'#9c6b3a'},
-  {id:'haemul', kr:'해물라면',   name:'Seafood ramyeon',       ing:{seaweed:1,conch:1},   price:78,  col:'#e0723a'},
-  {id:'haesam', kr:'해삼초무침', name:'Sea-cucumber salad',    ing:{cucumber:1},          price:88,  col:'#6f8154'},
-  {id:'seong',  kr:'성게미역국', name:'Urchin & seaweed soup', ing:{urchin:1,seaweed:1},  price:96,  col:'#caa24a'},
-  {id:'jeonbok',kr:'전복죽',     name:'Abalone porridge',      ing:{abalone:1},           price:132, col:'#6f9ab2'},
-  {id:'muneo',  kr:'문어숙회',   name:'Boiled octopus',        ing:{octopus:1},           price:152, col:'#e0533a'},
+  {id:'sora',   kr:'소라무침',   name:'Spiced conch',          ing:{conch:1},             price:60,  col:'#9c6b3a', icon:'🐚'},
+  {id:'haemul', kr:'해물라면',   name:'Seafood ramyeon',       ing:{seaweed:1,conch:1},   price:78,  col:'#e0723a', icon:'🍜'},
+  {id:'haesam', kr:'해삼초무침', name:'Sea-cucumber salad',    ing:{cucumber:1},          price:88,  col:'#6f8154', icon:'🥗'},
+  {id:'seong',  kr:'성게미역국', name:'Urchin & seaweed soup', ing:{urchin:1,seaweed:1},  price:96,  col:'#caa24a', icon:'🍲'},
+  {id:'jeonbok',kr:'전복죽',     name:'Abalone porridge',      ing:{abalone:1},           price:132, col:'#6f9ab2', icon:'🍚'},
+  {id:'muneo',  kr:'문어숙회',   name:'Boiled octopus',        ing:{octopus:1},           price:152, col:'#e0533a', icon:'🐙'},
 ];
 function dishById(id){ return DISHES.find(d=>d.id===id); }
 
@@ -78,6 +78,7 @@ let rMenuSel={};       // dish id -> selected for tonight
 let rGuests=[];        // seated guests
 let rCarry=null;       // the plate in hand, or null
 let rToSpawn=0, rSpawnT=0;
+let rDemand=[];        // dish ids the seated guests will order — drawn from tonight's plates so every order is fillable
 let rEarned=0, rServed=0, rLeft=0, rTips=0;
 let rBan=1;            // 반찬 supply level 0..1
 let rPour=null;        // active tea-pour minigame, or null
@@ -112,7 +113,7 @@ function buildMenuPanel(){
     else anyMakeable=true;
     const sel=!!rMenuSel[d.id];
     row.innerHTML=
-      `<div class="sicon" style="background:${d.col}22"><span style="font-size:20px">🍲</span></div>`+
+      `<div class="sicon" style="background:${d.col}22"><span style="font-size:20px">${d.icon||'🍲'}</span></div>`+
       `<div class="meta"><div class="t">${d.kr} · ${d.name}</div>`+
       `<div class="d">${ingTxt} · ${d.price} won · up to ${can}</div></div>`+
       `<button class="btn ${sel?'coral':'ghost'}" data-d="${d.id}" ${can<=0?'disabled':''}>${sel?'On menu':'Add'}</button>`;
@@ -158,6 +159,9 @@ function startService(){
   rGuests=[]; rCarry=null; rPour=null; rParts=[];
   rEarned=0; rServed=0; rLeft=0; rTips=0; rBan=1; rEndedToast=false;
   rToSpawn=Math.min(guestQuota(), rPlates.length);     // never seat more guests than we can plate
+  // each guest orders one of the dishes actually cooked tonight (top plates), so every order can be filled
+  rDemand = rPlates.slice(0, rToSpawn).map(p=>p.dish.id);
+  for(let i=rDemand.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [rDemand[i],rDemand[j]]=[rDemand[j],rDemand[i]]; }
   rSpawnT=0.6;
   $('kitchenHud').classList.add('show');
   $('kitchenDoneBtn').classList.add('show');
@@ -170,7 +174,8 @@ function spawnGuest(){
   const seats=freeSeats(); if(!seats.length) return false;
   const seat=seats[Math.floor(Math.random()*seats.length)];
   const look=makeGuestLook();
-  rGuests.push({ seat, state:'waiting', wait:0, patience:20+Math.random()*10,
+  const want = rDemand.length ? rDemand.pop() : DISHES[Math.floor(Math.random()*DISHES.length)].id;
+  rGuests.push({ seat, state:'waiting', wait:0, patience:20+Math.random()*10, want,
                  plate:null, wantsTea:false, teaDone:true, bob:0, bobPhase:Math.random()*6.28, joy:0,
                  skin:look.skin, look:look.look, face:look.face });
   return true;
@@ -184,10 +189,16 @@ function nearestWaitingGuest(){   // a seated guest still needing a plate, neare
   return {g:best,d:bd};
 }
 
-function pickUpPlate(){
-  if(rCarry||!rPlates.length) return;
-  // grab the most valuable plate left on the pass
-  rCarry=rPlates.shift();
+function passAction(){
+  // carrying something? set it back down on the pass (so you can swap to the dish a guest ordered)
+  if(rCarry){ rPlates.push(rCarry); rCarry=null;
+    rPlates.sort((a,b)=> (b.dish.price*starMult(b.stars)) - (a.dish.price*starMult(a.stars)) );
+    tone(440,.06,'triangle',.05); return; }
+  if(!rPlates.length) return;
+  // pick up the plate laid out nearest where you're standing along the pass
+  const n=Math.min(rPlates.length,9); let bi=0,bd=1e9;
+  for(let i=0;i<n;i++){ const px=rCounter.x-(n-1)*20/2+i*20; const d=Math.abs(px-rP.x); if(d<bd){bd=d;bi=i;} }
+  rCarry=rPlates.splice(bi,1)[0];
   tone(560,.06,'triangle',.05);
 }
 
@@ -252,11 +263,18 @@ function updateRestaurant(dt){
   rP.y=Math.max(FLOOR.y0+rP.r,Math.min(FLOOR.y1-rP.r,rP.y));
 
   // ---- proximity actions: pass / 반찬 / serving ----
-  // walk up to the bar (top edge of the floor, within the counter span) to take a plate
-  if(Math.abs(rP.x-rCounter.x)<rCounter.w/2 && rP.y<FLOOR.y0+40) pickUpPlate();
+  // walk up to the bar (top edge of the floor, within the counter span) to take / set down a plate
+  const atPass = Math.abs(rP.x-rCounter.x)<rCounter.w/2 && rP.y<FLOOR.y0+40;
+  if(atPass && !rP._atPass){ rP._atPass=true; passAction(); }
+  if(!atPass) rP._atPass=false;
   if(Math.hypot(rP.x-rBanchan.x,rP.y-rBanchan.y)<48){ rBan=Math.min(1, rBan+dt*0.9); }   // refill 반찬
-  // serve a nearby waiting guest if carrying a plate
-  if(rCarry){ const {g,d}=nearestWaitingGuest(); if(g && d<46) serveGuest(g); }
+  // serve the nearby guest who ordered the dish you're carrying (wrong dish won't take)
+  if(rCarry){
+    let best=null,bd=46;
+    for(const g of rGuests){ if(g.state!=='waiting'||g.want!==rCarry.dish.id) continue;
+      const t=rTables[g.seat]; const d=Math.hypot(rP.x-t.x,rP.y-t.y); if(d<bd){bd=d;best=g;} }
+    if(best) serveGuest(best);
+  }
 
   // ---- guests grow impatient ----
   for(const g of rGuests){
@@ -351,10 +369,13 @@ function drawPass(){
 }
 function drawPlateIcon(x,y,plate){
   ctx.save();
-  ctx.fillStyle='rgba(10,8,6,.25)'; ctx.beginPath(); ctx.ellipse(x,y+4,8,3,0,0,7); ctx.fill();
+  ctx.fillStyle='rgba(10,8,6,.25)'; ctx.beginPath(); ctx.ellipse(x,y+4,9,3,0,0,7); ctx.fill();
+  // the plate, tinted by the dish, with the dish's own icon on top — same icon shown in the menu & order bubble
   ctx.fillStyle='#f3ede0'; ctx.strokeStyle='rgba(30,20,12,.55)'; ctx.lineWidth=1.6;
-  ctx.beginPath(); ctx.arc(x,y,7,0,7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=plate.dish.col; ctx.beginPath(); ctx.arc(x,y,4,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(x,y,8.5,0,7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=plate.dish.col+'33'; ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fill();
+  ctx.font='13px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(plate.dish.icon||'🍲', x, y+0.5);
   ctx.restore();
 }
 function drawBanchanCrock(){
@@ -412,7 +433,9 @@ function drawGuest(g){
     // plus a small teacup badge only if this guest also wants tea.
     ctx.fillStyle='rgba(255,255,255,.94)'; ctx.strokeStyle='rgba(30,18,8,.4)'; ctx.lineWidth=1.4;
     ctx.beginPath(); ctx.arc(x,by,13,0,7); ctx.fill(); ctx.stroke();
-    drawFoodIcon(x, by+1);
+    const wd = (typeof dishById==='function') ? dishById(g.want) : null;   // the specific dish this guest ordered
+    if(wd && wd.icon){ ctx.font='15px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(wd.icon, x, by+1); }
+    else drawFoodIcon(x, by+1);
     if(g.wantsTea && !g.teaDone) drawTeaBadge(x+11, by+10);
     const pr=Math.max(0,1-g.wait/g.patience);
     ctx.strokeStyle = pr<0.3?'#d35a31':'#e0a836'; ctx.lineWidth=2.6;

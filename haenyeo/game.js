@@ -36,10 +36,12 @@ const buildings=[
   {x:120,y:300, w:112, h:84,  name:'store', label:'Gear', en:'Gear shop', roof:'#5a8c7a'},
   {x:720,y:300, w:112, h:82,  name:'museum',label:'Museum', en:'Haenyeo Museum', roof:'#6a6f8c'},
 ];
+/* the kitchen trades through the night: 17:00 → 03:00 (the clock wraps past midnight) */
+function kitchenOpen(){ return G.time>=17*60 || G.time<3*60; }
 /* the 포장마차 lives in two spots: folded away under the bulteok by day, and
-   raised next to it (on the left) once it opens in the evening. */
+   raised next to it (on the left) once it opens for the evening. */
 function pojangRect(){
-  return (G.time>=17*60)
+  return kitchenOpen()
     ? {x:268, y:452, w:128, h:96}   // open — beside the bulteok, on the left (sat up a bit)
     : {x:409, y:506, w:118, h:90};  // folded — tucked under the bulteok
 }
@@ -413,6 +415,35 @@ function tone(f,d,type='sine',v=.05){try{
   o.start();o.stop(actx.currentTime+d);
 }catch(e){}}
 
+/* a little synthesized "woof woof" — two quick falling barks */
+function barkSound(){try{
+  if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended')actx.resume();
+  const now=actx.currentTime;
+  for(let k=0;k<2;k++){ const t0=now+k*0.17;
+    const o=actx.createOscillator(),g=actx.createGain(),lp=actx.createBiquadFilter();
+    o.type='sawtooth'; o.frequency.setValueAtTime(440,t0); o.frequency.exponentialRampToValueAtTime(150,t0+0.12);
+    lp.type='lowpass'; lp.frequency.value=1400;
+    g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.09,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.15);
+    o.connect(lp);lp.connect(g);g.connect(actx.destination); o.start(t0); o.stop(t0+0.17);
+  }
+}catch(e){}}
+/* a little synthesized "meow" — a pitch rising then falling, softened */
+function meowSound(){try{
+  if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended')actx.resume();
+  const now=actx.currentTime;
+  const o=actx.createOscillator(),g=actx.createGain(),lp=actx.createBiquadFilter();
+  o.type='sawtooth';
+  o.frequency.setValueAtTime(520,now);
+  o.frequency.linearRampToValueAtTime(860,now+0.16);   // "me—"
+  o.frequency.linearRampToValueAtTime(600,now+0.46);   // "—ow", falling
+  lp.type='lowpass'; lp.frequency.value=1900;
+  g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.07,now+0.05);
+  g.gain.setValueAtTime(0.07,now+0.34); g.gain.exponentialRampToValueAtTime(0.0001,now+0.5);
+  o.connect(lp);lp.connect(g);g.connect(actx.destination); o.start(now); o.stop(now+0.52);
+}catch(e){}}
+
 const keys={};
 // Unlock the audio context on the very first user gesture so the diving-song
 // proximity trigger (which fires from the game loop, not a gesture) can play.
@@ -623,7 +654,7 @@ function refreshPrompt(){
   else if(current.type==='pet') txt='Pet the '+current.pet.label;
   else if(current.type==='statue') txt='Examine · Dol Hareubang';
   else if(current.type==='bulteok') txt='Examine · Bulteok';
-  else if(current.type==='pojangmacha') txt=(G.time>=17*60)?'Open 해녀의 부엌 · the Kitchen':'해녀의 부엌 · opens in the evening';
+  else if(current.type==='pojangmacha') txt=kitchenOpen()?'Open 해녀의 부엌 · the Kitchen':'해녀의 부엌 · opens 17:00–03:00';
   else if(current.type==='lounger') txt=P.sitting?'Stand up':'Rest on the lounger';
   else if(current.type==='door') txt = current.b.name==='home'?'Go inside':(current.b.name==='coop'?'Enter market':(current.b.name==='museum'?'Enter the museum':'Enter shop'));
   else if(current.type==='beach') txt='Clean the beach';
@@ -639,7 +670,7 @@ function doInteract(){
   else if(current.type==='statue') openStatueInfo();
   else if(current.type==='bulteok') openBulteokInfo();
   else if(current.type==='pojangmacha'){
-    if(G.time<17*60) toast('해녀의 부엌 opens in the evening (after 17:00).');
+    if(!kitchenOpen()) toast('해녀의 부엌 is open 17:00–03:00.');
     else if(haveEnergy('kitchen') && typeof enterRestaurant==='function') enterRestaurant();
   }
   else if(current.type==='lounger'){ if(P.sitting) standFromLounger(); else sitOnLounger(); }
@@ -664,7 +695,7 @@ function petThePet(p){
   p.face = (P.x < p.x) ? -1 : 1;   // turn to look at the diver
   p.wait = Math.max(p.wait, 1.3);  // sit still and enjoy the attention
   p.petJoy = 1;                    // drives the heart + hop in the renderer
-  if(typeof tone==='function') tone(p.kind==='cat'?720:430,.07,'sine',.05);
+  if(p.kind==='cat') meowSound(); else barkSound();   // the cat meows, the dog barks
   const first = !G.pettedToday[p.id];
   const happy = p.kind==='cat' ? 'purrs' : 'wags its tail';
   if(first){

@@ -1296,7 +1296,7 @@ function drawBeachCompanions(t){
   ctx.save();
   // daytime beach corner — hand-drawn lounge set (thatched umbrella over two
   // wooden deck chairs on a straw mat, with cats), cleared from 18:00 onward
-  if(tm>=300&&tm<1080){
+  if(tm>=180&&tm<1020){
     drawBeachLoungeSet(ctx,112,588,1,t);
     // a small pile of seashells (kept clear of the lounge mat and the yoga spot)
     ctx.save();ctx.translate(208,590);
@@ -1307,8 +1307,8 @@ function drawBeachCompanions(t){
     shell(-7,2,'#f3d9b0'); shell(8,3,'#ecc29a'); shell(0,-2,'#f7e6c8');
     ctx.restore();
   }
-  if(tm>=300&&tm<360){                // 5:00 — the movie's over: hold hands and head home, then gone
-    const p=Math.min(1,(tm-300)/60), off=-p*360, al=p>0.82?Math.max(0,(1-p)/0.18):1;
+  if(tm>=180&&tm<240){                // 3:00 — the movie's over: hold hands and head home, then gone
+    const p=Math.min(1,(tm-180)/60), off=-p*360, al=p>0.82?Math.max(0,(1-p)/0.18):1;
     if(p>=1){ ctx.restore(); return; }
     const wy=ph=>556+Math.sin(t*7+ph)*1.4;
     const dx=212+off, rx=246+off;
@@ -1320,7 +1320,7 @@ function drawBeachCompanions(t){
     ctx.lineCap='round';
     ctx.strokeStyle=MIN.ink;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(hx1,hy1);ctx.lineTo(hx2,hy2);ctx.stroke();
     ctx.strokeStyle='#9c6a3e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(hx1,hy1);ctx.lineTo(hx2,hy2);ctx.stroke();
-  } else if(tm>=1080||tm<300){        // 18:00 → 5:00 — drive-in beach movie, on late into the night
+  } else if(tm>=1020||tm<180){        // 17:00 → 3:00 — drive-in beach movie, on late into the night
     // ---- screen on two posts, kept clear of the bulteok on the right ----
     inked(ctx,'#5a3a22',2.4);rr(ctx,96,498,8,60,2);fillStroke(ctx);rr(ctx,236,498,8,60,2);fillStroke(ctx);
     inked(ctx,'#11161f',3);rr(ctx,84,452,168,92,4);fillStroke(ctx);
