@@ -1537,6 +1537,33 @@ function drawSeaDiver(x,surfY,t,seed,face){
     for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(x+6+i*4, dy-16-p*14-i*3, 2.4-i*0.5,0,7);ctx.fill();}
     ctx.restore(); }
 }
+/* the player swimming out across the shallows toward the boat — head at the surface, arm in a crawl stroke, a trailing wake */
+function drawPlayerSwimming(x,y,t,face,modern){
+  face = face||1;
+  const bob=Math.sin(t*7)*1.2, stroke=Math.sin(t*7);
+  ctx.save();ctx.translate(x,y);
+  // wake trailing behind the direction of travel
+  ctx.save();ctx.scale(face,1);
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.lineCap='round';
+  for(let i=0;i<3;i++){ ctx.globalAlpha=0.5*(1-i/3);
+    ctx.beginPath();ctx.ellipse(-(12+i*7),5,4+i*2,2.5+i,0,0,7);ctx.stroke(); }
+  ctx.restore();ctx.globalAlpha=1;
+  // ripple ring around the swimmer
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.6;
+  ctx.beginPath();ctx.ellipse(0,5+bob*0.3,12,4.5,0,0,7);ctx.stroke();
+  // forward-crawl arm + hand
+  ctx.save();ctx.scale(face,1);ctx.translate(6,bob);ctx.rotate(-0.7-Math.max(0,stroke)*0.7);
+  inked(ctx,modern?MIN.jade:MIN.verm,2.2);rr(ctx,-2,-2,11,4,2);fillStroke(ctx);
+  inked(ctx,'#eccaa2',1.6);ctx.beginPath();ctx.arc(10,0,2.4,0,7);fillStroke(ctx);
+  ctx.restore();
+  ctx.restore();
+  // head riding the surface (reuse the haenyeo diver head for a consistent look)
+  drawDiverHead(x, y-4+bob, 0.92, face);
+  // splash flicking off the leading hand
+  ctx.save();ctx.fillStyle='rgba(255,255,255,.7)';
+  for(let i=0;i<3;i++){const a=t*9+i*2;ctx.beginPath();ctx.arc(x+face*15+Math.cos(a)*2,y-2+Math.sin(a)*3,1.3,0,7);ctx.fill();}
+  ctx.restore();
+}
 function drawSea(){
   const t=performance.now()*0.001;
   // the sea occupies the RIGHT of the wavy coastline, from the shore line down
@@ -1740,6 +1767,7 @@ function drawVillage(){
   for(const n of NPCS){ if(n.atHome)continue; drawPerson(n.x,n.y,{skin:n.skin,scarf:n.scarf,look:n.look,face:n.face||1,moving:n.moving,phase:n.anim,idle:n.phase}); }
   if(scene!=='title'){
     if(P.sitting) drawPlayerOnLounger(tc);
+    else if(P.swimming) drawPlayerSwimming(P.x,P.y,tc,P.face,(typeof G!=='undefined'&&G.suit==='modern'));
     else drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   }
   // flat day/night wash

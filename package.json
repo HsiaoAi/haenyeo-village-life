@@ -1,0 +1,27 @@
+{
+  "name": "haenyeo-village-life",
+  "version": "1.0.0",
+  "description": "A cozy, all-ages browser game set in a Jeju Island haenyeo (해녀, \"sea women\") village. Free-dive for sea life, clean up the shore, cook and run a seaside kitchen, shop at the market, and wander a hand-drawn village — with light educational threads about Jeju culture, marine conservation, and Korea's 분리수거 (recycling) system woven into play, never lectured.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HsiaoAi/haenyeo-village-life.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/HsiaoAi/haenyeo-village-life/issues"
+  },
+  "homepage": "https://github.com/HsiaoAi/haenyeo-village-life#readme",
+  "dependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}

@@ -376,8 +376,10 @@ function maskVis(){ return GEAR.mask[G.maskIdx].vis; }     // clear-sight radius
 function tewakRecover(){ return GEAR.tewak[G.tewakIdx].recover; }   // surface breath-recovery multiplier
 
 /* ---------------- PLAYER + INPUT ---------------- */
-const P={x:470,y:280,r:13,face:1,moving:false,anim:0,sitting:false};
+const P={x:470,y:280,r:13,face:1,moving:false,anim:0,sitting:false,swimming:false};
 const LOUNGER={x:140,y:588};   // the right-hand deck chair under the beach parasol
+// out past the shoreline: the moored dive boat + the three haenyeo working the water (must match drawSea)
+const DIVE_TARGETS=[{x:878,y:548},{x:655,y:510},{x:795,y:553},{x:705,y:598}];
 const SPEED=2.4;
 const CLOCK_RATE=15;   // in-game minutes per real second — the day flows on its own
 function tickClock(dt){
@@ -474,7 +476,17 @@ function updateVillage(dt){
   P.y=Math.max(96+P.r,Math.min(H-P.r,P.y));
 
   if(beachEnabled()){
-    if(P.y>=BEACH_Y+14 && P.x>coastX(P.y)+8){ if(haveEnergy('dive')) startDive(); else P.y=BEACH_Y+10; return; }   // step into the water (right) → dive
+    // step into the water and you're swimming; reach the boat or a working diver to begin the dive
+    P.swimming = P.y>=BEACH_Y+10 && P.x>coastX(P.y)+6;
+    if(P.swimming){
+      const near = DIVE_TARGETS.some(d=>Math.hypot(P.x-d.x,P.y-d.y)<32);
+      if(near && !P._atDive){
+        P._atDive=true;
+        if(haveEnergy('dive')){ startDive(); return; }
+        else toast('Too tired to dive — rest first. ⚡');
+      }
+      if(!near) P._atDive=false;
+    } else { P._atDive=false; }
   } else {
     if(P.y>SEA_Y+8){ if(haveEnergy('dive')) startDive(); else P.y=SEA_Y+4; return; }
   }
@@ -592,8 +604,8 @@ function nearest(){
     if(d<48) best={type:'lounger'};
   }
   if(beachEnabled()){
-    if(!best && P.y>=BEACH_Y){
-      best = (P.x < coastX(P.y)-8) ? {type:'beach'} : {type:'sea'};   // left of coast = sand, right = water
+    if(!best && P.y>=BEACH_Y && P.x < coastX(P.y)-8){
+      best = {type:'beach'};   // sand → clean the beach; out in the water you swim to the boat/divers to dive
     }
   } else {
     if(P.y>SEA_Y-34&&P.y<=SEA_Y+8){best={type:'sea'};}
