@@ -1,2 +1,9 @@
 .DS_Store
 **/.DS_Store
+
+# Node test scaffolding (puppeteer-core for headless verification)
+node_modules/
+package.json
+package-lock.json
+_verify_*.mjs
+_swimshot.mjs
