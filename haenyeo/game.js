@@ -381,8 +381,15 @@ const LOUNGER={x:140,y:588};   // the right-hand deck chair under the beach para
 const SPEED=2.4;
 const CLOCK_RATE=15;   // in-game minutes per real second — the day flows on its own
 function tickClock(dt){
-  if(G.time>=24*60-0.5){ G.time=24*60-1; }
-  else { G.time+=dt*CLOCK_RATE; G.energy=Math.max(0, G.energy-dt*ENERGY_TIME_DRAIN); }   // the day slowly tires you
+  // 23:59 — the witching hour. Hold the clock steady (re-adding here would make it
+  // oscillate and the moon jitter) and send the diver home to bed, just once.
+  if(G.time>=24*60-1){
+    G.time=24*60-1;
+    if(!tickClock._forced){ tickClock._forced=true; forceSleep(); }
+    $('clkTime').textContent=fmtTime(G.time);
+    return;
+  }
+  G.time+=dt*CLOCK_RATE; G.energy=Math.max(0, G.energy-dt*ENERGY_TIME_DRAIN);   // the day slowly tires you
   $('clkTime').textContent=fmtTime(G.time);
   { const nm=(typeof nightAmt==='function')?nightAmt(G.time):0; $('clock').classList.toggle('night', nm>0.45); }
   // gentle nudges — but sleeping is the player's choice now; energy is the real pacer
