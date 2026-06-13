@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>해녀 마을 · Haenyeo Village Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0a2a33;--foam:#f4efe1;--coral:#e8714a;--gold:#f2c14e;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;background:#0c1f17;overflow:hidden;font-family:'Gowun Batang',serif;}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  #stage{position:relative;height:100%;aspect-ratio:2/3;max-width:100%;box-shadow:0 0 80px rgba(0,0,0,.6);}
+  canvas{display:block;width:100%;height:100%;touch-action:none;}
+
+  /* top HUD */
+  #hud{position:absolute;top:0;left:0;right:0;padding:12px 14px;display:flex;justify-content:space-between;
+    align-items:flex-start;pointer-events:none;color:var(--foam);text-shadow:0 1px 3px rgba(0,0,0,.55);}
+  .mono{font-family:'Space Mono','Gowun Batang',monospace;}
+  #clock .t{font-size:22px;font-weight:700;line-height:1;}
+  #clock .d{font-size:10px;letter-spacing:.15em;text-transform:uppercase;opacity:.85;}
+  #money{text-align:right;}
+  #money .v{font-size:22px;font-weight:700;color:var(--gold);line-height:1;}
+  #money .l{font-size:10px;letter-spacing:.15em;text-transform:uppercase;opacity:.85;}
+
+  /* interaction prompt */
+  #prompt{position:absolute;left:50%;transform:translateX(-50%);bottom:80px;pointer-events:auto;z-index:5;
+    font-family:'Space Mono','Gowun Batang',monospace;font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink);background:var(--gold);padding:16px 32px;border-radius:99px;box-shadow:0 5px 0 #b8923a;
+    white-space:nowrap;display:none;cursor:pointer;}
+  #prompt:active{transform:translateX(-50%) translateY(3px);box-shadow:0 2px 0 #b8923a;}
+  #prompt.show{display:block;}
+
+  /* dialogue */
+  #dialogue{position:absolute;left:12px;right:12px;bottom:14px;background:rgba(7,28,34,.94);
+    border:1.5px solid rgba(244,239,225,.2);border-radius:16px;padding:14px;display:none;
+    color:var(--foam);pointer-events:auto;}
+  #dialogue.show{display:block;}
+  .dlgTop{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  #portrait{width:48px;height:48px;border-radius:12px;flex:none;}
+  .dlgName{font-family:'Space Mono','Gowun Batang',monospace;font-weight:700;letter-spacing:.05em;}
+  .dlgName small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;opacity:.7;font-weight:400;}
+  .hearts{margin-left:auto;font-size:14px;letter-spacing:1px;}
+  #dlgText{font-size:15px;line-height:1.6;min-height:48px;}
+  .dlgBtns{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;}
+  .dlgBtns button{font-family:'Space Mono','Gowun Batang',monospace;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    font-size:11px;border:none;cursor:pointer;padding:9px 16px;border-radius:99px;color:var(--ink);background:var(--gold);
+    box-shadow:0 4px 0 #b8923a;}
+  .dlgBtns button.ghost{background:transparent;color:var(--foam);box-shadow:inset 0 0 0 1.4px rgba(244,239,225,.35);}
+  .dlgBtns button:active{transform:translateY(3px);box-shadow:0 1px 0 #b8923a;}
+
+  /* generic panel (title, sleep, sell, dive result) */
+  .panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:var(--foam);padding:30px;background:radial-gradient(120% 90% at 50% 25%,rgba(8,40,48,.6),rgba(4,16,20,.94));
+    backdrop-filter:blur(2px);overflow-y:auto;}
+  .panel.hidden{display:none;}
+  .kr{font-size:42px;font-weight:700;letter-spacing:.04em;line-height:1.05;}
+  .en{font-family:'Space Mono','Gowun Batang',monospace;font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-top:10px;}
+  .blurb{max-width:32ch;margin-top:18px;font-size:14px;line-height:1.7;opacity:.92;}
+  .blurb b{color:var(--gold);}
+  .panel button{margin-top:18px;cursor:pointer;border:none;font-family:'Space Mono','Gowun Batang',monospace;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--ink);background:var(--gold);
+    padding:13px 26px;border-radius:99px;box-shadow:0 5px 0 #b8923a;}
+  .panel button.ghost{background:transparent;color:var(--foam);box-shadow:inset 0 0 0 1.5px rgba(244,239,225,.4);}
+  .panel button:active{transform:translateY(3px);box-shadow:0 2px 0 #b8923a;}
+  .selllist{font-family:'Space Mono','Gowun Batang',monospace;font-size:14px;width:100%;max-width:280px;margin-top:14px;}
+  .selllist .line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(244,239,225,.12);}
+  .selllist .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:middle;}
+
+  .shop{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:14px;}
+  .card{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(244,239,225,.07);
+    border:1px solid rgba(244,239,225,.14);border-radius:14px;padding:13px 15px;text-align:left;}
+  .card .info{font-size:13px;line-height:1.45;}
+  .card .info .t{font-weight:700;font-family:'Space Mono','Gowun Batang',monospace;letter-spacing:.04em;}
+  .card .info .d{opacity:.82;font-size:12px;}
+  .card button{margin-top:0;padding:11px 15px;font-size:11px;}
+  .levelpips{display:inline-flex;gap:3px;margin-left:7px;vertical-align:middle;}
+  .levelpips i{width:7px;height:7px;border-radius:2px;background:rgba(244,239,225,.25);}
+  .levelpips i.on{background:var(--gold);}
+
+  /* dive HUD */
+  #diveHud{position:absolute;left:14px;right:14px;bottom:54px;pointer-events:none;display:none;}
+  #diveHud.show{display:block;}
+  .barlbl{font-family:'Space Mono','Gowun Batang',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--foam);opacity:.85;margin:0 0 4px 2px;text-shadow:0 1px 2px rgba(0,0,0,.5);}
+  .track{height:8px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin-bottom:9px;}
+  .fill{height:100%;border-radius:99px;}
+  #surfBtn{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:none;pointer-events:auto;z-index:5;
+    font-family:'Space Mono','Gowun Batang',monospace;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:15px;
+    color:var(--ink);background:var(--gold);border:none;box-shadow:0 5px 0 #b8923a;
+    padding:16px 30px;border-radius:99px;cursor:pointer;}
+  #surfBtn:active{transform:translateX(-50%) translateY(3px);box-shadow:0 2px 0 #b8923a;}
+  #surfBtn.show{display:block;}
+
+  .toast{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);font-family:'Space Mono','Gowun Batang',monospace;
+    font-size:13px;letter-spacing:.08em;color:var(--ink);background:var(--foam);padding:9px 16px;border-radius:99px;
+    opacity:0;pointer-events:none;transition:opacity .2s;text-transform:uppercase;}
+  .toast.show{opacity:.96;}
+
+  #restartBtn{position:absolute;top:12px;left:50%;transform:translateX(-50%);pointer-events:auto;
+    width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;font-size:17px;line-height:1;
+    color:var(--foam);background:rgba(7,28,34,.6);box-shadow:inset 0 0 0 1.4px rgba(244,239,225,.3);
+    text-shadow:0 1px 2px rgba(0,0,0,.5);}
+  #restartBtn:active{transform:translateX(-50%) scale(.92);}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <canvas id="c"></canvas>
+
+  <div id="hud">
+    <div id="clock" class="mono"><div class="t" id="clkTime">6:00</div><div class="d" id="clkDate">Spring · Day 1</div></div>
+    <div id="money" class="mono"><div class="v" id="moneyV">0</div><div class="l">won</div></div>
+  </div>
+  <button id="restartBtn" title="Restart">↻</button>
+
+  <div id="diveHud">
+    <div class="barlbl">Breath · 숨</div><div class="track"><div class="fill" id="breathFill" style="width:100%;background:linear-gradient(90deg,var(--gold),var(--foam))"></div></div>
+    <div class="barlbl">Time underwater</div><div class="track"><div class="fill" id="timeFill" style="width:100%;background:linear-gradient(90deg,#3fa8b8,#cfe9e4)"></div></div>
+  </div>
+  <button id="surfBtn">Surface · 휴—</button>
+
+  <div id="prompt"></div>
+
+  <div id="dialogue">
+    <div class="dlgTop">
+      <canvas id="portrait" width="48" height="48"></canvas>
+      <div class="dlgName" id="dlgName">—<small id="dlgRole"></small></div>
+      <div class="hearts" id="dlgHearts"></div>
+    </div>
+    <div id="dlgText"></div>
+    <div class="dlgBtns" id="dlgBtns"></div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="panel" id="pTitle">
+    <div class="kr">해녀 마을</div>
+    <div class="en">Haenyeo Village Life</div>
+    <div class="blurb">You've come home to a small <b>Jeju village</b> to take up your late grandmother's place among the sea women. Walk the village, get to know the divers, and find your rhythm — the sea will still be there tomorrow.</div>
+    <button id="startBtn">Arrive in the village</button>
+    <div class="blurb" style="font-size:12px;opacity:.7;margin-top:20px">Move: drag anywhere / arrow keys · Talk &amp; enter: tap the prompt or press Space</div>
+  </div>
+
+  <!-- SLEEP -->
+  <div class="panel hidden" id="pSleep">
+    <div class="kr" style="font-size:30px">🌙</div>
+    <div class="en">A good day's work</div>
+    <div class="blurb" id="sleepNote"></div>
+    <button id="sleepBtn">Sleep until morning</button>
+    <button id="sleepCancel" class="ghost">Not yet</button>
+  </div>
+
+  <!-- SELL (co-op) -->
+  <div class="panel hidden" id="pSell">
+    <div class="kr" style="font-size:28px">어촌계</div>
+    <div class="en">Fishing Co-op</div>
+    <div class="blurb" id="sellNote">Migyeong weighs your net.</div>
+    <div class="selllist" id="sellList"></div>
+    <button id="sellBtn">Sell the catch</button>
+    <button id="sellClose" class="ghost">Keep it</button>
+  </div>
+
+  <!-- DIVE RESULT -->
+  <div class="panel hidden" id="pDive">
+    <div class="kr" style="font-size:28px">물질 끝</div>
+    <div class="en">Back on the float</div>
+    <div class="selllist" id="diveList"></div>
+    <div class="blurb" id="diveNote" style="font-size:13px"></div>
+    <button id="diveClose">Climb out</button>
+  </div>
+
+  <!-- GEAR SHOP -->
+  <div class="panel hidden" id="pStore">
+    <div class="kr" style="font-size:26px">잠수복 가게</div>
+    <div class="en">Gear shop · <span id="storeWon">0</span> won</div>
+    <div class="shop" id="storeList"></div>
+    <button id="storeClose" class="ghost">Leave the shop</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div></div>
+
+<script>
+const cv=$id('c'),ctx=cv.getContext('2d');
+const W=480,H=720; cv.width=W; cv.height=H;
+function $id(i){return document.getElementById(i);}
+const $=$id;
+
+/* ---------------- WORLD DATA ---------------- */
+const SEA_Y=566;                 // everything below is ocean
+const buildings=[
+  {x:36, y:150, w:120, h:92,  name:'home',  label:'집',   en:'Your home',  roof:'#c9512c'},
+  {x:330,y:150, w:112, h:92,  name:'coop',  label:'어촌계', en:'Co-op',      roof:'#3a6e8c'},
+  {x:196,y:120, w:90,  h:70,  name:'bulteok',label:'불턱', en:'Bulteok',    roof:null},   // open stone ring
+  {x:48, y:372, w:104, h:80,  name:'store', label:'잠수복', en:'Gear shop', roof:'#5a8c7a'},
+  {x:330,y:392, w:104, h:78,  name:'house3',label:'',     en:'',           roof:'#7a8c4a'},
+];
+function port(skin,scarf){ return {skin,scarf}; }
+const NPCS=[
+  {id:'sunja', name:'순자 할망', roman:'Granny Sunja', role:'Sanggun · master diver', x:240,y:215, color:'#e8714a',
+    skin:'#e8c9a0', scarf:'#e8714a', daily:[
+      "When I was your age I dove right through winter. The sea raised me.",
+      "Stay close to me out there, child. The yeo rocks don't forgive.",
+      "Your grandmother had the strongest lungs in this village. You have her eyes."],
+    chat:["Breathe out slow before you go down. Slow, slow.","Greed drowns more divers than the cold ever did."]},
+  {id:'youngmi', name:'영미', roman:'Youngmi', role:'Your friend, a junggun', x:120,y:470, color:'#3fa8b8',
+    skin:'#e8c9a0', scarf:'#3fa8b8', daily:[
+      "You came back! I didn't think city folk ever returned to Jeju.",
+      "Race you to the conch beds after lunch?",
+      "I saved you a spot by the fire. The good warm spot."],
+    chat:["The urchins are fat this season.","Did you hear Okbun's stew today? Smelled like heaven."]},
+  {id:'migyeong', name:'미경', roman:'Migyeong', role:'Co-op manager', x:386,y:215, color:'#f2c14e',
+    skin:'#e0bf95', scarf:'#3a6e8c', daily:[
+      "Bring your catch by — I'll give you a fair weight, always.",
+      "Abalone prices are up this week. Dive deep if you can.",
+      "Paperwork, paperwork. The sea is simpler than the ledger."],
+    chat:["Come to the co-op when your net's full.","The mainland buyers love our urchin roe."]},
+  {id:'okbun', name:'옥분 할망', roman:'Granny Okbun', role:'Village cook & elder', x:386,y:455, color:'#a8466a',
+    skin:'#e8c9a0', scarf:'#a8466a', daily:[
+      "Sit, sit. You're too thin for a haenyeo. Eat something.",
+      "We cook together at the bulteok — that's the real reason we dive.",
+      "I'll teach you the diving songs one day. They keep your heart steady."],
+    chat:["A warm belly dives longer.","Bring me an octopus and I'll make you something special."]},
+];
+
+/* ---------------- GAME STATE ---------------- */
+const G={ day:1, money:0, time:6*60, // minutes from midnight
+  wetsuitIdx:0, netIdx:0,
+  friendship:{}, talkedToday:{}, catch:{}, season:0 };
+NPCS.forEach(n=>G.friendship[n.id]=0);
+const SEASONS=['Spring','Summer','Autumn','Winter'];
+const HEART_PTS=120, MAX_HEARTS=5;
+function hearts(id){ return Math.min(MAX_HEARTS, Math.floor(G.friendship[id]/HEART_PTS)); }
+function heartStr(id){ const h=hearts(id); return '♥'.repeat(h)+'♡'.repeat(MAX_HEARTS-h); }
+
+/* species (shared with the dive) */
+const SPECIES=[
+  {id:'seaweed',name:'Seaweed',kr:'미역',color:'#3a7d5d',value:6},
+  {id:'conch',  name:'Conch',  kr:'소라',color:'#e8b04a',value:14},
+  {id:'urchin', name:'Urchin', kr:'성게',color:'#5b3f78',value:26},
+  {id:'octopus',name:'Octopus',kr:'문어',color:'#a8466a',value:42},
+];
+
+/* diving gear — upgradeable at the shop. index 0 = starting gear */
+const GEAR={
+  wetsuit:[{breath:100,cost:0},{breath:140,cost:180},{breath:185,cost:420},{breath:240,cost:900}],
+  net:    [{cap:6,cost:0},     {cap:9,cost:220},     {cap:13,cost:560}],
+};
+function maxBreath(){ return GEAR.wetsuit[G.wetsuitIdx].breath; }
+function netCap(){ return GEAR.net[G.netIdx].cap; }
+
+/* ---------------- PLAYER + INPUT ---------------- */
+const P={x:240,y:330,r:13,face:1,moving:false};
+const SPEED=2.4;
+let scene='title';      // title | village | dive | (panels overlay)
+let toastT=0;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');toastT=1.5;}
+// tiny WebAudio blip helper (used by the dive: collect + surface cues)
+let actx;
+function tone(f,d,type='sine',v=.05){try{
+  if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();
+  o.type=type;o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(v,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+  o.start();o.stop(actx.currentTime+d);
+}catch(e){}}
+
+const keys={};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;
+  if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
+  if(k===' '||k==='e'){ if(scene==='village') doInteract(); else if(scene==='shop') doShopInteract(); }});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+
+// virtual joystick: pointer down anywhere = base; drag = direction; tap = interact
+let joy={on:false,bx:0,by:0,dx:0,dy:0,moved:false};
+function toCanvas(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;
+  return {x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+cv.addEventListener('pointerdown',e=>{const p=toCanvas(e);
+  if(scene==='village'||scene==='shop'){joy.on=true;joy.bx=p.x;joy.by=p.y;joy.dx=0;joy.dy=0;joy.moved=false;}
+  if(scene==='dive'){divePtr.on=true;divePtrSet(p);}});
+cv.addEventListener('pointermove',e=>{const p=toCanvas(e);
+  if(joy.on){joy.dx=p.x-joy.bx;joy.dy=p.y-joy.by;if(Math.hypot(joy.dx,joy.dy)>10)joy.moved=true;}
+  if(divePtr.on)divePtrSet(p);});
+addEventListener('pointerup',()=>{
+  if(joy.on&&!joy.moved&&scene==='village')doInteract();
+  else if(joy.on&&!joy.moved&&scene==='shop')doShopInteract();
+  joy.on=false;joy.dx=joy.dy=0; divePtr.on=false;});
+
+/* ---------------- VILLAGE UPDATE ---------------- */
+function rectHit(x,y){
+  for(const b of buildings){ if(b.name==='bulteok')continue; // bulteok is enterable open ring
+    if(x>b.x-2&&x<b.x+b.w+2&&y>b.y+b.h*0.35&&y<b.y+b.h) return true; }
+  return false;
+}
+function updateVillage(dt){
+  let mx=0,my=0;
+  if(keys['arrowleft']||keys['a'])mx-=1; if(keys['arrowright']||keys['d'])mx+=1;
+  if(keys['arrowup']||keys['w'])my-=1;   if(keys['arrowdown']||keys['s'])my+=1;
+  if(joy.on&&joy.moved){const m=Math.hypot(joy.dx,joy.dy)||1;mx+=joy.dx/m;my+=joy.dy/m;}
+  const m=Math.hypot(mx,my);
+  P.moving=m>0.1;
+  if(m>0){mx/=m;my/=m; if(mx!==0)P.face=mx>0?1:-1;
+    const nx=P.x+mx*SPEED, ny=P.y+my*SPEED;
+    if(!rectHit(nx,P.y)) P.x=nx;
+    if(!rectHit(P.x,ny)) P.y=ny;
+  }
+  P.x=Math.max(P.r,Math.min(W-P.r,P.x));
+  P.y=Math.max(96+P.r,Math.min(H-P.r,P.y));
+
+  // entering the sea
+  if(P.y>SEA_Y+8){ startDive(); return; }
+
+  // time passes while walking
+  if(P.moving){ G.time+=dt*22; if(G.time>=24*60)G.time=24*60-1; }
+  $('clkTime').textContent=fmtTime(G.time);
+
+  refreshPrompt();
+}
+function fmtTime(t){let h=Math.floor(t/60),m=Math.floor(t%60);return h+':'+(m<10?'0':'')+m;}
+
+/* nearest interactable */
+function nearest(){
+  let best=null,bd=44;
+  for(const n of NPCS){const d=Math.hypot(P.x-n.x,P.y-(n.y+8));if(d<bd){bd=d;best={type:'npc',npc:n};}}
+  for(const b of buildings){
+    if(b.name==='home'||b.name==='coop'||b.name==='store'){
+      const cx=b.x+b.w/2, cy=b.y+b.h; const d=Math.hypot(P.x-cx,P.y-cy);
+      if(d<46){bd=d;best={type:'door',b};}
+    }
+  }
+  if(P.y>SEA_Y-34&&P.y<=SEA_Y+8){best={type:'sea'};}
+  return best;
+}
+let current=null;
+function refreshPrompt(){
+  current=nearest();
+  const el=$('prompt');
+  if(!current){el.classList.remove('show');return;}
+  let txt='';
+  if(current.type==='npc') txt='Talk to '+current.npc.roman;
+  else if(current.type==='door') txt = current.b.name==='home'?'Go inside · 집':(current.b.name==='coop'?'Enter co-op · 어촌계':'Enter shop · 잠수복 가게');
+  else if(current.type==='sea') txt='Dive · 물질';
+  el.textContent=txt; el.classList.add('show');
+}
+$('prompt').onclick=()=>{ if(scene==='village') doInteract(); else if(scene==='shop') doShopInteract(); };
+
+function doInteract(){
+  if(!current) return;
+  if(current.type==='npc') openDialogue(current.npc);
+  else if(current.type==='door'){ if(current.b.name==='home') askSleep(); else if(current.b.name==='coop') openSell(); else enterShop(); }
+  else if(current.type==='sea') startDive();
+}
+
+/* ---------------- DIALOGUE + FRIENDSHIP ---------------- */
+function drawPortrait(n){
+  const p=$('portrait'),x=p.getContext('2d');x.clearRect(0,0,48,48);
+  x.fillStyle='#12303a';x.fillRect(0,0,48,48);
+  x.fillStyle=n.skin;x.beginPath();x.arc(24,26,15,0,7);x.fill();           // face
+  x.fillStyle=n.scarf;x.beginPath();x.arc(24,12,16,Math.PI,0);x.fill();    // headscarf
+  x.fillRect(8,10,32,8);
+  x.fillStyle='#2a2a2a';x.fillRect(17,24,4,3);x.fillRect(27,24,4,3);       // eyes
+  x.strokeStyle='#b8825a';x.lineWidth=1.5;x.beginPath();x.arc(24,31,4,.2,Math.PI-.2);x.stroke();
+}
+let dlg={npc:null,queue:[]};
+let dialogBg='village';
+function openDialogue(n){
+  scene='dialogue-open'; dialogBg='village'; // pause movement implicitly (we keep scene check)
+  dlg.npc=n;
+  const first=!G.talkedToday[n.id];
+  let line;
+  if(first){ G.talkedToday[n.id]=true; G.friendship[n.id]+=22;
+    const before=hearts(n.id); // already added; compute leveled
+    line = n.daily[Math.min(n.daily.length-1, Math.floor(G.friendship[n.id]/HEART_PTS))];
+    const newH=hearts(n.id);
+    if(G.friendship[n.id]-22 < newH*HEART_PTS && newH>Math.floor((G.friendship[n.id]-22)/HEART_PTS)){
+      setTimeout(()=>toast('♥ '+n.name+' likes you more'),300);
+    }
+  } else {
+    line = n.chat[Math.floor(Math.random()*n.chat.length)];
+  }
+  $('dlgName').firstChild.textContent=n.roman+' · '+n.name;
+  $('dlgRole').textContent=n.role;
+  $('dlgHearts').textContent=heartStr(n.id);
+  $('dlgText').textContent=line;
+  drawPortrait(n);
+  const btns=$('dlgBtns'); btns.innerHTML='';
+  // gift option if you have catch
+  const haveCatch=Object.values(G.catch).some(v=>v>0);
+  if(haveCatch && first){
+    const gift=document.createElement('button');gift.textContent='Give a gift 🎁';
+    gift.onclick=()=>giveGift(n); btns.appendChild(gift);
+  }
+  const bye=document.createElement('button');bye.className='ghost';bye.textContent='Bye';
+  bye.onclick=closeDialogue; btns.appendChild(bye);
+  $('dialogue').classList.add('show');
+  $('prompt').classList.remove('show');
+}
+function giveGift(n){
+  // give the most valuable item in catch
+  let bestId=null,bestV=-1;
+  for(const s of SPECIES){ if((G.catch[s.id]||0)>0 && s.value>bestV){bestV=s.value;bestId=s.id;} }
+  if(!bestId){return;}
+  G.catch[bestId]--; G.friendship[n.id]+=40;
+  const s=SPECIES.find(x=>x.id===bestId);
+  const okbun=(n.name==='옥분 할망');
+  $('dlgText').textContent = `(You give a fresh ${s.name}.) "` + (okbun ? "Ooh, this'll make a fine stew!" : "For me? You shouldn't have.") + `"`;
+  $('dlgHearts').textContent=heartStr(n.id);
+  toast('♥ +gift');
+  $('dlgBtns').innerHTML='';
+  const bye=document.createElement('button');bye.className='ghost';bye.textContent='Bye';bye.onclick=closeDialogue;$('dlgBtns').appendChild(bye);
+}
+function closeDialogue(){ $('dialogue').classList.remove('show'); scene=dialogBg; }
+
+/* ---------------- SLEEP / DAY CYCLE ---------------- */
+function askSleep(){
+  scene='panel';
+  $('sleepNote').textContent = G.time>17*60
+    ? "The sun's gone down over the black rocks. Rest, and dive again tomorrow."
+    : "It's still early — but you can rest if you like.";
+  $('pSleep').classList.remove('hidden'); $('prompt').classList.remove('show');
+}
+$('sleepBtn').onclick=()=>{
+  G.day++; G.time=6*60; G.talkedToday={}; G.season=Math.floor((G.day-1)/7)%4;
+  $('clkDate').textContent=SEASONS[G.season]+' · Day '+G.day;
+  $('clkTime').textContent=fmtTime(G.time);
+  P.x=240;P.y=330;
+  $('pSleep').classList.add('hidden'); scene='village';
+  toast('Day '+G.day);
+};
+$('sleepCancel').onclick=()=>{ $('pSleep').classList.add('hidden'); scene='village'; };
+
+/* ---------------- CO-OP SELL ---------------- */
+function openSell(){
+  scene='panel';
+  const list=$('sellList'); list.innerHTML=''; let total=0,any=false;
+  for(const s of SPECIES){ const n=G.catch[s.id]||0; if(n>0){any=true;const sub=n*s.value;total+=sub;
+    const row=document.createElement('div');row.className='line';
+    row.innerHTML=`<span><span class="dot" style="background:${s.color}"></span>${s.kr} ${s.name} ×${n}</span><span>${sub}</span>`;
+    list.appendChild(row);} }
+  if(any){const t=document.createElement('div');t.className='line';t.style.cssText='border:0;font-weight:700;color:var(--gold);margin-top:6px;font-size:17px';
+    t.innerHTML=`<span>Total</span><span>${total} won</span>`;list.appendChild(t);
+    $('sellNote').textContent='Migyeong weighs your net and nods.'; $('sellBtn').style.display='';}
+  else{ $('sellNote').textContent='"Your net is empty — go on, the sea is waiting."'; $('sellBtn').style.display='none'; }
+  $('pSell').classList.remove('hidden'); $('prompt').classList.remove('show');
+}
+$('sellBtn').onclick=()=>{
+  let total=0; for(const s of SPECIES){total+=(G.catch[s.id]||0)*s.value;}
+  G.money+=total; G.catch={}; $('moneyV').textContent=G.money;
+  $('pSell').classList.add('hidden'); scene='village'; toast('+'+total+' won');
+};
+$('sellClose').onclick=()=>{ $('pSell').classList.add('hidden'); scene='village'; };
+
+/* ---------------- GEAR SHOP ---------------- */
+function openStore(){
+  scene='panel'; buildStore();
+  $('pStore').classList.remove('hidden'); $('prompt').classList.remove('show');
+}
+function buildStore(){
+  $('storeWon').textContent=G.money;
+  const list=$('storeList'); list.innerHTML='';
+  const mk=(kind,label,kr,statLabel,arr,idx,fmt)=>{
+    const maxed=idx>=arr.length-1; const next=arr[Math.min(idx+1,arr.length-1)];
+    const pips=arr.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('');
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML=`<div class="info"><div class="t">${label} · ${kr}<span class="levelpips">${pips}</span></div>
+      <div class="d">${statLabel}: ${fmt(arr[idx])}${maxed?' · MAX':` → ${fmt(next)}`}</div></div>`;
+    const b=document.createElement('button');
+    b.textContent=maxed?'Maxed':`${next.cost} won`;
+    b.disabled=maxed||G.money<next.cost;
+    b.onclick=()=>{
+      const a=(kind==='wetsuit')?GEAR.wetsuit:GEAR.net;
+      const key=(kind==='wetsuit')?'wetsuitIdx':'netIdx';
+      const nx=G[key]+1; if(nx>=a.length) return;
+      if(G.money<a[nx].cost) return;
+      G.money-=a[nx].cost; G[key]=nx; $('moneyV').textContent=G.money;
+      toast('Upgraded!'); buildStore();
+    };
+    c.appendChild(b); list.appendChild(c);
+  };
+  mk('wetsuit','Wetsuit','잠수복','Breath',GEAR.wetsuit,G.wetsuitIdx,o=>o.breath);
+  mk('net','Net','망사리','Net size',GEAR.net,G.netIdx,o=>o.cap);
+}
+$('storeClose').onclick=()=>{ $('pStore').classList.add('hidden'); scene='village'; };
+
+/* ---------------- SHOP INTERIOR (walkable room) ---------------- */
+const SHOP={x0:40,y0:128,x1:440,y1:664};
+const counter={x:74,y:186,w:332,h:44};
+const standW={x:150,y:340};   // wetsuit display
+const standN={x:330,y:340};   // net display
+const exitZone={x:206,y:628,w:68,h:34};
+const keeper={name:'기철 아저씨', roman:'Mr. Gicheol', skin:'#e0bf95', scarf:'#3a6e8c', x:240, y:172};
+const KEEPER_LINES=[
+  "Everything a diver needs — suits, nets, weights. What'll it be?",
+  "A good net pays for itself in a week, I always say.",
+  "Deeper water needs a thicker suit. Don't be stubborn about it.",
+];
+let shopCur=null;
+
+function enterShop(){ scene='shop'; P.x=240; P.y=596; P.face=1; $('prompt').classList.remove('show'); }
+function leaveShop(){ scene='village'; P.x=100; P.y=478; P.face=1; $('prompt').classList.remove('show'); }
+
+function shopHit(x,y){
+  if(x>counter.x-2&&x<counter.x+counter.w+2&&y>counter.y-2&&y<counter.y+counter.h+10)return true;
+  if(Math.hypot(x-standW.x,y-standW.y)<22)return true;
+  if(Math.hypot(x-standN.x,y-standN.y)<22)return true;
+  return false;
+}
+function updateShop(dt){
+  let mx=0,my=0;
+  if(keys['arrowleft']||keys['a'])mx-=1; if(keys['arrowright']||keys['d'])mx+=1;
+  if(keys['arrowup']||keys['w'])my-=1;   if(keys['arrowdown']||keys['s'])my+=1;
+  if(joy.on&&joy.moved){const m=Math.hypot(joy.dx,joy.dy)||1;mx+=joy.dx/m;my+=joy.dy/m;}
+  const m=Math.hypot(mx,my); P.moving=m>0.1;
+  if(m>0){mx/=m;my/=m; if(mx!==0)P.face=mx>0?1:-1;
+    const nx=P.x+mx*SPEED, ny=P.y+my*SPEED;
+    if(!shopHit(nx,P.y))P.x=nx; if(!shopHit(P.x,ny))P.y=ny;}
+  P.x=Math.max(SHOP.x0+P.r,Math.min(SHOP.x1-P.r,P.x));
+  P.y=Math.max(SHOP.y0+P.r,Math.min(SHOP.y1-P.r,P.y));
+  refreshShopPrompt();
+}
+function shopNearest(){
+  let best=null,bd=44;
+  const dw=Math.hypot(P.x-standW.x,P.y-standW.y); if(dw<bd){bd=dw;best={type:'wetsuit'};}
+  const dn=Math.hypot(P.x-standN.x,P.y-standN.y); if(dn<bd){bd=dn;best={type:'net'};}
+  const dk=Math.hypot(P.x-keeper.x,P.y-(keeper.y+12)); if(dk<46&&dk<bd){bd=dk;best={type:'keeper'};}
+  if(P.x>exitZone.x-10&&P.x<exitZone.x+exitZone.w+10&&P.y>exitZone.y-24) best={type:'exit'};
+  return best;
+}
+function refreshShopPrompt(){
+  shopCur=shopNearest(); const el=$('prompt');
+  if(!shopCur){el.classList.remove('show');return;}
+  let txt='';
+  if(shopCur.type==='wetsuit'){const mx=G.wetsuitIdx>=GEAR.wetsuit.length-1;
+    txt=mx?'Wetsuit · maxed':'Buy wetsuit · '+GEAR.wetsuit[G.wetsuitIdx+1].cost+' won';}
+  else if(shopCur.type==='net'){const mx=G.netIdx>=GEAR.net.length-1;
+    txt=mx?'Net · maxed':'Buy net · '+GEAR.net[G.netIdx+1].cost+' won';}
+  else if(shopCur.type==='keeper') txt='Talk to Mr. Gicheol';
+  else if(shopCur.type==='exit') txt='Leave shop · 나가기';
+  el.textContent=txt; el.classList.add('show');
+}
+function doShopInteract(){
+  if(!shopCur)return;
+  if(shopCur.type==='exit') leaveShop();
+  else if(shopCur.type==='keeper') keeperTalk();
+  else if(shopCur.type==='wetsuit') openBuyConfirm('wetsuit');
+  else if(shopCur.type==='net') openBuyConfirm('net');
+}
+function keeperTalk(){
+  dialogBg='shop'; scene='dialogue-open';
+  drawPortrait(keeper);
+  $('dlgName').firstChild.textContent=keeper.roman+' · '+keeper.name;
+  $('dlgRole').textContent='Gear shop owner';
+  $('dlgHearts').textContent='';
+  $('dlgText').textContent=KEEPER_LINES[Math.floor(Math.random()*KEEPER_LINES.length)];
+  const btns=$('dlgBtns');btns.innerHTML='';
+  const bye=document.createElement('button');bye.className='ghost';bye.textContent='Bye';
+  bye.onclick=()=>{ $('dialogue').classList.remove('show'); scene='shop'; };
+  btns.appendChild(bye); $('dialogue').classList.add('show'); $('prompt').classList.remove('show');
+}
+function openBuyConfirm(kind){
+  const arr=kind==='wetsuit'?GEAR.wetsuit:GEAR.net;
+  const idx=kind==='wetsuit'?G.wetsuitIdx:G.netIdx;
+  if(idx>=arr.length-1){ toast(kind==='wetsuit'?'Best wetsuit already':'Best net already'); return; }
+  const nx=arr[idx+1];
+  dialogBg='shop'; scene='dialogue-open';
+  drawPortrait(keeper);
+  $('dlgName').firstChild.textContent=keeper.roman+' · '+keeper.name;
+  $('dlgRole').textContent='Gear shop owner';
+  $('dlgHearts').textContent='';
+  const stat=kind==='wetsuit'?('Breath '+arr[idx].breath+' → '+nx.breath):('Net size '+arr[idx].cap+' → '+nx.cap);
+  const afford=G.money>=nx.cost;
+  $('dlgText').textContent=(kind==='wetsuit'?'A finer wetsuit. ':'A bigger net. ')+stat+'.  Cost: '+nx.cost+' won.'+(afford?'':' (You can\'t afford it yet.)');
+  const btns=$('dlgBtns');btns.innerHTML='';
+  const buy=document.createElement('button');buy.textContent='Buy'; buy.disabled=!afford;
+  buy.onclick=()=>{ buyGear(kind); $('dialogue').classList.remove('show'); scene='shop'; };
+  const cancel=document.createElement('button');cancel.className='ghost';cancel.textContent='Cancel';
+  cancel.onclick=()=>{ $('dialogue').classList.remove('show'); scene='shop'; };
+  btns.appendChild(buy);btns.appendChild(cancel);
+  $('dialogue').classList.add('show'); $('prompt').classList.remove('show');
+}
+function buyGear(kind){
+  const arr=kind==='wetsuit'?GEAR.wetsuit:GEAR.net;
+  const key=kind==='wetsuit'?'wetsuitIdx':'netIdx';
+  const nx=G[key]+1; if(nx>=arr.length)return;
+  if(G.money<arr[nx].cost){toast('Not enough won');return;}
+  G.money-=arr[nx].cost; G[key]=nx; $('moneyV').textContent=G.money;
+  toast(kind==='wetsuit'?'New wetsuit! +breath':'New net! +capacity');
+}
+
+function drawShopIcon(kind,x,y){
+  if(kind==='wetsuit'){
+    ctx.fillStyle='#4a3a2a';ctx.fillRect(x-2,y+2,4,26);
+    ctx.fillStyle='#12303a';ctx.beginPath();ctx.ellipse(x,y-8,12,18,0,0,7);ctx.fill();
+    ctx.fillStyle='#e8714a';ctx.fillRect(x-12,y-10,24,4);
+    ctx.fillStyle='rgba(180,235,255,.6)';ctx.beginPath();ctx.arc(x,y-18,5,0,7);ctx.fill();
+  } else {
+    ctx.fillStyle='#4a3a2a';ctx.fillRect(x-2,y+8,4,18);
+    ctx.fillStyle='#e8714a';ctx.beginPath();ctx.arc(x,y-12,12,0,7);ctx.fill();
+    ctx.fillStyle='#c9512c';ctx.beginPath();ctx.ellipse(x,y-9,12,6,0,0,Math.PI);ctx.fill();
+    ctx.strokeStyle='#d9cdb0';ctx.lineWidth=1.4;
+    for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(x+i*4,y);ctx.lineTo(x+i*5,y+22);ctx.stroke();}
+    ctx.beginPath();ctx.moveTo(x-10,y+8);ctx.lineTo(x+10,y+8);ctx.stroke();
+  }
+}
+function drawShop(){
+  // floor
+  ctx.fillStyle='#8a6a44';ctx.fillRect(0,90,W,H-90);
+  ctx.strokeStyle='rgba(0,0,0,.13)';ctx.lineWidth=2;
+  for(let y=128;y<H;y+=34){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // back wall
+  ctx.fillStyle='#9c7b56';ctx.fillRect(0,90,W,68);
+  ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(0,154,W,4);
+  // wall shelf with stock
+  ctx.fillStyle='#6e4a30';ctx.fillRect(40,118,120,7); ctx.fillRect(320,118,120,7);
+  drawShopIcon('wetsuit',70,108); drawShopIcon('wetsuit',110,108);
+  drawShopIcon('net',360,110); drawShopIcon('net',405,110);
+  // counter
+  ctx.fillStyle='#5a3a24';ctx.fillRect(counter.x,counter.y,counter.w,counter.h);
+  ctx.fillStyle='#6e4a30';ctx.fillRect(counter.x,counter.y,counter.w,8);
+  // keeper behind counter
+  drawPerson(keeper.x,keeper.y,keeper.skin,keeper.scarf,1,null,false);
+  glabel(keeper.roman+' · '+keeper.name, keeper.x, keeper.y-22, 11, '#f4efe1');
+  // display stands
+  drawShopIcon('wetsuit',standW.x,standW.y);
+  glabel('Wetsuit 잠수복 ·Lv'+(G.wetsuitIdx+1), standW.x, standW.y+40, 11, '#f4efe1');
+  drawShopIcon('net',standN.x,standN.y);
+  glabel('Net 망사리 ·Lv'+(G.netIdx+1), standN.x, standN.y+40, 11, '#f4efe1');
+  // exit mat
+  ctx.fillStyle='#caa46a';ctx.fillRect(exitZone.x,exitZone.y,exitZone.w,exitZone.h);
+  glabel('← out · 나가기', exitZone.x+exitZone.w/2, exitZone.y+22, 11, '#3a2a18');
+  // player
+  drawPerson(P.x,P.y,'#e8c9a0','#f2c14e',P.face,null,true);
+}
+
+
+/* ---------------- DIVE (compact, one activity) ---------------- */
+const SURF=70, BED=H-26;
+const dv={x:W/2,y:SURF-6,vx:0,vy:0,r:13,face:1};
+let dBreath=100,dTime=0,dNet=[],dCreatures=[],dBubbles=[],dParts=[],dSumbi=0,diveCatch={};
+let divePtr={on:false,x:0,y:0};
+function divePtrSet(p){divePtr.x=p.x;divePtr.y=p.y;}
+function startDive(){
+  scene='dive'; dv.x=W/2;dv.y=SURF-6;dv.vx=dv.vy=0;
+  dBreath=maxBreath(); dTime=34; dNet=[]; diveCatch={}; dCreatures=[];dBubbles=[];dParts=[];
+  for(let i=0;i<11;i++)spawnC();
+  $('diveHud').classList.add('show'); $('surfBtn').classList.add('show'); $('prompt').classList.remove('show');
+  P.y=SEA_Y-30; // so we don't instantly re-trigger on return
+}
+function spawnC(){
+  const s=SPECIES[Math.floor(Math.random()*SPECIES.length)];
+  const depthBias = s.value/45; // valuable = deeper
+  const fr=Math.min(1,Math.max(.08, depthBias*0.6 + Math.random()*0.4));
+  dCreatures.push({s,x:36+Math.random()*(W-72),y:SURF+fr*(BED-SURF),r:s.r||11,bob:Math.random()*6.28});
+}
+function updateDive(dt){
+  let ax=0,ay=0;const A=.55;
+  if(keys['arrowleft']||keys['a'])ax-=A;if(keys['arrowright']||keys['d'])ax+=A;
+  if(keys['arrowup']||keys['w'])ay-=A;if(keys['arrowdown']||keys['s'])ay+=A;
+  if(divePtr.on){const dx=divePtr.x-dv.x,dy=divePtr.y-dv.y,m=Math.hypot(dx,dy)||1;if(m>6){ax+=dx/m*A;ay+=dy/m*A;}}
+  dv.vx+=ax;dv.vy+=ay; if(dv.y>SURF)dv.vy-=.10; dv.vx*=.9;dv.vy*=.9; dv.x+=dv.vx;dv.y+=dv.vy;
+  if(ax!==0)dv.face=ax>0?1:-1;
+  dv.x=Math.max(dv.r,Math.min(W-dv.r,dv.x));
+  if(dv.y<SURF-22){dv.y=SURF-22;dv.vy*=-.3;} if(dv.y>BED-6){dv.y=BED-6;dv.vy*=-.3;}
+  const sub=dv.y>SURF+4;
+  if(sub){ dBreath-=8*dt;
+    if(Math.random()<.25)dBubbles.push({x:dv.x+(Math.random()-.5)*8,y:dv.y-8,r:1+Math.random()*2,v:.6+Math.random()});
+    if(dBreath<=0){dBreath=0;dNet=[];dv.y=SURF-6;dv.vy=0;toast('Blackout! net lost');}
+  } else {
+    if(dNet.length>0){ for(const id of dNet)diveCatch[id]=(diveCatch[id]||0)+1; dNet=[];dSumbi=1; tone(300,.4,'sine',.05);}
+    dBreath=Math.min(maxBreath(),dBreath+42*dt);
+  }
+  if(dSumbi>0)dSumbi-=dt;
+  for(const c of dCreatures){c.bob+=dt*2;
+    if(Math.hypot(dv.x-c.x,dv.y-c.y)<dv.r+c.r){
+      if(dNet.length>=netCap()){toast('Net full — surface!');continue;}
+      dNet.push(c.s.id); tone(680,.07,'triangle',.06);
+      for(let i=0;i<7;i++)dParts.push({x:c.x,y:c.y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:1,c:c.s.color});
+      const s=SPECIES[Math.floor(Math.random()*SPECIES.length)];
+      const fr=Math.min(1,Math.max(.08,s.value/45*.6+Math.random()*.4));
+      c.s=s;c.r=s.r||11;c.x=36+Math.random()*(W-72);c.y=SURF+fr*(BED-SURF);
+    }}
+  for(const b of dBubbles){b.y-=b.v;b.x+=Math.sin(b.y*.05)*.3;}dBubbles=dBubbles.filter(b=>b.y>SURF-4);
+  for(const p of dParts){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=dt*1.6;}dParts=dParts.filter(p=>p.life>0);
+  dTime-=dt; if(dTime<=0){endDive();return;}
+  $('breathFill').style.width=(dBreath/maxBreath()*100)+'%';
+  $('breathFill').style.background=dBreath<25?'linear-gradient(90deg,#c9512c,#e8714a)':'linear-gradient(90deg,#f2c14e,#f4efe1)';
+  $('timeFill').style.width=(dTime/34*100)+'%';
+}
+function endDive(){
+  for(const id of dNet)diveCatch[id]=(diveCatch[id]||0)+1; dNet=[];
+  for(const k in diveCatch)G.catch[k]=(G.catch[k]||0)+diveCatch[k];
+  G.time+=180; if(G.time>=24*60)G.time=24*60-1;       // diving eats the afternoon
+  $('diveHud').classList.remove('show'); $('surfBtn').classList.remove('show');
+  // result panel
+  const list=$('diveList');list.innerHTML='';let any=false,val=0;
+  for(const s of SPECIES){const n=diveCatch[s.id]||0;if(n>0){any=true;val+=n*s.value;
+    const row=document.createElement('div');row.className='line';
+    row.innerHTML=`<span><span class="dot" style="background:${s.color}"></span>${s.kr} ${s.name}</span><span>×${n}</span>`;list.appendChild(row);}}
+  if(!any)list.innerHTML='<div class="line"><span>Empty net…</span><span></span></div>';
+  $('diveNote').textContent = any? 'Take it to the co-op (어촌계) to sell.' : 'The sea was quiet today.';
+  scene='panel'; $('pDive').classList.remove('hidden');
+}
+$('surfBtn').onclick=()=>endDive();
+$('diveClose').onclick=()=>{ $('pDive').classList.add('hidden'); scene='village'; P.y=SEA_Y-34; };
+
+/* ---------------- DRAW ---------------- */
+function drawVillage(){
+  // grass
+  ctx.fillStyle='#5a7d4a';ctx.fillRect(0,90,W,SEA_Y-90);
+  // texture dapples
+  ctx.fillStyle='rgba(80,110,64,.5)';
+  for(let i=0;i<60;i++){const x=(i*97)%W,y=100+((i*53)%(SEA_Y-110));ctx.fillRect(x,y,3,3);}
+  // paths
+  ctx.fillStyle='#caa46a';
+  ctx.fillRect(220,180,40,SEA_Y-180);            // vertical spine
+  ctx.fillRect(80,300,320,30);                   // crossing
+  // sea
+  const sg=ctx.createLinearGradient(0,SEA_Y,0,H);
+  sg.addColorStop(0,'#3fa8b8');sg.addColorStop(1,'#15596a');ctx.fillStyle=sg;ctx.fillRect(0,SEA_Y,W,H-SEA_Y);
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.beginPath();
+  for(let x=0;x<=W;x+=12){const y=SEA_Y+Math.sin(x*.06+performance.now()*.002)*3;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
+  // shore path into sea
+  ctx.fillStyle='#b7b0a0';ctx.fillRect(224,SEA_Y-26,32,40);
+  // sea label
+  glabel('↓ the sea · 바다', W/2, SEA_Y+34, 13, '#f4efe1');
+
+  // buildings
+  for(const b of buildings) drawBuilding(b);
+  // NPCs
+  for(const n of NPCS) drawPerson(n.x,n.y,n.skin,n.scarf,1,n);
+  // player
+  drawPerson(P.x,P.y,'#e8c9a0','#f2c14e',P.face,null,true);
+}
+// outlined label that renders Korean correctly (Gowun Batang supports Hangul + Latin)
+function glabel(text,x,y,size,color){
+  ctx.font=`700 ${size}px "Gowun Batang", serif`; ctx.textAlign='center';
+  ctx.lineWidth=3.5; ctx.lineJoin='round'; ctx.strokeStyle='rgba(7,28,34,.9)';
+  ctx.strokeText(text,x,y);
+  ctx.fillStyle=color||'#f4efe1'; ctx.fillText(text,x,y);
+}
+function drawBuilding(b){
+  if(b.name==='bulteok'){ // open stone ring with fire
+    ctx.strokeStyle='#3a3a3a';ctx.lineWidth=8;ctx.beginPath();
+    ctx.ellipse(b.x+b.w/2,b.y+b.h/2,b.w/2,b.h/2,0,0,7);ctx.stroke();
+    ctx.fillStyle='rgba(232,113,74,.9)';ctx.beginPath();ctx.arc(b.x+b.w/2,b.y+b.h/2,7+Math.sin(performance.now()*.006)*2,0,7);ctx.fill();
+    ctx.fillStyle='#f2c14e';ctx.beginPath();ctx.arc(b.x+b.w/2,b.y+b.h/2,3,0,7);ctx.fill();
+    glabel('Bulteok 불턱', b.x+b.w/2, b.y-6, 12, '#f4efe1');
+    return;
+  }
+  // wall
+  ctx.fillStyle='#e8e0cf';ctx.fillRect(b.x,b.y+b.h*0.34,b.w,b.h*0.66);
+  ctx.strokeStyle='rgba(0,0,0,.15)';ctx.lineWidth=1;ctx.strokeRect(b.x,b.y+b.h*0.34,b.w,b.h*0.66);
+  // roof
+  ctx.fillStyle=b.roof||'#9c6b3a';
+  ctx.beginPath();ctx.moveTo(b.x-6,b.y+b.h*0.4);ctx.lineTo(b.x+b.w/2,b.y);ctx.lineTo(b.x+b.w+6,b.y+b.h*0.4);ctx.closePath();ctx.fill();
+  // door
+  ctx.fillStyle='#5a3a24';ctx.fillRect(b.x+b.w/2-9,b.y+b.h-22,18,22);
+  if(b.label) glabel(b.en+' '+b.label, b.x+b.w/2, b.y+b.h*0.34-6, 12, '#f4efe1');
+}
+function drawPerson(x,y,skin,scarf,face,npc,isPlayer){
+  ctx.save();ctx.translate(x,y);
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,12,11,4,0,0,7);ctx.fill();
+  ctx.scale(face,1);
+  // body
+  ctx.fillStyle=isPlayer?'#2b6e63':'#3a4a52';ctx.beginPath();ctx.ellipse(0,2,9,12,0,0,7);ctx.fill();
+  // head
+  ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-12,8,0,7);ctx.fill();
+  // scarf
+  ctx.fillStyle=scarf;ctx.beginPath();ctx.arc(0,-15,9,Math.PI,0);ctx.fill();ctx.fillRect(-9,-16,18,4);
+  ctx.restore();
+  // name + hearts above NPC
+  if(npc){
+    glabel(npc.roman+' · '+npc.name, x, y-26, 11, '#f4efe1');
+    const h=hearts(npc.id); if(h>0){ctx.fillStyle='#e8714a';ctx.font='10px serif';ctx.textAlign='center';ctx.fillText('♥'.repeat(h),x,y-38);}
+  }
+}
+
+/* draw the dive scene */
+function drawDive(){
+  const g=ctx.createLinearGradient(0,SURF,0,BED+20);
+  g.addColorStop(0,'#3fa8b8');g.addColorStop(.45,'#1d6e80');g.addColorStop(1,'#06222c');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const sky=ctx.createLinearGradient(0,0,0,SURF);sky.addColorStop(0,'#e9d9c2');sky.addColorStop(1,'#9ccfc9');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,SURF);
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=2;ctx.beginPath();
+  for(let x=0;x<=W;x+=12){const y=SURF+Math.sin(x*.06+performance.now()*.002)*3;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
+  // tewak
+  ctx.fillStyle='#e8714a';ctx.beginPath();ctx.ellipse(W/2,SURF-6,15,11,0,0,7);ctx.fill();
+  // bed
+  ctx.fillStyle='#0a2630';ctx.beginPath();ctx.moveTo(0,BED);for(let x=0;x<=W;x+=24)ctx.lineTo(x,BED+Math.sin(x*.1)*4);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  // creatures
+  for(const c of dCreatures){const y=c.y+Math.sin(c.bob)*2;ctx.fillStyle=c.s.color;ctx.beginPath();ctx.arc(c.x,y,c.r,0,7);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(c.x-c.r*.3,y-c.r*.3,c.r*.35,0,7);ctx.fill();}
+  ctx.fillStyle='rgba(220,250,255,.5)';for(const b of dBubbles){ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,7);ctx.fill();}
+  for(const p of dParts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill();ctx.globalAlpha=1;}
+  // diver
+  ctx.save();ctx.translate(dv.x,dv.y);ctx.scale(dv.face,1);
+  ctx.fillStyle='#12303a';ctx.beginPath();ctx.ellipse(0,0,dv.r*.8,dv.r,0,0,7);ctx.fill();
+  ctx.fillStyle='#e8714a';ctx.fillRect(-dv.r*.8,-2,dv.r*1.6,3);
+  ctx.fillStyle='#e8c9a0';ctx.beginPath();ctx.arc(dv.r*.5,-dv.r*.7,dv.r*.5,0,7);ctx.fill();
+  ctx.fillStyle='rgba(180,235,255,.7)';ctx.beginPath();ctx.arc(dv.r*.62,-dv.r*.78,dv.r*.28,0,7);ctx.fill();ctx.restore();
+  // net counter
+  ctx.fillStyle='rgba(244,239,225,.9)';ctx.font='700 13px "Space Mono",monospace';ctx.textAlign='left';
+  ctx.fillText('Net '+dNet.length+'/'+netCap(),14,40);
+  if(dSumbi>0){ctx.globalAlpha=Math.min(1,dSumbi);ctx.fillStyle='#f4efe1';ctx.font='700 20px "Gowun Batang",serif';
+    ctx.textAlign='center';ctx.fillText('휴— (gasp)',dv.x,SURF-16);ctx.globalAlpha=1;}
+}
+
+/* draw joystick */
+function drawJoy(){
+  if(!joy.on||!joy.moved)return;
+  ctx.fillStyle='rgba(244,239,225,.18)';ctx.beginPath();ctx.arc(joy.bx,joy.by,34,0,7);ctx.fill();
+  const m=Math.min(28,Math.hypot(joy.dx,joy.dy)),a=Math.atan2(joy.dy,joy.dx);
+  ctx.fillStyle='rgba(244,239,225,.5)';ctx.beginPath();ctx.arc(joy.bx+Math.cos(a)*m,joy.by+Math.sin(a)*m,15,0,7);ctx.fill();
+}
+
+/* ---------------- LOOP ---------------- */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(scene==='village'){updateVillage(dt);drawVillage();drawJoy();}
+  else if(scene==='shop'){updateShop(dt);drawShop();drawJoy();}
+  else if(scene==='dialogue-open'){ if(dialogBg==='shop')drawShop(); else drawVillage(); }
+  else if(scene==='dive'){updateDive(dt);drawDive();}
+  else if(scene==='panel'){ if($('pDive').classList.contains('hidden'))drawVillage(); else drawDive(); }
+  else if(scene==='title'){drawVillage();}
+  if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.remove('show');}
+  requestAnimationFrame(frame);
+}
+
+$('startBtn').onclick=()=>{ $('pTitle').classList.add('hidden'); scene='village';
+  $('clkDate').textContent=SEASONS[0]+' · Day 1'; };
+
+function restartGame(){
+  G.day=1; G.money=0; G.time=6*60; G.season=0; G.catch={}; G.talkedToday={};
+  G.wetsuitIdx=0; G.netIdx=0;
+  NPCS.forEach(n=>G.friendship[n.id]=0);
+  P.x=240; P.y=330; P.face=1;
+  ['pSleep','pSell','pDive','pStore'].forEach(id=>$(id).classList.add('hidden'));
+  $('dialogue').classList.remove('show');
+  $('diveHud').classList.remove('show'); $('surfBtn').classList.remove('show');
+  $('prompt').classList.remove('show');
+  $('moneyV').textContent='0';
+  $('clkTime').textContent='6:00'; $('clkDate').textContent=SEASONS[0]+' · Day 1';
+  $('pTitle').classList.remove('hidden'); scene='title';
+}
+$('restartBtn').onclick=restartGame;
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

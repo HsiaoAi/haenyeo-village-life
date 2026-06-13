@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jeju Cultural Assets</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#4a3a2c; --paper:#f6efde; --paper2:#efe4c8; --gold:#d59f2e; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:
+      radial-gradient(120% 90% at 50% 0%, #fbf7ec, #efe6cf 70%, #e7dcc0);
+      min-height:100%;font-family:'Gowun Batang',serif;color:var(--ink);}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 72px;}
+  header{text-align:center;margin-bottom:34px;}
+  header .kr{font-size:13px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);
+    font-family:'Space Mono',monospace;margin-bottom:10px;}
+  header h1{font-size:34px;margin:0 0 8px;font-weight:700;}
+  header p{margin:0 auto;max-width:560px;font-size:15px;line-height:1.55;color:#7a6a52;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:26px;}
+  .card{background:linear-gradient(180deg,#fffdf6,#f3ead2);border-radius:22px;
+    border:2px solid #e2d3ac;box-shadow:0 14px 30px rgba(120,96,52,.14);
+    padding:22px 22px 20px;display:flex;flex-direction:column;
+    cursor:pointer;transition:transform .16s ease, box-shadow .16s ease;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 20px 38px rgba(120,96,52,.2);}
+  .card:active{transform:translateY(-1px);}
+  .stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;gap:18px;
+    background:
+      linear-gradient(0deg,rgba(140,193,99,.20),rgba(140,193,99,.06)),
+      repeating-linear-gradient(45deg,rgba(0,0,0,.012) 0 9px,transparent 9px 18px);
+    border-radius:14px;padding:16px;min-height:240px;overflow:hidden;}
+  canvas{display:block;}
+  .examine{position:absolute;bottom:10px;right:10px;display:flex;align-items:center;gap:6px;
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.04em;color:#6b5b40;
+    background:rgba(255,253,246,.86);border:1px solid #e2d3ac;border-radius:99px;
+    padding:5px 11px 5px 9px;opacity:0;transform:translateY(4px);transition:.18s ease;}
+  .card:hover .examine{opacity:1;transform:translateY(0);}
+  .examine svg{width:13px;height:13px;}
+  .meta{margin-top:16px;}
+  .meta .kr{font-size:12px;letter-spacing:.3em;color:var(--gold);font-family:'Space Mono',monospace;}
+  .meta h2{margin:3px 0 6px;font-size:20px;}
+  .meta p{margin:0;font-size:13.5px;line-height:1.5;color:#7a6a52;}
+  .tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+  .tags span{font-size:11px;font-family:'Space Mono',monospace;color:#8a7858;
+    background:rgba(213,159,46,.13);border:1px solid rgba(213,159,46,.3);
+    border-radius:99px;padding:3px 9px;}
+  footer{text-align:center;margin-top:34px;font-size:12.5px;color:#9a8a6e;}
+
+  /* ===== examine modal ===== */
+  #modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+    padding:24px;background:radial-gradient(120% 90% at 50% 10%,rgba(40,30,18,.5),rgba(24,18,10,.74));
+    backdrop-filter:blur(3px);}
+  #modal.show{display:flex;animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .sheet{position:relative;width:min(680px,100%);max-height:92vh;overflow:auto;
+    background:linear-gradient(180deg,#fffdf6,#f1e7cd);border-radius:26px;border:2px solid #e2d3ac;
+    box-shadow:0 40px 80px rgba(0,0,0,.5);display:grid;grid-template-columns:1fr 1fr;
+    animation:rise .26s cubic-bezier(.2,.85,.25,1);}
+  @keyframes rise{from{transform:translateY(20px) scale(.97);opacity:.4}to{transform:none;opacity:1}}
+  .sheet .view{display:flex;align-items:center;justify-content:center;padding:26px;
+    background:
+      radial-gradient(70% 60% at 50% 42%, rgba(255,250,232,.9), rgba(140,193,99,.16) 70%, rgba(106,166,71,.10)),
+      repeating-linear-gradient(45deg,rgba(0,0,0,.012) 0 9px,transparent 9px 18px);
+    border-right:2px solid #e9dcbc;border-radius:26px 0 0 26px;}
+  .sheet .body{padding:30px 28px 28px;display:flex;flex-direction:column;}
+  .sheet .kr{font-size:12px;letter-spacing:.32em;color:var(--gold);font-family:'Space Mono',monospace;}
+  .sheet h2{margin:5px 0 14px;font-size:26px;}
+  .sheet p{margin:0 0 16px;font-size:14.5px;line-height:1.62;color:#6f5f47;}
+  .sheet .tags{margin-top:auto;}
+  .close{position:absolute;top:14px;right:16px;width:34px;height:34px;border-radius:50%;
+    border:1.5px solid #e2d3ac;background:rgba(255,253,246,.92);color:#6b5b40;cursor:pointer;
+    font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .close:hover{background:#fff;}
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr;}
+    .sheet{grid-template-columns:1fr;}
+    .sheet .view{border-right:none;border-bottom:2px solid #e9dcbc;border-radius:26px 26px 0 0;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kr">제주 · Jeju Island</div>
+      <h1>Cultural Asset Set</h1>
+      <p>The village's signature elements, redrawn for authenticity in the same cute,
+         rounded, thick-outline flat style. Tap any piece to examine it.</p>
+    </header>
+    <div class="grid" id="grid"></div>
+    <footer>Flat-illustration asset set · drawn live with the game's own renderer</footer>
+  </div>
+
+  <div id="modal">
+    <div class="sheet" role="dialog" aria-modal="true">
+      <button class="close" id="mClose" aria-label="Close">✕</button>
+      <div class="view"><canvas id="mCanvas" width="320" height="300"></canvas></div>
+      <div class="body">
+        <div class="kr" id="mKr"></div>
+        <h2 id="mName"></h2>
+        <p id="mLong"></p>
+        <div class="tags" id="mTags"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- minimal globals the renderer expects, then the real renderer -->
+  <script>
+    var W = 960, H = 600;
+    var G = { time: 720, day: 1, weather: 'sunny' };
+    var cv = document.createElement('canvas');
+    var ctx = cv.getContext('2d');
+    var frame = function(){};   // no-op: this sheet draws statically, not the game loop
+  </script>
+  <script src="render-atashinchi.js"></script>
+  <script>
+  (function(){
+    const DPR = Math.max(2, window.devicePixelRatio || 1);
+
+    // ----- asset registry: each draws itself centered into a canvas of (w,h) -----
+    const ASSETS = [
+      { id:'har', kr:'돌하르방 · Dol Hareubang', name:'Grandfather stones',
+        short:'Carved from porous black basalt — mushroom-domed hat, bulging round eyes, a big garlic nose, closed mouth, and both hands folded on the belly.',
+        long:'Standing watch at village gates, the dol hareubang — "stone grandfather" — is carved from a single block of volcanic basalt. The domed hat, bulging eyes and hands folded on the belly were believed to ward off harm and bring fertility. Pairs once flanked the entrances of Jeju\u2019s fortress towns.',
+        tags:['basalt','mushroom hat','pit-holes','hands on belly'],
+        draw(g,w,h){ const sc=Math.min(w/96, h/74)*0.92, cx=w/2, baseY=h/2+30*sc, gap=27*sc;
+          drawHareubang(g, cx-gap, baseY, sc); drawHareubangFlower(g, cx+gap, baseY, sc); } },
+
+      { id:'house', kr:'초가집 · Chogajip', name:'Thatched house',
+        short:'A domed straw roof lashed down in a grid of straw ropes (jipjul) with knots — the way Jeju roofs survive the island\u2019s fierce winds.',
+        long:'Low and rounded to duck under the wind, the chogajip\u2019s straw roof is bound in a tight net of rice-straw rope (jipjul), re-tied by hand each year. The walls are stacked basalt, and the bright wooden lattice doors slide open onto the yard.',
+        tags:['rope net','straw dome','basalt base'],
+        draw(g,w,h){ const bw=Math.min(w*0.78, h*1.08), bh=bw*0.7, bx=(w-bw)/2, by=(h-bh)/2-4;
+          drawJejuHouse(g, {x:bx, y:by, w:bw, h:bh}); } },
+
+      { id:'wall', kr:'밭담 · Batdam', name:'Dry-stone walls',
+        short:'Irregular dark basalt stones stacked without mortar, leaving the open gaps and holes that let Jeju\u2019s wind pass straight through.',
+        long:'Winding more than 20,000 km across the island, Jeju\u2019s batdam are stacked entirely by hand with no mortar. The deliberate gaps let typhoon winds blow straight through, so the walls flex but rarely topple — a "black dragon" snaking through the fields.',
+        tags:['dark basalt','dry-stacked','visible gaps'],
+        draw(g,w,h){ const m=Math.max(20,w*0.08), x=m, ww=w-2*m, rh=15, n=3, y0=h/2-(n*rh+ (n-1)*6)/2;
+          for(let i=0;i<n;i++){ drawWall(g, x, y0+i*(rh+6), ww, rh); } } },
+
+      { id:'tree', kr:'감귤 · Gamgyul', name:'Tangerine trees',
+        short:'Jeju\u2019s emblem fruit — round leafy canopies hung with bright little mandarins, planted as a small orchard in the village.',
+        long:'Once sent to royal courts as winter tribute, the gamgyul mandarin is now Jeju\u2019s signature crop. Glossy groves hang heavy with fruit each winter, framed everywhere by the island\u2019s black stone walls.',
+        tags:['mandarins','orchard','island icon'],
+        draw(g,w,h){ const sc=Math.min(w/74, h/76)*0.94; drawTangerineTree(g, w/2, h/2+32*sc, sc); } },
+    ];
+
+    function prep(c){
+      const w=c.width, h=c.height;
+      if(!c.dataset.scaled){ c.width=Math.round(w*DPR); c.height=Math.round(h*DPR);
+        c.style.width=w+'px'; c.style.height=h+'px'; c.dataset.scaled='1'; c._w=w; c._h=h; }
+      const g=c.getContext('2d'); g.setTransform(DPR,0,0,DPR,0,0); g.imageSmoothingEnabled=true;
+      g.clearRect(0,0,c._w,c._h); return {g,w:c._w,h:c._h};
+    }
+
+    // ----- build cards -----
+    const grid=document.getElementById('grid');
+    const eye=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`;
+    ASSETS.forEach(a=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`
+        <div class="stage">
+          <canvas width="${a.id==='wall'?320:300}" height="${a.id==='wall'?200:240}"></canvas>
+          <div class="examine">${eye} Examine</div>
+        </div>
+        <div class="meta">
+          <div class="kr">${a.kr}</div>
+          <h2>${a.name}</h2>
+          <p>${a.short}</p>
+          <div class="tags">${a.tags.map(t=>`<span>${t}</span>`).join('')}</div>
+        </div>`;
+      const {g,w,h}=prep(card.querySelector('canvas')); a.draw(g,w,h);
+      card.addEventListener('click',()=>openModal(a));
+      grid.appendChild(card);
+    });
+
+    // ----- examine modal (with a gentle idle bob) -----
+    const modal=document.getElementById('modal'), mCanvas=document.getElementById('mCanvas');
+    let raf=null, cur=null, t0=0;
+    function openModal(a){
+      cur=a;
+      document.getElementById('mKr').textContent=a.kr;
+      document.getElementById('mName').textContent=a.name;
+      document.getElementById('mLong').textContent=a.long;
+      document.getElementById('mTags').innerHTML=a.tags.map(t=>`<span>${t}</span>`).join('');
+      modal.classList.add('show'); t0=performance.now(); loop();
+    }
+    function loop(){
+      const {g,w,h}=prep(mCanvas);
+      const bob=Math.sin((performance.now()-t0)*0.0022)*4;
+      g.save(); g.translate(0,bob); cur.draw(g,w,h); g.restore();
+      raf=requestAnimationFrame(loop);
+    }
+    function closeModal(){ modal.classList.remove('show'); if(raf) cancelAnimationFrame(raf); raf=null; cur=null; }
+    document.getElementById('mClose').addEventListener('click',closeModal);
+    modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+    addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+  })();
+  </script>
+</body>
+</html>

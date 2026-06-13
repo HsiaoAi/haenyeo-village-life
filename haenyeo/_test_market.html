@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Market Test</title>
+<style>body{margin:0;background:#222;}canvas{display:block;margin:0 auto;}</style>
+</head><body>
+<canvas id="c" width="960" height="600"></canvas>
+<script src="game.js"></script>
+<script src="render-atashinchi.js"></script>
+<script src="phone.js"></script>
+<script src="music.js"></script>
+<script>
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    // Force market scene render
+    scene='market';
+    P.x=480;P.y=552;P.face=1;
+    if(typeof buildMarketBG==='function'){
+      marketBG=null;
+      drawMarket();
+    }
+  },300);
+});
+</script>
+</body></html>
