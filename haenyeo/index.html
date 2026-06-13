@@ -423,6 +423,9 @@
 </div>
 <div id="wrap"><div id="stage">
   <canvas id="c"></canvas>
+  <!-- the drive-in beach movie reel; drawn onto the canvas screen, kept off-screen itself -->
+  <video id="bgmovie" src="movie.mp4" muted loop playsinline autoplay preload="auto"
+    style="position:absolute;width:2px;height:2px;left:-9999px;top:0;opacity:0;pointer-events:none"></video>
 
   <div id="hud">
     <div id="clock" class="mono"><span class="calSun"></span><span class="calTop" id="clkDate">Spring · Day 1</span><span class="calTime" id="clkTime">6:00</span></div>
@@ -719,7 +722,7 @@
 </div></div>
 
 <script src="game.js?v=21"></script>
-<script src="render-atashinchi.js?v=30"></script>
+<script src="render-atashinchi.js?v=31"></script>
 <script src="restaurant.js?v=6"></script>
 <script src="phone.js"></script>
 <script src="music.js"></script>

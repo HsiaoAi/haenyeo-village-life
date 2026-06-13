@@ -1325,49 +1325,18 @@ function drawBeachCompanions(t){
     inked(ctx,'#5a3a22',2.4);rr(ctx,96,498,8,60,2);fillStroke(ctx);rr(ctx,236,498,8,60,2);fillStroke(ctx);
     inked(ctx,'#11161f',3);rr(ctx,84,452,168,92,4);fillStroke(ctx);
     ctx.save();rr(ctx,90,458,156,80,3);ctx.clip();
-    // ---- K-pop MV: color-cycling stage, sweeping spotlights, four idols in sync ----
-    const beat=t*3.4;
-    const mvHues=[[58,28,72],[24,38,84],[84,26,58]];                 // plum → indigo → magenta wash
-    const hp=(t*0.25)%3, hi=Math.floor(hp), hf=hp-hi;
-    const hc0=mvHues[hi], hc1=mvHues[(hi+1)%3], hmix=(a,b)=>Math.round(a+(b-a)*hf);
-    ctx.fillStyle=`rgb(${hmix(hc0[0],hc1[0])},${hmix(hc0[1],hc1[1])},${hmix(hc0[2],hc1[2])})`;
-    ctx.fillRect(84,458,168,80);
-    ctx.save();ctx.globalAlpha=0.22;                                 // sweeping beams
-    for(const [px,ph,col] of [[104,0,'#ffd2e8'],[232,2.1,'#cfe2ff'],[168,4.2,'#fff2c0']]){
-      const sw=Math.sin(t*1.3+ph)*30;
-      ctx.fillStyle=col;ctx.beginPath();
-      ctx.moveTo(px,458);ctx.lineTo(px+sw-9,536);ctx.lineTo(px+sw+9,536);ctx.closePath();ctx.fill();
+    // ---- the feature presentation: the village's movie reel, played on the screen ----
+    const mov = window.__beachMovie || (window.__beachMovie = document.getElementById('bgmovie'));
+    if(mov && mov.readyState>=2 && mov.videoWidth){
+      if(mov.paused){ try{ mov.play(); }catch(e){} }
+      const sw=mov.videoWidth, sh=mov.videoHeight, dw=168, dh=80;     // cover the screen with no distortion
+      const sc=Math.max(dw/sw, dh/sh), cw=dw/sc, ch=dh/sc;
+      ctx.fillStyle='#000';ctx.fillRect(84,458,168,80);
+      try{ ctx.drawImage(mov, (sw-cw)/2, (sh-ch)/2, cw, ch, 84, 458, 168, 80); }catch(e){}
+      const fl=0.9+0.1*Math.sin(t*9);ctx.fillStyle=`rgba(255,255,255,${(0.04*fl).toFixed(3)})`;ctx.fillRect(84,458,168,80);   // soft projector flicker
+    } else {
+      ctx.fillStyle='#11161f';ctx.fillRect(84,458,168,80);            // reel still threading up
     }
-    ctx.restore();
-    ctx.fillStyle='#1a1430';ctx.fillRect(84,524,168,14);             // glittering stage floor
-    for(let i=0;i<7;i++){const gx=92+i*23+((i*37)%9), ga=0.5+0.5*Math.sin(t*5+i*2.4);
-      ctx.globalAlpha=0.35*ga;ctx.fillStyle='#fff';ctx.fillRect(gx,527+(i%3)*3,2,2);}
-    ctx.globalAlpha=1;
-    const outfits=['#ff7eb3','#8fc6ff','#ffd166','#b8f0c8'];         // the four idols
-    for(let i=0;i<4;i++){
-      const dxp=112+i*37, ph=Math.sin(beat+i*0.3);                   // staggered down the line
-      const dyp=524-Math.max(0,ph)*3;                                // little hop on the beat
-      const arm=ph*0.9;                                              // synced arm wave
-      ctx.save();ctx.translate(dxp,dyp);
-      ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,1.5,6,1.6,0,0,7);ctx.fill();
-      ctx.strokeStyle='#15102a';ctx.lineWidth=2;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(-2,-8);ctx.lineTo(-3+ph*1.5,0);ctx.moveTo(2,-8);ctx.lineTo(3-ph*1.5,0);ctx.stroke();
-      ctx.fillStyle=outfits[i];rr(ctx,-4,-17,8,10,3);ctx.fill();
-      ctx.strokeStyle=outfits[i];ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(-4,-15);ctx.lineTo(-4-Math.cos(arm)*6,-15-Math.sin(arm)*6);
-      ctx.moveTo(4,-15);ctx.lineTo(4+Math.cos(arm)*6,-15-Math.sin(arm)*6);ctx.stroke();
-      ctx.fillStyle='#f1cba2';ctx.beginPath();ctx.arc(0,-21,4,0,7);ctx.fill();
-      ctx.fillStyle='#241f1b';ctx.beginPath();ctx.arc(0,-21.5,4.3,Math.PI*0.92,Math.PI*2.08);ctx.fill();
-      ctx.restore();
-    }
-    ctx.fillStyle='#ff9ec4';                                         // fan hearts drifting up
-    for(let i=0;i<3;i++){const fph=(t*0.5+i*0.33)%1, hxp=98+i*52+Math.sin(t+i)*4, hyp=534-fph*64;
-      ctx.globalAlpha=1-fph;
-      ctx.save();ctx.translate(hxp,hyp);
-      ctx.beginPath();ctx.moveTo(0,2.4);ctx.bezierCurveTo(-3.4,-0.6,-1.6,-3.4,0,-1.4);ctx.bezierCurveTo(1.6,-3.4,3.4,-0.6,0,2.4);ctx.fill();
-      ctx.restore();}
-    ctx.globalAlpha=1;
-    const fl=0.85+0.15*Math.sin(t*9);ctx.fillStyle=`rgba(255,255,255,${(0.07*fl).toFixed(3)})`;ctx.fillRect(84,458,168,80);   // projector flicker
     ctx.restore();
     ctx.strokeStyle=MIN.ink;ctx.lineWidth=3;rr(ctx,84,452,168,92,4);ctx.stroke();
     // ---- the car they sit ON to watch (drive-in) ----
