@@ -99,7 +99,7 @@
     const dive   = (W.scene==='dive');
     let mv = W.vol;
     if(indoor) mv = W.vol*0.32;
-    else if(dive) mv = W.vol*0.55;          // surface muffled when underwater
+    else if(dive) mv = 0;                   // underwater: the surface waves fall silent
     W.master.gain.setTargetAtTime(W.started?mv:0, now, 0.4);
     setTimeout(ramp, 120);
   }
