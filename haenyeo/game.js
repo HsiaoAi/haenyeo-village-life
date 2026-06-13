@@ -381,19 +381,13 @@ const LOUNGER={x:140,y:588};   // the right-hand deck chair under the beach para
 const SPEED=2.4;
 const CLOCK_RATE=15;   // in-game minutes per real second — the day flows on its own
 function tickClock(dt){
-  // 23:59 — the witching hour. Hold the clock steady (re-adding here would make it
-  // oscillate and the moon jitter) and send the diver home to bed, just once.
-  if(G.time>=24*60-1){
-    G.time=24*60-1;
-    if(!tickClock._forced){ tickClock._forced=true; forceSleep(); }
-    $('clkTime').textContent=fmtTime(G.time);
-    return;
-  }
   G.time+=dt*CLOCK_RATE; G.energy=Math.max(0, G.energy-dt*ENERGY_TIME_DRAIN);   // the day slowly tires you
+  if(G.time>=24*60){ G.time-=24*60; tickClock._past=true; }   // past midnight, on through the small hours
+  if(tickClock._past && G.time>=6*60){ newDay(); return; }    // 6:00 — dawn breaks; the next day begins on its own
   $('clkTime').textContent=fmtTime(G.time);
   { const nm=(typeof nightAmt==='function')?nightAmt(G.time):0; $('clock').classList.toggle('night', nm>0.45); }
-  // gentle nudges — but sleeping is the player's choice now; energy is the real pacer
-  if(!tickClock._late && G.time>=20*60){ tickClock._late=true; toast('Evening · sleep at home whenever you\'re ready'); }
+  // gentle nudges — sleeping is the player's choice; the day rolls over by itself at dawn
+  if(!tickClock._late && G.time>=20*60){ tickClock._late=true; toast('Evening · rest whenever you\'re ready'); }
   if(!tickClock._curfew && G.time>=22*60){ tickClock._curfew=true; toast('22:00 · the villagers head home for the night'); }
   updateEnergyHud();
 }
@@ -509,7 +503,7 @@ function npcPickTarget(n){
   n.tx=n.x; n.ty=n.y;
 }
 function updateNPCs(dt){
-  const curfew = (typeof G!=='undefined') && G.time>=22*60;   // 22:00 — everyone heads home
+  const curfew = (typeof G!=='undefined') && (G.time>=22*60 || G.time<6*60);   // 22:00 till dawn — everyone's home for the night
   for(const n of NPCS){
     if(n.talking){ n.moving=false; continue; }              // freeze whoever you're chatting with
     if(n.atHome){ n.moving=false; continue; }                // already tucked in for the night
@@ -735,47 +729,41 @@ function giveGift(n){
 function closeDialogue(){ $('dialogue').classList.remove('show'); if(dlg.npc)dlg.npc.talking=false; scene=dialogBg; }
 
 /* ---------------- SLEEP / DAY CYCLE ---------------- */
-function askSleep(){
-  scene='panel'; panelBg='home';
-  const cancel=$('sleepCancel'); if(cancel) cancel.style.display='';   // a normal night: resting is optional
-  $('sleepNote').textContent = G.time>17*60
-    ? "The sun's gone down over the black rocks. Rest, and dive again tomorrow."
-    : "It's still early — but you can rest if you like.";
+let sleepReturn='home';   // where 'Not yet' returns you — the home, or back out by the bulteok
+function askSleep(from){
+  sleepReturn = from || 'home';
+  scene='panel'; panelBg = (sleepReturn==='home') ? 'home' : 'village';
+  const cancel=$('sleepCancel'); if(cancel) cancel.style.display='';   // resting is always the player's choice
+  $('sleepNote').textContent = (sleepReturn==='bulteok')
+    ? "You settle onto the warm stone by the bulteok fire. Rest here, and dive again tomorrow."
+    : (G.time>17*60
+        ? "The sun's gone down over the black rocks. Rest, and dive again tomorrow."
+        : "It's still early — but you can rest if you like.");
   $('pSleep').classList.remove('hidden'); $('prompt').classList.remove('show');
 }
-/* 23:59 curfew — the diver is sent home and put straight to bed, no choice */
-function forceSleep(){
-  $('dialogue').classList.remove('show');
-  if(dlg && dlg.npc){ dlg.npc.talking=false; }
-  ['pSell','pDive','pDiveStart','pBeach','pStore','pCook','pChange','pStatue','pBulteok'].forEach(id=>{const e=$(id);if(e)e.classList.add('hidden');});
-  const dh=$('diveHud'); if(dh) dh.classList.remove('show');
-  const sb=$('surfBtn'); if(sb) sb.classList.remove('show');
-  const bh=$('beachHud'); if(bh) bh.classList.remove('show');
-  const lb=$('leaveBeachBtn'); if(lb) lb.classList.remove('show');
-  P.sitting=false; P.x=494; P.y=556; P.face=1;         // back inside the home
-  scene='panel'; panelBg='home';
-  $('sleepNote').textContent = "It's nearly midnight — you can't keep your eyes open. You head home and fall fast asleep.";
-  const cancel=$('sleepCancel'); if(cancel) cancel.style.display='none';   // no choice at the witching hour
-  $('pSleep').classList.remove('hidden'); $('prompt').classList.remove('show');
-  toast('Midnight · time to sleep');
-}
-$('sleepBtn').onclick=()=>{
-  G.day++; G.time=6*60; G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false; G.season=Math.floor((G.day-1)/7)%4;
-  G.energy=100; updateEnergyHud();   // a night's rest restores your stamina
-  tickClock._late=false; tickClock._curfew=false; tickClock._forced=false;
-  const cancel=$('sleepCancel'); if(cancel) cancel.style.display='';
-  rollWeather(true);
+/* roll the calendar to a fresh dawn — whether the diver slept, rested at the fire, or simply stayed up till 6:00 */
+function newDay(){
+  G.day++; G.season=Math.floor((G.day-1)/7)%4;
+  G.time=6*60;
+  G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false;
+  G.energy=100; updateEnergyHud();   // morning restores your stamina
+  tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; tickClock._past=false;
+  rollWeather(true);   // a new day's weather, announced
   // overnight the tide washes fresh litter onto the shore — worse on rough days
   const drift = (G.weather==='wind'?12:(G.weather==='rain'?10:7));
   G.beachHealth -= drift; clampHealth();
+  NPCS.forEach(n=>{ n.atHome=false; n.x=n.ax; n.y=n.ay; n.tx=n.ax; n.ty=n.ay; n.moving=false; n.wait=Math.random()*2; });  // villagers back out for the morning
   $('clkDate').textContent=SEASONS[G.season]+' · Day '+G.day;
   $('clkTime').textContent=fmtTime(G.time);
-  P.sitting=false; P.x=470;P.y=290;
-  NPCS.forEach(n=>{ n.atHome=false; n.x=n.ax; n.y=n.ay; n.tx=n.ax; n.ty=n.ay; n.moving=false; n.wait=Math.random()*2; });  // villagers back out next morning
-  $('pSleep').classList.add('hidden'); scene='village';
   toast('Day '+G.day);
+}
+$('sleepBtn').onclick=()=>{
+  newDay();
+  const cancel=$('sleepCancel'); if(cancel) cancel.style.display='';
+  P.sitting=false; P.x=470; P.y=290;
+  $('pSleep').classList.add('hidden'); scene='village';
 };
-$('sleepCancel').onclick=()=>{ $('pSleep').classList.add('hidden'); scene='home'; };
+$('sleepCancel').onclick=()=>{ $('pSleep').classList.add('hidden'); scene = (sleepReturn==='home') ? 'home' : 'village'; };
 
 /* ---------------- CO-OP SELL ---------------- */
 function openSell(){
@@ -960,6 +948,7 @@ function openBulteokInfo(){
   $('pBulteok').classList.remove('hidden');
 }
 $('bulteokClose').onclick=()=>{ $('pBulteok').classList.add('hidden'); scene='village'; };
+$('bulteokRest').onclick=()=>{ $('pBulteok').classList.add('hidden'); askSleep('bulteok'); };
 
 /* ---------------- COOKING (home stove) ---------------- */
 let cookSel=null;
