@@ -729,16 +729,12 @@ function giveGift(n){
 function closeDialogue(){ $('dialogue').classList.remove('show'); if(dlg.npc)dlg.npc.talking=false; scene=dialogBg; }
 
 /* ---------------- SLEEP / DAY CYCLE ---------------- */
-let sleepReturn='home';   // where 'Not yet' returns you — the home, or back out by the bulteok
-function askSleep(from){
-  sleepReturn = from || 'home';
-  scene='panel'; panelBg = (sleepReturn==='home') ? 'home' : 'village';
+function askSleep(){   // the home bed — a full night that rolls into the next day
+  scene='panel'; panelBg='home';
   const cancel=$('sleepCancel'); if(cancel) cancel.style.display='';   // resting is always the player's choice
-  $('sleepNote').textContent = (sleepReturn==='bulteok')
-    ? "You settle onto the warm stone by the bulteok fire. Rest here, and dive again tomorrow."
-    : (G.time>17*60
-        ? "The sun's gone down over the black rocks. Rest, and dive again tomorrow."
-        : "It's still early — but you can rest if you like.");
+  $('sleepNote').textContent = G.time>17*60
+    ? "The sun's gone down over the black rocks. Rest, and dive again tomorrow."
+    : "It's still early — but you can rest if you like.";
   $('pSleep').classList.remove('hidden'); $('prompt').classList.remove('show');
 }
 /* roll the calendar to a fresh dawn — whether the diver slept, rested at the fire, or simply stayed up till 6:00 */
@@ -763,7 +759,7 @@ $('sleepBtn').onclick=()=>{
   P.sitting=false; P.x=470; P.y=290;
   $('pSleep').classList.add('hidden'); scene='village';
 };
-$('sleepCancel').onclick=()=>{ $('pSleep').classList.add('hidden'); scene = (sleepReturn==='home') ? 'home' : 'village'; };
+$('sleepCancel').onclick=()=>{ $('pSleep').classList.add('hidden'); scene='home'; };
 
 /* ---------------- CO-OP SELL ---------------- */
 function openSell(){
@@ -948,7 +944,16 @@ function openBulteokInfo(){
   $('pBulteok').classList.remove('hidden');
 }
 $('bulteokClose').onclick=()=>{ $('pBulteok').classList.add('hidden'); scene='village'; };
-$('bulteokRest').onclick=()=>{ $('pBulteok').classList.add('hidden'); askSleep('bulteok'); };
+/* the bulteok is a quick warm-up between dives — a short rest: a little time passes, some stamina back. Not a full night. */
+function bulteokRest(){
+  G.time = Math.min(G.time + 90, 24*60 - 1);   // ~90 min by the fire, never rolling into the next day
+  G.energy = Math.min(100, G.energy + 40);     // warm up and catch your breath
+  updateEnergyHud();
+  $('clkTime').textContent = fmtTime(G.time);
+  $('pBulteok').classList.add('hidden'); scene='village';
+  toast('Warmed up by the fire · +stamina');
+}
+$('bulteokRest').onclick=()=>{ bulteokRest(); };
 
 /* ---------------- COOKING (home stove) ---------------- */
 let cookSel=null;
