@@ -718,7 +718,8 @@ function drawModernStoneHouse(g,b){
 /* a Korean pojangmacha (포장마차) — raised & open for business after 17:00, folded
    down into a tarp bundle during the day (just like the real street stalls). */
 function drawPojangmacha(g,b){
-  const raised = (typeof G!=='undefined') ? G.time>=17*60 : true;
+  const raised = (typeof kitchenOpen==='function') ? kitchenOpen()
+               : (typeof G==='undefined' ? true : G.time>=17*60);   // open 17:00–03:00 (wraps past midnight)
   if(raised) drawPojangmachaUp(g,b); else drawPojangmachaFolded(g,b);
 }
 /* daytime — the tarp folded down into a low bound roll, packed away on the sand
@@ -1959,7 +1960,7 @@ function drawVillage(){
   ctx.fillStyle='#fff4d0';ctx.beginPath();ctx.arc(fc.x,fc.y-1,2.5,0,7);ctx.fill();
   // the 포장마차 window glows warm from inside in the evening
   { const pm=(typeof pojangRect==='function')?pojangRect():null;
-    if(pm && G.time>=17*60 && nt>0.05){ const gx=pm.x+pm.w*0.62, gy=pm.y+pm.h*0.36;
+    if(pm && (typeof kitchenOpen==='function'?kitchenOpen():G.time>=17*60) && nt>0.05){ const gx=pm.x+pm.w*0.62, gy=pm.y+pm.h*0.36;
       ctx.save(); ctx.globalCompositeOperation='screen';
       const lg=ctx.createRadialGradient(gx,gy,2,gx,gy,40);
       lg.addColorStop(0,`rgba(255,180,80,${nt*0.7})`); lg.addColorStop(1,'rgba(255,180,80,0)');
