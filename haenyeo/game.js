@@ -1435,13 +1435,8 @@ const VENDOR_LINES=[
   "Careful with those urchins — worth more than you'd think.",
 ];
 // ---- Jeju specialty stalls — walk up to one to introduce the product (educational) ----
+// front-row (reachable) stalls — confirm/adjust x against ~/Downloads/market_coords.png
 const MARKET_STALLS=[
-  // BACK ROW (前方 y262 站位;正中央的乾貨攤＝賣場櫃台)
-  {x:176,y:262,kr:'전복',cn:'鮑魚',      fact:"鮑魚(전복)——海女最珍貴的漁獲,以海帶為食、需數年才能採收。濟州冰冷的洋流讓牠格外鮮美,可生食、煮成鮑魚粥(전복죽)或炭烤。"},
-  {x:344,y:262,kr:'성게·문어',cn:'海膽·章魚', fact:"海膽(성게)與章魚(문어)都是海女的漁獲。海膽金黃的卵是珍味;章魚則汆燙成軟嫩的「숙회」。"},
-  {x:644,y:262,kr:'김·미역',cn:'海苔·海帶', fact:"海苔與海帶(김·미역)採自礁岩。海帶湯(미역국)是生日與產後必喝,象徵滋補與感謝。"},
-  {x:758,y:262,kr:'갈치',cn:'白帶魚',    fact:"白帶魚(갈치)——細長銀亮的濟州名魚,夜裡延繩釣起。最適合炭烤(갈치구이)或燉煮(갈치조림)。"},
-  // MID ROW (前方 y400 站位)
   {x:220,y:400,kr:'흑돼지',cn:'黑豬肉',  fact:"濟州黑豬(흑돼지)——島上著名的傳統黑毛豬,油脂濃郁、肉質有嚼勁,是濟州烤肉的代表。"},
   {x:344,y:400,kr:'감귤',cn:'柑橘',      fact:"柑橘(감귤)——濟州的代表水果,每到冬天橘園遍地金黃。香甜好剝,島上隨處可見。"},
   {x:483,y:400,kr:'표고버섯',cn:'香菇',  fact:"香菇(표고버섯)——在濟州潮濕的森林裡以橡木段栽培,菇傘厚實多肉,用於煮湯與涼拌。"},
