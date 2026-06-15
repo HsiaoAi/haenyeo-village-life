@@ -1095,7 +1095,7 @@ let eatT=0; const EAT_DUR=3.0;
 function startEat(){
   if(!G.preparedMeal) return;
   scene='eating'; eatT=0;
-  P.x=452; P.y=446; P.face=1; P.moving=false;   // sit on the floor cushion at the table, facing the bowl
+  P.x=402; P.y=450; P.face=1; P.moving=false;   // sit on the LEFT (red) floor cushion, facing the bowl
   $('prompt').classList.remove('show');
   tone(300,.25,'sine',.04);
 }

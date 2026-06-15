@@ -3710,7 +3710,7 @@ function drawHomeDebug(){
 function drawEat(){
   drawHome();
   const t=performance.now()*0.001;
-  const bx=HOME_TABLETOP.x, by=HOME_TABLETOP.y;
+  const bx=P.x+34, by=HOME_TABLETOP.y;   // the bowl is pulled in front of the seated diner
   ctx.save();ctx.fillStyle='rgba(20,16,10,.28)';ctx.fillRect(0,0,W,H);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='screen';
   const sp=ctx.createRadialGradient(bx,by,8,bx,by,150);sp.addColorStop(0,'rgba(255,212,134,.28)');sp.addColorStop(1,'rgba(255,212,134,0)');
