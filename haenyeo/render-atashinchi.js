@@ -1019,6 +1019,29 @@ function drawMuseumMarkers(){
     ctx.fillStyle=MIN.ink; ctx.font='700 15px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('···', bx, by-1);
   }
+  // tangled net you help mend (idea 3)
+  if(typeof MUSEUM_NET!=='undefined'){
+    const n=MUSEUM_NET, done=(typeof museumNetDone!=='undefined'&&museumNetDone);
+    const prog=done?1:Math.min(1,(typeof museumNetCut!=='undefined'?museumNetCut:0)/n.max);
+    ctx.save(); ctx.translate(n.x,n.y);
+    inked(ctx, done?'#d6c08c':'#bda472', 2); ctx.beginPath(); ctx.ellipse(0,5,18,8,0,0,7); fillStroke(ctx);
+    ctx.strokeStyle=MIN.ink; ctx.lineWidth=1;
+    if(done){ for(let i=-12;i<=12;i+=6){ ctx.beginPath();ctx.moveTo(i,-3);ctx.lineTo(i+6,9);ctx.stroke(); ctx.beginPath();ctx.moveTo(i,9);ctx.lineTo(i+6,-3);ctx.stroke(); } }
+    else { const knots=6-Math.round(prog*4); for(let i=0;i<knots;i++){ const a=i*1.7; ctx.beginPath(); ctx.moveTo(Math.cos(a)*12,Math.sin(a)*6-1); ctx.quadraticCurveTo(Math.cos(a+1)*4,Math.sin(a+2)*9, Math.cos(a+2)*12,Math.sin(a+1)*6-1); ctx.stroke(); } }
+    if(!done && prog>0){ ctx.strokeStyle=MIN.teal; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,1,22,-Math.PI/2,-Math.PI/2+prog*6.283); ctx.stroke(); }
+    ctx.restore();
+  }
+  // visitor's ledger (idea 5)
+  if(typeof MUSEUM_LEDGER!=='undefined'){
+    const L=MUSEUM_LEDGER, active=cur&&cur.type==='ledger', glow=0.5+0.5*Math.sin(t*2.5);
+    ctx.save(); ctx.translate(L.x,L.y);
+    inked(ctx,'#9b6b3e',2); ctx.beginPath(); ctx.moveTo(-2,8);ctx.lineTo(-8,24);ctx.stroke(); ctx.beginPath();ctx.moveTo(2,8);ctx.lineTo(8,24);ctx.stroke();
+    inked(ctx, active?'#fbe3b0':MIN.white, 2); rr(ctx,-15,-16,30,24,4); fillStroke(ctx);
+    ctx.strokeStyle=MIN.ink; ctx.lineWidth=1; for(let yy=-10;yy<=2;yy+=4){ ctx.beginPath();ctx.moveTo(-10,yy);ctx.lineTo(10,yy);ctx.stroke(); }
+    ctx.globalAlpha=0.35+0.5*glow; ctx.fillStyle=MIN.gold; ctx.beginPath(); ctx.arc(0,-4,2.6,0,7); ctx.fill(); ctx.globalAlpha=1;
+    ctx.restore();
+    tag('기록 Ledger', L.x, L.y-28, 9, MIN.gold);
+  }
 }
 /* a quiet 도감 counter, top-left */
 function drawCultureLog(){

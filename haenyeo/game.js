@@ -905,7 +905,7 @@ $('sellBtn').onclick=()=>{
     if(r.dataset.kind==='sp') clearCatch(r.dataset.id); else delete G.trash[r.dataset.id];
   });
   if(!total) return;
-  G.money+=total; $('moneyV').textContent=G.money;
+  G.money+=total; G.soldWon=(G.soldWon||0)+total; $('moneyV').textContent=G.money;   // lifetime market earnings
   $('pSell').classList.add('hidden'); scene='market'; toast('+'+total+' won');
 };
 $('sellClose').onclick=()=>{ $('pSell').classList.add('hidden'); scene='market'; };
@@ -1305,6 +1305,37 @@ const MUSEUM_GRANDMA={ x:492, y:382,
     '“When I can no longer dive, who will? Come back, child. Let an old woman teach you to read the water.”',
   ],
 };
+/* idea 3 — a tangled net you help the grandmothers mend (proximity-hold, like the
+   beach ghost-net rescue). Repeatable each visit; the eco reward is once per day. */
+const MUSEUM_NET={x:372, y:356, r:42, max:2.0};
+let museumNetCut=0, museumNetDone=false;
+function updateMuseumNet(dt){
+  if(museumNetDone) return;
+  const near=Math.hypot(P.x-MUSEUM_NET.x, P.y-MUSEUM_NET.y) < MUSEUM_NET.r;
+  if(near){
+    museumNetCut+=dt;
+    if(typeof tone==='function' && museumNetCut%0.4<dt) tone(250,.05,'sine',.03);
+    if(museumNetCut>=MUSEUM_NET.max){
+      museumNetDone=true;
+      const first=(G.netMendedDay!==G.day); G.netMendedDay=G.day;
+      if(typeof tone==='function'){ tone(523,.12,'sine',.04); setTimeout(()=>tone(659,.16,'sine',.04),120); }
+      showFact(first ? '“Aigo — quick hands. The net thanks you, and so do I. Sit with us a while.”'
+                     : '“Always a help, this one. The sea raised you well.”',
+               7, '할머니 · A grandmother');
+      if(first){ G.eco=(G.eco||0)+8; if(typeof toast==='function') toast('🧶 Helped mend the net · +8 eco'); }
+    }
+  } else { museumNetCut=Math.max(0, museumNetCut-dt); }
+}
+/* idea 5 — a visitor's ledger that sublimates the player's deeds into the story */
+const MUSEUM_LEDGER={x:206, y:498, r:36};
+function museumMetaText(){
+  const r=G.rescuedAnimals||{}; const freed=Object.values(r).reduce((a,b)=>a+(b||0),0);
+  const dives=G.dives||0, runs=G.beachRuns||0, won=G.soldWon||0;
+  return 'Day '+G.day+'   ·   '+dives+' dives   ·   '+runs+' shore clean-ups\n'
+    + freed+' animals freed   ·   '+won+' won at market   ·   '+(G.eco||0)+' eco\n'
+    + 'The shore stands at '+Math.round(G.beachHealth)+'%.\n'
+    + '— Every dive is a promise kept to the sea.';
+}
 function museumExhibitAt(){
   // nearest active exhibit to the player; active = standing in its column, in-gallery
   let best=null, bestScore=1e9;
@@ -1331,7 +1362,7 @@ function playSumbiSori(){
   if(typeof tone!=='function') return;       // the breath on surfacing: a soft, falling whistle
   tone(1180,.5,'sine',.045); setTimeout(()=>tone(880,.6,'sine',.04),180); setTimeout(()=>tone(660,.7,'sine',.03),460);
 }
-function enterMuseum(){ scene='museum'; P.x=W/2; P.y=H-80; P.face=1; $('prompt').classList.remove('show'); }
+function enterMuseum(){ scene='museum'; P.x=W/2; P.y=H-80; P.face=1; museumNetCut=0; museumNetDone=false; $('prompt').classList.remove('show'); }
 function leaveMuseum(){ scene='village'; const b=buildings.find(x=>x.name==='museum'); if(b){P.x=b.x+b.w/2;P.y=b.y+b.h+18;} P.face=1; $('prompt').classList.remove('show'); }
 function updateMuseum(dt){
   museumT+=dt;
@@ -1345,15 +1376,19 @@ function updateMuseum(dt){
     const nx=P.x+mx*SPEED; if(inMuseumFloor(nx, P.y)) P.x=nx;
     const ny=P.y+my*SPEED; if(inMuseumFloor(P.x, ny)) P.y=ny;
   }
+  updateMuseumNet(dt);
   refreshMuseumPrompt();
 }
 function refreshMuseumPrompt(){
   const el=$('prompt');
   const dExit=Math.hypot(P.x-(museumExit.x+museumExit.w/2),P.y-(museumExit.y+museumExit.h/2));
   const dGran=Math.hypot(P.x-MUSEUM_GRANDMA.x,P.y-MUSEUM_GRANDMA.y);
+  const dNet=Math.hypot(P.x-MUSEUM_NET.x,P.y-MUSEUM_NET.y);
+  const dLed=Math.hypot(P.x-MUSEUM_LEDGER.x,P.y-MUSEUM_LEDGER.y);
   const ex=museumExhibitAt();
-  // priority near the pit: grandmother first, then a wall exhibit, then the exit mat
-  if(dGran<78){ museumCur={type:'grandma'}; el.textContent='Sit with the grandmothers'; el.classList.add('show'); }
+  if(dNet<MUSEUM_NET.r){ museumCur={type:'net'}; el.textContent=museumNetDone?'The net is mended — thank you':'Mending the net… (stay close)'; el.classList.add('show'); }
+  else if(dGran<78){ museumCur={type:'grandma'}; el.textContent='Sit with the grandmothers'; el.classList.add('show'); }
+  else if(dLed<MUSEUM_LEDGER.r){ museumCur={type:'ledger'}; el.textContent='Read the visitor ledger'; el.classList.add('show'); }
   else if(ex){ museumCur={type:'exhibit', ex}; el.textContent=(G.cultureLog[ex.id]?'Revisit':'Examine')+': '+ex.name; el.classList.add('show'); }
   else if(dExit<56){ museumCur={type:'exit'}; el.textContent='Leave museum'; el.classList.add('show'); }
   else { museumCur=null; el.classList.remove('show'); }
@@ -1361,6 +1396,8 @@ function refreshMuseumPrompt(){
 function doMuseumInteract(){
   if(!museumCur) return;
   if(museumCur.type==='exit'){ leaveMuseum(); return; }
+  if(museumCur.type==='net'){ return; }   // mended just by staying close (handled in updateMuseumNet)
+  if(museumCur.type==='ledger'){ showFact(museumMetaText(), 11, '기록 · 당신의 발자취 · Your impact'); if(typeof tone==='function') tone(440,.1,'sine',.04); return; }
   if(museumCur.type==='exhibit'){
     const e=museumCur.ex;
     const card=e.name+' ('+e.ko+')\n'+e.fact+'\n— '+e.quote;
@@ -1680,6 +1717,7 @@ $('diveStartGo').onclick=()=>{ if(!haveEnergy('dive')) return; $('pDiveStart').c
 $('diveStartClose').onclick=()=>{ $('pDiveStart').classList.add('hidden'); scene='village'; };
 function startDive(){
   spendEnergy('dive');   // a dive takes it out of you
+  G.dives=(G.dives||0)+1;   // lifetime tally (the museum ledger remembers)
   scene='dive'; dv.x=W/2;dv.y=SURF-6;dv.vx=dv.vy=0; dCamY=0;
   dBreath=maxBreath(); dTimeMax=46+((G.meal&&G.meal.time)||0); dTime=dTimeMax;
   dSlow=1-((G.meal&&G.meal.slow)||0);   // well-fed = slower breath loss
@@ -2014,6 +2052,7 @@ function spawnL(){ bLitter.push(placeLitter({})); }
 function startBeachClean(){
   if(!haveEnergy('beach')) return;   // too tired to comb the shore
   spendEnergy('beach');
+  G.beachRuns=(G.beachRuns||0)+1;   // lifetime tally
   scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bFloats=[]; bRings=[]; bLitter=[];
   bCombo=0; bComboT=0; bSpotlessCd=0;
   const dayEase=Math.max(0,1-(G.day-1)/BEACH_TUNING.earlyDays);   // 1 on day 1 → 0 by ~day 5
@@ -2376,7 +2415,7 @@ $('startBtn').onclick=()=>{ $('pTitle').classList.add('hidden'); scene='village'
   $('clkDate').textContent=SEASONS[0]+' · Day 1'; };
 
 function restartGame(){
-  G.day=1; G.money=0; G.time=6*60; G.season=0; G.catch={}; G.catchQ={}; G.trash={}; G.renown=0; G.beachHealth=60; G.eco=0; G.energy=100; G.factsSeen={}; G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false; G.meal=null; G.preparedMeal=null; tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; G.weather='sunny';
+  G.day=1; G.money=0; G.time=6*60; G.season=0; G.catch={}; G.catchQ={}; G.trash={}; G.renown=0; G.beachHealth=60; G.eco=0; G.energy=100; G.factsSeen={}; G.cultureLog={}; G.cultureMem=0; G.cultureKeeper=false; G.dives=0; G.beachRuns=0; G.soldWon=0; G.netMendedDay=0; G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false; G.meal=null; G.preparedMeal=null; tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; G.weather='sunny';
   G.netIdx=0; G.toolIdx=0; G.maskIdx=0; G.tewakIdx=0; G.bagIdx=0; G.cutIdx=0; G.suit='traditional'; G.owned={traditional:true, modern:false};
   G.shoreCleaned=0; G.shoreMilestone=0;
   NPCS.forEach(n=>{G.friendship[n.id]=0; n.x=n.ax; n.y=n.ay; n.tx=n.ax; n.ty=n.ay; n.talking=false; n.moving=false; n.atHome=false; n.wait=Math.random()*2;});
