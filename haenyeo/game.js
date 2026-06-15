@@ -262,10 +262,13 @@ PETS.forEach(p=>G.friendship[p.id]=0);   // pets can be befriended too
 G.pettedToday={};                        // limits the affection gain to once a day per pet
 const SEASONS=['Spring','Summer','Autumn','Winter'];
 const WEATHERS={sunny:'☀️  Clear skies today',rain:'🌧️  Rain over the black rocks',wind:'🍃  A windy day on the shore'};
+const WEATHER_ICON={sunny:'☀️', rain:'🌧️', wind:'🍃'};
+function updateWeatherHud(){ const e=$('clkWx'); if(e) e.textContent=WEATHER_ICON[G.weather]||'☀️'; }   // status-bar weather glyph
 function rollWeather(announce){
   const pool=['sunny','sunny','sunny','rain','wind','wind'];   // mostly fair, a little weather
   G.weather=pool[Math.floor(Math.random()*pool.length)];
   if(window.HaenyeoWeather) window.HaenyeoWeather.setWeather(G.weather);
+  updateWeatherHud();                                          // keep the top-left status bar in sync
   if(announce) toast(WEATHERS[G.weather]);
   return G.weather;
 }
@@ -2243,7 +2246,7 @@ function restartGame(){
   { const e=$('beachHud'); if(e)e.classList.remove('show'); } { const e=$('leaveBeachBtn'); if(e)e.classList.remove('show'); }
   $('prompt').classList.remove('show'); updateMealBadge(); updateEnergyHud();
   $('moneyV').textContent='0';
-  $('clkTime').textContent='6:00'; $('clkDate').textContent=SEASONS[0]+' · Day 1';
+  $('clkTime').textContent='6:00'; $('clkDate').textContent=SEASONS[0]+' · Day 1'; updateWeatherHud();
   $('pTitle').classList.remove('hidden'); scene='title';
 }
 $('restartBtn').onclick=restartGame;

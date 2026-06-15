@@ -70,6 +70,7 @@
     letter-spacing:.12em;text-transform:uppercase;padding:3px 9px 2px;border-radius:99px;white-space:nowrap;
     box-shadow:0 1px 0 rgba(120,30,16,.3);transition:background .5s;}
   .calTime{font-size:18px;font-weight:700;color:var(--foam);line-height:1;letter-spacing:.02em;}
+  .calWx{font-size:13px;line-height:1;}
   #clock.night .calTop{background:linear-gradient(180deg,#5d6ea0,#3b4a7c);}
   #clock.night .calSun{background:radial-gradient(circle at 62% 40%,#fdf6d8,#dfe0bf);
     box-shadow:0 0 0 2px rgba(220,225,180,.18),0 0 7px rgba(232,238,205,.6),inset -4px -1px 0 rgba(60,74,124,.55);}
@@ -442,7 +443,7 @@
     style="position:absolute;width:2px;height:2px;left:-9999px;top:0;opacity:0;pointer-events:none"></video>
 
   <div id="hud">
-    <div id="clock" class="mono"><span class="calSun"></span><span class="calTop" id="clkDate">Spring · Day 1</span><span class="calTime" id="clkTime">6:00</span></div>
+    <div id="clock" class="mono"><span class="calSun"></span><span class="calWx" id="clkWx">☀️</span><span class="calTop" id="clkDate">Spring · Day 1</span><span class="calTime" id="clkTime">6:00</span></div>
     <div class="hudRight">
       <div id="energy" class="mono"><span class="ebolt">⚡</span><div class="etrack"><div class="efill" id="energyFill" style="width:100%"></div></div><span class="ev" id="energyV">100%</span></div>
       <button id="restartBtn" title="Restart">↻</button>
@@ -736,7 +737,7 @@
   <div class="toast" id="toast"></div>
 </div></div>
 
-<script src="game.js?v=39"></script>
+<script src="game.js?v=40"></script>
 <script src="render-atashinchi.js?v=47"></script>
 <script src="restaurant.js?v=7"></script>
 <script src="phone.js"></script>
