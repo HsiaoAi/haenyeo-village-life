@@ -1761,12 +1761,18 @@ function drawSea(){
     for(let i=px-22;i<px+18;i+=8){ctx.beginPath();ctx.moveTo(i,py-7);ctx.lineTo(i,py+7);ctx.stroke();}
     inked(ctx,'#7a4f2a',2.2);ctx.beginPath();ctx.arc(px+16,py-8,2.4,0,7);ctx.arc(px+16,py+8,2.4,0,7);fillStroke(ctx);
   })();
-  // haenyeo at work out in the water (kept to the right of the coastline)
-  drawSeaDiver(655, BEACH_Y+52, t, 0.0, -1);
-  drawSeaDiver(795, BEACH_Y+95, t, 0.42, -1);
-  drawSeaDiver(705, BEACH_Y+140, t, 0.74, 1);
-  // a little anchored dive boat bobbing out in the deeper water
-  drawDiveBoat(878, 548, t);
+  // haenyeo work the water by day and head home in the evening: from 16:30 the
+  // divers leave one by one and the boat sails off, all gone by 17:00.
+  {
+    const tmin=(typeof G!=='undefined'&&G.time!=null)?G.time:12*60;
+    if(tmin < 17*60){
+      const leave=Math.max(0,Math.min(1,(tmin-(16*60+30))/30));   // 0 by 16:30 → 1 at 17:00
+      const divers=[[655,BEACH_Y+52,0.0,-1],[795,BEACH_Y+95,0.42,-1],[705,BEACH_Y+140,0.74,1]];
+      const showN=Math.ceil(divers.length*(1-leave));             // 3 → 0 as evening falls
+      for(let i=0;i<showN;i++){ const d=divers[i]; drawSeaDiver(d[0],d[1],t,d[2],d[3]); }
+      drawDiveBoat(878 + leave*210, 548, t);                      // sails off to the right, then gone
+    }
+  }
 }
 
 /* a cheery anchored dive boat with a hand at the tiller (bobs & rocks gently) */
