@@ -3844,6 +3844,16 @@ function drawBeach(){
   drawBeachRescue(t);
   // dig / pickup particles
   for(const p of bParts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,2.6,0,7);ctx.fill();ctx.globalAlpha=1;}
+  // juicy pop rings expanding off each grab
+  for(const r of (typeof bRings!=='undefined'?bRings:[])){ const k=1-Math.max(0,r.life), rad=(r.big?6:3)+k*(r.big?34:18);
+    ctx.globalAlpha=Math.max(0,r.life)*(r.big?0.75:0.9); ctx.strokeStyle=r.col||'#fff'; ctx.lineWidth=r.big?3:2;
+    ctx.beginPath();ctx.arc(r.x,r.y,rad,0,7);ctx.stroke(); }
+  ctx.globalAlpha=1;
+  // a combo multiplier badge floating over the diver while the streak is hot
+  if(typeof bCombo!=='undefined' && bCombo>=2 && bComboT>0){ ctx.save();
+    const s=1+Math.min(0.5,bCombo*0.06); ctx.font=`700 ${Math.round(15*s)}px "Gowun Batang", serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.globalAlpha=Math.min(1,bComboT); ctx.fillStyle='#f0c23a'; ctx.strokeStyle='rgba(60,30,10,.6)'; ctx.lineWidth=3;
+    ctx.strokeText('x'+bCombo,P.x,P.y-34); ctx.fillText('x'+bCombo,P.x,P.y-34); ctx.restore(); ctx.globalAlpha=1; }
   // the diver, walking the sand with her gathering sack
   drawBeachSack(P.x - P.face*15, P.y+5);
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});

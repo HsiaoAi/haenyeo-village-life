@@ -1699,7 +1699,8 @@ $('diveClose').onclick=()=>{ $('pDive').classList.add('hidden'); scene='village'
 /* ---------------- BEACH CLEAN-UP (walk the sand, gather litter, dig out treasure) ---------------- */
 const BEACH_BAG=12;
 const BEACH_AREA={x0:18, x1:W-18, y0:152, y1:558};
-let bLitter=[], bParts=[], bFloats=[], beachCatch={}, bBagCount=0, bTime=0, bTimeMax=46;
+let bLitter=[], bParts=[], bFloats=[], bRings=[], beachCatch={}, bBagCount=0, bTime=0, bTimeMax=46;
+let bCombo=0, bComboT=0, bSpotlessCd=0;   // quick-grab combo + area-clear cooldown
 /* ghost-net wildlife rescue — a creature tangled in washed-up net; hold to cut it free */
 let bRescue=null;
 const RESCUE_KINDS=[
@@ -1736,7 +1737,8 @@ function spawnL(){ bLitter.push(placeLitter({})); }
 function startBeachClean(){
   if(!haveEnergy('beach')) return;   // too tired to comb the shore
   spendEnergy('beach');
-  scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bFloats=[]; bLitter=[];
+  scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bFloats=[]; bRings=[]; bLitter=[];
+  bCombo=0; bComboT=0; bSpotlessCd=0;
   bTimeMax=46; bTime=bTimeMax;
   // a dirtier shore washes up more to clean (8 pristine → ~16 neglected), and rough
   // weather surges the debris further — the tide drags in more on wind/rain days
@@ -1768,16 +1770,29 @@ function updateBeach(dt){
     const reach=P.r+c.r+(c.buried?9:2);
     const near=Math.hypot(P.x-c.x,P.y-c.y)<reach;
     const grab=()=>{
+      const gx=c.x, gy=c.y, col=c.s.color, treasure=c.s.treasure;
       beachCatch[c.s.id]=(beachCatch[c.s.id]||0)+1; bBagCount++;
+      bCombo=(bComboT>0)?bCombo+1:1; bComboT=2.2; const mult=Math.min(5,bCombo);
       // risk/reward: litter snatched closer to the rising tide is worth bonus eco-points
-      const risk=Math.max(0,Math.min(1,(c.y-300)/275)), ecoBonus=Math.round(risk*4);
+      const risk=Math.max(0,Math.min(1,(gy-300)/275)), ecoBonus=Math.round(risk*4)+(mult>1?mult:0);
       if(ecoBonus>0){ G.eco=(G.eco||0)+ecoBonus; bFloats.push({x:c.x,y:c.y-8,txt:'+'+ecoBonus+' ♻',life:1.1,col:'#7fd0c0'}); }
-      tone(c.s.treasure?740:(risk>0.5?660:520),.07,'triangle',.06);
-      for(let i=0;i<8;i++)bParts.push({x:c.x,y:c.y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:1,c:c.s.color});
-      G.beachHealth += c.s.treasure?0.4:0.9; clampHealth();   // every piece removed heals the shore a little
+      bRings.push({x:gx,y:gy,life:1,col});
+      if(mult>1) bFloats.push({x:gx,y:gy-22,txt:'COMBO x'+mult,life:1.0,col:'#f0c23a'});
+      tone(treasure?740:(520+Math.min(7,bCombo)*40),.07,'triangle',.06);
+      for(let i=0;i<8;i++)bParts.push({x:gx,y:gy,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:1,c:col});
+      G.beachHealth += treasure?0.4:0.9; clampHealth();   // every piece removed heals the shore a little
+      const bp=$('bagPct'); if(bp){ bp.style.animation='none'; void bp.offsetWidth; bp.style.animation='bagbump .3s'; }   // counter bump
       if(c.s.treasure) toast('\u2726 '+c.s.name+' (+'+c.s.value+' won)');
       else maybeShowFact(c.s);                                // first time picking up this debris \u2192 a real fact
       placeLitter(c);
+      // area clear: the local patch is now empty \u2192 a small Spotless! bonus + a bright flash
+      if(bSpotlessCd<=0){
+        const localLeft=bLitter.filter(o=>o!==c && o.y<=tideLineY()+6 && Math.hypot(o.x-gx,o.y-gy)<150).length;
+        if(localLeft===0){ bSpotlessCd=4; G.eco=(G.eco||0)+5;
+          bRings.push({x:gx,y:gy,life:1.3,col:'#fff7d8',big:true});
+          bFloats.push({x:gx,y:gy-36,txt:'SPOTLESS! +5',life:1.4,col:'#fff7d8'});
+          toast('Spotless! A patch of shore gleams \u2728'); }
+      }
     };
     if(c.buried){
       if(near){
@@ -1824,6 +1839,8 @@ function updateBeach(dt){
   }
   for(const p of bParts){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=dt*1.6;} bParts=bParts.filter(p=>p.life>0);
   for(const f of bFloats){ f.y-=dt*22; f.life-=dt; } bFloats=bFloats.filter(f=>f.life>0);
+  for(const r of bRings){ r.life-=dt*1.8; } bRings=bRings.filter(r=>r.life>0);
+  bComboT-=dt; if(bComboT<=0) bCombo=0; bSpotlessCd-=dt;   // combo lapses after a pause
   bTime-=dt; if(bTime<=0){ endBeach(); return; }
   $('bagFill').style.width=(bBagCount/BEACH_BAG*100)+'%';
   $('bagPct').textContent=bBagCount+'/'+BEACH_BAG;
