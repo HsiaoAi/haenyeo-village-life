@@ -3701,6 +3701,12 @@ function drawBeachRescue(t){
   const R=bRescue.r, x=bRescue.x, y=bRescue.y+Math.sin(bRescue.bob)*1.5, kind=bRescue.k.kind;
   ctx.save(); ctx.translate(x,y); ctx.lineJoin='round'; ctx.lineCap='round';
   ctx.globalAlpha = bRescue.freed ? Math.max(0,Math.min(1,bRescue.fleeT/2.2)) : 1;
+  // a soft glow wraps the freed animal
+  if(bRescue.freed){ ctx.save(); ctx.globalCompositeOperation='screen';
+    const gg=ctx.createRadialGradient(0,0,4,0,0,R*2.6); gg.addColorStop(0,'rgba(150,235,220,.5)'); gg.addColorStop(1,'rgba(150,235,220,0)');
+    ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(0,0,R*2.6,0,7); ctx.fill(); ctx.restore(); }
+  // turn to look back at the player during the freed pause
+  if(bRescue.freed && bRescue.lookT>0) ctx.scale(bRescue.lookFace||1,1);
   ctx.fillStyle='rgba(10,8,6,.2)'; ctx.beginPath(); ctx.ellipse(0,R*0.72,R*0.95,R*0.32,0,0,7); ctx.fill();
   if(kind==='turtle'){
     inked(ctx,'#4f7f5a',2.6); ctx.beginPath(); ctx.ellipse(0,0,R*0.9,R*0.7,0,0,7); fillStroke(ctx);
@@ -3873,6 +3879,12 @@ function drawBeach(){
   for(const f of (typeof bFloats!=='undefined'?bFloats:[])){ ctx.globalAlpha=Math.max(0,Math.min(1,f.life));
     ctx.fillStyle=f.col||'#fff'; ctx.strokeStyle='rgba(30,20,12,.5)'; ctx.lineWidth=3; ctx.strokeText(f.txt,f.x,f.y); ctx.fillText(f.txt,f.x,f.y); }
   ctx.globalAlpha=1; ctx.restore();
+  // rescue narration — a quiet line fading in as the animal looks back, then leaving with it
+  if(typeof bRescue!=='undefined' && bRescue && bRescue.freed && bRescue.narration){
+    const a = bRescue.lookT>0 ? (1-bRescue.lookT/1.3) : Math.max(0,Math.min(1,bRescue.fleeT/2.2));
+    ctx.save(); ctx.globalAlpha=Math.max(0,a); ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='600 18px "Gowun Batang", serif'; ctx.fillStyle='#fbf7ec'; ctx.strokeStyle='rgba(20,30,40,.55)'; ctx.lineWidth=4;
+    ctx.strokeText(bRescue.narration, W/2, 130); ctx.fillText(bRescue.narration, W/2, 130); ctx.restore(); }
   // flat day/night wash + weather
   applyDayLight();
   drawWeather();

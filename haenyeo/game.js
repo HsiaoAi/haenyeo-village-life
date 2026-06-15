@@ -443,6 +443,18 @@ function meowSound(){try{
   g.gain.setValueAtTime(0.07,now+0.34); g.gain.exponentialRampToValueAtTime(0.0001,now+0.5);
   o.connect(lp);lp.connect(g);g.connect(actx.destination); o.start(now); o.stop(now+0.52);
 }catch(e){}}
+/* a soft, warm 3-note chime — gentle, for the rescue moment (not a loud game jingle) */
+function softChime(){try{
+  if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended')actx.resume();
+  const now=actx.currentTime, notes=[523.25,659.25,783.99];   // C–E–G
+  notes.forEach((f,i)=>{ const t0=now+i*0.13;
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type='sine'; o.frequency.value=f;
+    g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.05,t0+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.95);
+    o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0+1.0);
+  });
+}catch(e){}}
 
 const keys={};
 // Unlock the audio context on the very first user gesture so the diving-song
@@ -1714,6 +1726,8 @@ function makeRescue(){
            y:BEACH_AREA.y0+120+Math.random()*(BEACH_AREA.y1-BEACH_AREA.y0-200),
            cut:0, cutMax:2.6, freed:false, fleeT:0, bob:Math.random()*6.28, r:22 };
 }
+// quiet lines that fade in as a freed animal looks back, then leaves
+const RESCUE_LINES=["One less life lost to the sea's neglect.","It looked back once. Then it was free.","The sea remembers kindness."];
 function pickBeachItem(){
   const pool=[];
   for(const b of BEACH_ITEMS){ const w=b.treasure?1:4; for(let i=0;i<w;i++) pool.push(b); }   // litter common, treasure rare
@@ -1812,11 +1826,19 @@ function updateBeach(dt){
   if(bRescue){
     bRescue.bob+=dt*2;
     if(bRescue.freed){
-      // freed — it heads for the open water (or sky) and leaves
-      bRescue.fleeT-=dt;
-      if(bRescue.k.kind==='seabird'){ bRescue.y-=dt*60; bRescue.x+=dt*30; }
-      else { bRescue.y+=dt*70; }      // turtle & dolphin make for the sea
-      if(bRescue.fleeT<=0) bRescue=null;
+      if(bRescue.lookT>0){
+        // a beat: it pauses and turns to look back at you, wrapped in a soft glow
+        bRescue.lookT-=dt;
+        if(Math.random()<0.4)bParts.push({x:bRescue.x+(Math.random()-.5)*bRescue.r*2,y:bRescue.y+(Math.random()-.5)*bRescue.r,vx:(Math.random()-.5)*1,vy:-Math.random()*1.2,life:1,c:'#bfe9e0'});
+        if(bRescue.lookT<=0){ const k=bRescue.k;   // the look-back over, the normal reward lands
+          toast('✦ Freed the '+k.name+'! +'+k.reward+' won'); showFact(k.fact); }
+      } else {
+        // then it heads for the open water (or sky) and leaves
+        bRescue.fleeT-=dt;
+        if(bRescue.k.kind==='seabird'){ bRescue.y-=dt*60; bRescue.x+=dt*30; }
+        else { bRescue.y+=dt*70; }      // turtle & dolphin make for the sea
+        if(bRescue.fleeT<=0) bRescue=null;
+      }
     } else {
       const near=Math.hypot(P.x-bRescue.x,P.y-bRescue.y)<P.r+bRescue.r+10;
       if(near){
@@ -1826,13 +1848,14 @@ function updateBeach(dt){
         if(bRescue.cut>=bRescue.cutMax){
           // freed!
           const k=bRescue.k;
-          bRescue.freed=true; bRescue.fleeT=2.2;
-          G.money+=k.reward; $('moneyV').textContent=G.money;
+          bRescue.freed=true; bRescue.lookT=1.3; bRescue.fleeT=2.2;
+          bRescue.lookFace=(P.x<=bRescue.x)?-1:1;     // turn to face the diver
+          bRescue.narration=RESCUE_LINES[(G.rescueLineIdx=((G.rescueLineIdx||0)+1)%RESCUE_LINES.length)];
+          G.money+=k.reward; $('moneyV').textContent=G.money;   // rewards kept intact
           G.eco+=15; G.beachHealth+=14; clampHealth();
+          if(typeof recordRescue==='function') recordRescue(k);   // remembered later, in the dives
           for(let i=0;i<16;i++)bParts.push({x:bRescue.x,y:bRescue.y,vx:(Math.random()-.5)*3.5,vy:(Math.random()-.5)*3.5,life:1.2,c:'#5cbfb0'});
-          tone(880,.3,'sine',.07);
-          toast('✦ Freed the '+k.name+'! +'+k.reward+' won');
-          showFact(k.fact);
+          softChime();                                // gentle warm chime (toast + fact card land after the look-back)
         }
       } else { bRescue.cut=Math.max(0,bRescue.cut-dt*1.2); }   // wandering off lets the net re-tangle
     }
