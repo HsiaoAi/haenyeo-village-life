@@ -1420,7 +1420,7 @@ function catchStars(c){
   else if(G.beachHealth<35 && Math.random()<0.30) st--;
   return Math.max(1,Math.min(3,st));
 }
-let dJellies=[],dPod=null,dBeat={active:false,p:0},dSting=0,dHintT=0;
+let dJellies=[],dPod=null,dCompanion=null,dBeat={active:false,p:0},dSting=0,dHintT=0;
 let dVents=[],dChest=null,dDash=0,dDashCd=0,dDashReq=false,lastDiveTap=0,dLowT=0;
 let divePtr={on:false,x:0,y:0};
 function divePtrSet(p){divePtr.x=p.x;divePtr.y=p.y;}
@@ -1470,6 +1470,11 @@ function startDive(){
   // on lucky days a dolphin pod crosses the bay — swim close for a blessing
   dPod = Math.random()<0.35 ? {x:-120, y:SURF+200+Math.random()*420, dir:1, blessed:false} : null;
   if(dPod && Math.random()<0.5){ dPod.dir=-1; dPod.x=W+120; }
+  // a sea creature you once freed from a ghost net sometimes returns to swim with you
+  dCompanion=null;
+  { const marine=Object.keys(G.rescuedAnimals||{}).filter(k=>k==='turtle'||k==='dolphin');
+    if(marine.length && Math.random()<0.5){ const side=Math.random()<0.5?-1:1;
+      dCompanion={kind:marine[Math.floor(Math.random()*marine.length)], x:dv.x+side*320, y:dv.y+140+Math.random()*200, state:'enter', hold:6, dir:side<0?1:-1, t:0}; } }
   // air vents — bubble columns that refill your lungs mid-dive (Dave-the-Diver style)
   dVents=[
     {x:DSHELVES[1].x+44+(Math.random()-.5)*30, y:DSHELVES[1].y, ph:Math.random()*6.28},
@@ -1601,6 +1606,18 @@ function updateDive(dt){
     }
     if(dPod.x<-180||dPod.x>W+180) dPod=null;
   }
+  // ---- a rescued animal that remembers you: swims in, circles alongside a while, then drifts off ----
+  if(dCompanion){ const C=dCompanion; C.t+=dt;
+    if(C.state==='enter'){
+      const dx=dv.x-C.x, dy=(dv.y+30)-C.y, m=Math.hypot(dx,dy)||1;
+      C.x+=dx/m*dt*130; C.y+=dy/m*dt*130; C.dir=dx>=0?1:-1;
+      if(m<80){ C.state='along'; if(!G.rescueRememberSeen){ G.rescueRememberSeen=true; toast('The '+C.kind+' you freed… it remembers.'); } }
+    } else if(C.state==='along'){
+      C.hold-=dt; const ang=C.t*1.1, tx=dv.x+Math.cos(ang)*72, ty=dv.y+30+Math.sin(ang)*42;
+      C.dir=(tx-C.x)>=0?1:-1; C.x+=(tx-C.x)*dt*3; C.y+=(ty-C.y)*dt*3;
+      if(C.hold<=0){ C.state='leave'; C.dir=C.x<W/2?-1:1; }
+    } else { C.x+=C.dir*dt*120; C.y+=dt*38; if(C.x<-160||C.x>W+160||C.y>BED+80) dCompanion=null; }
+  }
   // ---- the sea cave keeps one pearl, found once a day ----
   if(!G.caveToday && Math.hypot(dv.x-DCAVE.x,dv.y-DCAVE.y)<46){
     if(netFull(0)){ if(dHintT<=0){dHintT=3;toast('Net full — the pearl must wait');} }
@@ -1728,6 +1745,8 @@ function makeRescue(){
 }
 // quiet lines that fade in as a freed animal looks back, then leaves
 const RESCUE_LINES=["One less life lost to the sea's neglect.","It looked back once. Then it was free.","The sea remembers kindness."];
+// remember which animals the diver has freed — they may return to visit on later dives
+function recordRescue(k){ G.rescuedAnimals=G.rescuedAnimals||{}; G.rescuedAnimals[k.kind]=(G.rescuedAnimals[k.kind]||0)+1; }
 function pickBeachItem(){
   const pool=[];
   for(const b of BEACH_ITEMS){ const w=b.treasure?1:4; for(let i=0;i<w;i++) pool.push(b); }   // litter common, treasure rare

@@ -4130,6 +4130,18 @@ function drawDive(){
   if(typeof dPod!=='undefined' && dPod){
     for(let i=0;i<3;i++) drawDolphin(dPod.x-i*dPod.dir*46, dPod.y+(i%2?14:-6), dPod.dir, t+i*0.4);
   }
+  // a rescued animal returned to swim alongside — soft glow + a couple of little hearts
+  if(typeof dCompanion!=='undefined' && dCompanion){ const C=dCompanion, a=Math.min(1,C.t*1.5);
+    ctx.save(); ctx.globalAlpha=a;
+    ctx.save(); ctx.globalCompositeOperation='screen';
+    const gg=ctx.createRadialGradient(C.x,C.y,4,C.x,C.y,48); gg.addColorStop(0,'rgba(160,240,225,.45)'); gg.addColorStop(1,'rgba(160,240,225,0)');
+    ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(C.x,C.y,48,0,7); ctx.fill(); ctx.restore();
+    if(C.kind==='turtle') drawDiveTurtle(C.x,C.y,C.dir,t); else drawDolphin(C.x,C.y,C.dir,t);
+    ctx.fillStyle='#ff9ec4';
+    for(let i=0;i<2;i++){ const hp=(C.t*0.6+i*0.5)%1, hx=C.x+(i?9:-9), hy=C.y-14-hp*22; ctx.globalAlpha=a*(1-hp);
+      ctx.beginPath(); ctx.moveTo(hx,hy+2.4); ctx.bezierCurveTo(hx-3.2,hy-0.6,hx-1.5,hy-3.2,hx,hy-1.3); ctx.bezierCurveTo(hx+1.5,hy-3.2,hx+3.2,hy-0.6,hx,hy+2.4); ctx.fill(); }
+    ctx.restore(); ctx.globalAlpha=1;
+  }
   // marine snow
   ctx.save();ctx.globalCompositeOperation='screen';
   for(let i=0;i<90;i++){const sx=((i*97.3+Math.sin(t*0.2+i)*30)%W+W)%W;
