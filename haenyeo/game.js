@@ -1767,6 +1767,7 @@ $('diveClose').onclick=()=>{ $('pDive').classList.add('hidden'); scene='village'
 const BEACH_TUNING={
   bag:12,                                   // collection bag capacity
   tideSeconds:46,                           // base tide-timer length
+  earlyDays:4, earlyTideBonus:10, earlyLitterCut:3, litterMin:5,   // gentle early-game ramp (SPEC §B2): eases out by ~day 5
   litterBase:8, litterPerNeglect:12, litterMax:18, litterWeatherBump:3,   // count = min(max, base + round((100-health)/perNeglect) + weatherBump)
   rescueChanceRough:0.70, rescueChanceCalm:0.45, cutSeconds:2.6,
   healthPerLitter:0.9, healthPerTreasure:0.4, healthPerRescue:14, healthSortBonus:6, healthSortAccGate:0.8,
@@ -1824,11 +1825,12 @@ function startBeachClean(){
   spendEnergy('beach');
   scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bFloats=[]; bRings=[]; bLitter=[];
   bCombo=0; bComboT=0; bSpotlessCd=0;
-  bTimeMax=BEACH_TUNING.tideSeconds; bTime=bTimeMax;
+  const dayEase=Math.max(0,1-(G.day-1)/BEACH_TUNING.earlyDays);   // 1 on day 1 → 0 by ~day 5
+  bTimeMax=BEACH_TUNING.tideSeconds+Math.round(BEACH_TUNING.earlyTideBonus*dayEase); bTime=bTimeMax;
   // a dirtier shore washes up more to clean (8 pristine → ~16 neglected), and rough
   // weather surges the debris further — the tide drags in more on wind/rain days
   const weatherBump=(G.weather==='wind'||G.weather==='rain')?BEACH_TUNING.litterWeatherBump:0;
-  const litterN=Math.min(BEACH_TUNING.litterMax, BEACH_TUNING.litterBase+Math.round((100-G.beachHealth)/BEACH_TUNING.litterPerNeglect)+weatherBump);
+  const litterN=Math.max(BEACH_TUNING.litterMin, Math.min(BEACH_TUNING.litterMax, BEACH_TUNING.litterBase+Math.round((100-G.beachHealth)/BEACH_TUNING.litterPerNeglect)+weatherBump-Math.round(BEACH_TUNING.earlyLitterCut*dayEase)));
   for(let i=0;i<litterN;i++) spawnL();
   // sometimes a creature is tangled in a washed-up net (more likely after rough weather)
   const rescueChance = (G.weather==='wind'||G.weather==='rain') ? BEACH_TUNING.rescueChanceRough : BEACH_TUNING.rescueChanceCalm;
