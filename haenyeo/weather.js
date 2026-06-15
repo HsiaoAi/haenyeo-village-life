@@ -75,14 +75,14 @@
       const bedLp = ctx.createBiquadFilter(); bedLp.type='lowpass'; bedLp.frequency.value=360; bedLp.Q.value=0.6;
       const bed = ctx.createGain(); bed.gain.value=0.12;
       bedSrc.connect(bedLp); bedLp.connect(bed); bed.connect(out);
-      W.layers.wave = { out, target:0.85, level:0 };
+      W.layers.wave = { out, target:0.6, level:0 };   // gentle — sits below the game's sound effects
       scheduleWaves();
     }
   }
 
   // wave intensity drifts subtly with the weather, but waves are the only sound
   function applyMix(){
-    if(W.layers.wave) W.layers.wave.target = 0.85;
+    if(W.layers.wave) W.layers.wave.target = 0.6;
   }
 
   // smooth ramp loop toward targets + scene-based master level
