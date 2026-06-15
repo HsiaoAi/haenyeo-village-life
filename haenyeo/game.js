@@ -118,7 +118,7 @@ const NPC_TALK = {
       { label:'Tell me a story', lines:[
         "Long ago a diver met the dragon king beneath the yeo rocks. He gave her one pearl and one rule — never take more than the sea offers.",
         "My own teacher dove until she was eighty. They say the sea finally called her home, gentle as falling asleep.",
-        "In 1932 the Japanese tried to steal our catch. The haenyeo of this island laid down their tewak floats and marched. We have always been fierce.",
+        "In 1932 the Japanese tried to steal our catch. The haenyeo of this island laid down their taewak floats and marched. We have always been fierce.",
         "Once a pod of dolphins circled our boat three whole days. The elders said it meant a rich harvest. They were right." ]},
       { label:'Diving wisdom', lines:[
         "Breathe out slow before you go down. Slow, slow. Panic drowns divers, not the water.",
@@ -357,16 +357,16 @@ const GEAR={
   net:    [{cap:8,cost:0},     {cap:13,cost:220},     {cap:20,cost:560}],
   // harvesting tool — pries & digs buried catch (urchin/octopus/abalone) loose faster
   tool:   [{name:'Bare hands', dig:1.0, cost:0},
-           {name:'Homi hoe',   dig:1.7, cost:200},
+           {name:'Golgaengi',  dig:1.7, cost:200},
            {name:'Bitchang',   dig:2.6, cost:480}],
-  // diving mask — clearer, wider underwater sight the better the lens
-  mask:   [{name:'Diving mask',  vis:120, cost:0},
-           {name:'Wooden goggles',vis:210, cost:170},
-           {name:'Glass mask',   vis:320, cost:400}],
-  // tewak (濟州浮球) — the float she rests on to catch her breath; bigger = faster recovery
-  tewak:  [{name:'Tewak buoy', recover:1.0, cost:0},
-           {name:'Foam tewak', recover:1.5, cost:240},
-           {name:'Big tewak',  recover:2.0, cost:520}],
+  // diving lens — traditional goggles up to a modern wide mask (best sight)
+  mask:   [{name:'Wooden goggles',vis:120, cost:0},
+           {name:'Glass goggles', vis:210, cost:170},
+           {name:'Diving mask',   vis:320, cost:400}],
+  // taewak (濟州浮球) — the float she rests on to catch her breath; bigger = faster recovery
+  tewak:  [{name:'Taewak float', recover:1.0, cost:0},
+           {name:'Foam taewak',  recover:1.5, cost:240},
+           {name:'Big taewak',   recover:2.0, cost:520}],
   // beach collection sack — how much litter you can carry per tide
   bag:    [{cap:12,cost:0}, {cap:16,cost:180}, {cap:22,cost:420}],
   // net-cutter — how fast you free a tangled animal on the shore
@@ -1132,12 +1132,12 @@ function buildStore(){
     b.onclick=()=>{ buyGear('wetsuit'); buildStore(); };
     c.appendChild(b); list.appendChild(c);
   }
-  // --- net basket ---
+  // --- net bag (mangsari) ---
   {
     const arr=GEAR.net, idx=G.netIdx, maxed=idx>=arr.length-1, next=arr[Math.min(idx+1,arr.length-1)];
     const pips=arr.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('');
     const c=document.createElement('div');c.className='scard';
-    c.innerHTML=`<span class="sicon">${GEAR_ICON.net}</span><div class="meta"><div class="t">Net basket<span class="levelpips">${pips}</span></div>
+    c.innerHTML=`<span class="sicon">${GEAR_ICON.net}</span><div class="meta"><div class="t">Net bag<span class="levelpips">${pips}</span></div>
       <div class="d">Net size ${arr[idx].cap}${maxed?' · MAX':` → ${next.cap}`}</div></div>`;
     const b=document.createElement('button');b.className='btn';
     b.textContent = maxed?'Maxed':`${next.cost} won`;
@@ -1278,9 +1278,9 @@ const MUSEUM_EXHIBITS=[
   {id:'sunset', x:589, y:112, name:'Sumbi-sori', ko:'숨비소리 · 노을', sound:true,
    fact:'Surfacing, a haenyeo lets her held breath go in a long whistle — the sumbi-sori. It is the sound of the sea-women: a body saying, I am still here.',
    quote:'“I am still here.”'},
-  {id:'gear', x:709, y:184, name:'Goggles & Tewak', ko:'물안경 · 테왁',
-   fact:'No tanks — only goggles, lead weights, a net bag, and the tewak: a buoyant float she rests on between dives and clings to when the water turns rough.',
-   quote:'“The tewak is the only thing that waits for you up there.”'},
+  {id:'gear', x:709, y:184, name:'Goggles & Taewak', ko:'물안경 · 태왁',
+   fact:'No tanks — only goggles, lead weights, a net bag, and the taewak: a buoyant float she rests on between dives and clings to when the water turns rough.',
+   quote:'“The taewak is the only thing that waits for you up there.”'},
   {id:'pottery', x:846, y:316, name:'Onggi Jars', ko:'항아리',
    fact:'When the sea closes in winter and storm season, the haenyeo turn to the volcanic fields — farming, and fermenting the harvest in onggi jars. A life split between water and earth.',
    quote:'“Winter belongs to the soil.”'},
@@ -1711,7 +1711,7 @@ function openDiveStart(){
     ['Breath', maxBreath()],
     ['Tool', GEAR.tool[G.toolIdx].name],
     ['Mask', GEAR.mask[G.maskIdx].name],
-    ['Tewak', GEAR.tewak[G.tewakIdx].name],
+    ['Taewak', GEAR.tewak[G.tewakIdx].name],
     ['Time underwater', time+'s'],
     ['Net space', netCap()+' kg'],
     ['Depth zones', 'hagun 0–5 · junggun 5–10 · sanggun 10–20 m'],

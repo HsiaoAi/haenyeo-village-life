@@ -488,7 +488,7 @@
       const net = (typeof GEAR!=='undefined' && GEAR.net && GEAR.net[G.netIdx]) ? GEAR.net[G.netIdx].cap : '—';
       const suit = (G.suit==='modern')?'Neoprene wetsuit':'Cotton mul-ot';
       h += `<div class="ph-sec">Gear</div>
-        <div class="ph-row"><span class="nm">Net basket</span><span class="ph-price">holds ${net}</span></div>
+        <div class="ph-row"><span class="nm">Net bag</span><span class="ph-price">holds ${net}</span></div>
         <div class="ph-row"><span class="nm">Suit</span><span class="ph-price" style="font-size:12px">${suit}</span></div>`;
       return h;
     }
