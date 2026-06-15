@@ -1466,8 +1466,8 @@ function marketHit(x,y){
   if(x>sellCounter.x-2&&x<sellCounter.x+sellCounter.w+2&&y>sellCounter.y-2&&y<sellCounter.y+sellCounter.h+8)return true;
   if(y<566){ if(x<MARKET.x0+112)return true; if(x>MARKET.x1-112)return true; }   // deep side stalls
   if(y<262 && x>=MARKET.x0+112 && x<=MARKET.x1-112) return true;                  // back-stall row
-  // ground clutter clusters flanking the aisle — center walking lane (x≈378–600) stays clear
-  if(y>440 && y<526){ if(x>158 && x<374) return true; if(x>600 && x<802) return true; }
+  // (the old aisle-clutter blocks were left over from the procedural market; the illustration's
+  //  lower ground is open, so the whole floor is walkable now)
   return false;
 }
 function updateMarket(dt){
