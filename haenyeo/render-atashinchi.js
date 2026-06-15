@@ -3811,6 +3811,9 @@ function beachDeco(){
     g.beginPath();g.ellipse(sx,sy,3,2.2,rng2()*3,0,7);g.fill();g.stroke();}
   _beachDeco=c; return c;
 }
+let beachImg=null, beachImgTried=false;
+function ensureBeachImg(){ if(beachImgTried)return; beachImgTried=true;
+  const im=new Image(); im.onload=()=>{ beachImg=im; }; im.src='beach.png?v=1'; }
 function drawBeach(){
   const t=performance.now()*0.001;
   // shore health drives the whole mood — lerp every colour from neglected → thriving
@@ -3822,17 +3825,19 @@ function drawBeach(){
   const sm=(a,b,v)=>{ const u=Math.max(0,Math.min(1,(v-a)/(b-a))); return u*u*(3-2*u); };
   const hi=sm(0.6,0.9,hp);    // healthy-shore extras (crabs, gulls, sparkle, sun) fade in
   const lo=sm(0.4,0.0,hp);    // neglected murk fades in as health drops
-  // warm sand ground
-  ctx.fillStyle=C_sand;ctx.fillRect(0,0,W,H);
-  // top grassy dune band
-  ctx.fillStyle=C_dune;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);ctx.lineTo(W,134);
-  for(let x=W;x>=0;x-=24)ctx.lineTo(x,134+Math.sin(x*0.05)*7);ctx.closePath();ctx.fill();
-  ctx.strokeStyle=lerpHex('#7a8a5a',MIN.greenD,hp);ctx.lineWidth=2;ctx.lineCap='round';
-  const rng=mulberry32(21);
-  for(let i=0;i<24;i++){const gx=rng()*W, gy=44+rng()*84;
-    for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(gx,gy);ctx.quadraticCurveTo(gx+b*4+Math.sin(t+i)*1.5,gy-12,gx+b*7,gy-18);ctx.stroke();}}
-  // sand speckle + idle shells (static decor) — drawn once to an offscreen cache, then blitted
-  ctx.drawImage(beachDeco(),0,0,W,H);
+  // ---- base backdrop: the illustrated beach (grass + sand + rocks + shells) above the resting tide;
+  //      the picture's own sea is cropped off so the game's live waterline + rising tide draw below ----
+  ensureBeachImg();
+  if(beachImg && beachImg.complete && beachImg.naturalWidth){
+    const wf=0.845;   // fraction of the image above its painted waterline
+    ctx.drawImage(beachImg, 0,0, beachImg.naturalWidth, Math.round(beachImg.naturalHeight*wf), 0,0, W, 575);
+  } else {
+    // fallback (image not loaded): procedural sand + dune + cached speckle/shells
+    ctx.fillStyle=C_sand;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=C_dune;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);ctx.lineTo(W,134);
+    for(let x=W;x>=0;x-=24)ctx.lineTo(x,134+Math.sin(x*0.05)*7);ctx.closePath();ctx.fill();
+    ctx.drawImage(beachDeco(),0,0,W,H);
+  }
   // gliding gulls over a healthy shore
   if(hi>0.02){ ctx.globalAlpha=hi*0.8;
     for(let i=0;i<3;i++){ const gx=((t*26*(1+i*0.2)+i*340)%(W+80))-40, gy=40+i*22+Math.sin(t*1.1+i)*5;
