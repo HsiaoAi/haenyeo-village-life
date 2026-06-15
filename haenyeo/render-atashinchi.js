@@ -3802,12 +3802,43 @@ function drawBeach(){
       if(tw>0.4){ ctx.globalAlpha=hi*(tw-0.4)*1.5; const r=0.8+rs()*1.2; ctx.fillRect(sx-r,sy,r*2,1); ctx.fillRect(sx,sy-r,1,r*2); } }
     ctx.globalAlpha=1; }
   ctx.restore();
+  // waves rolling up the shore — translucent foam tongues advancing & receding (bigger when it's blustery)
+  { const wWind=(typeof G!=='undefined'&&(G.weather==='wind'||G.weather==='rain'))?1.6:1;
+    ctx.save(); ctx.fillStyle='#ffffff';
+    for(let i=0;i<3;i++){ const ph=(t*0.45+i*0.34)%1, env=Math.sin(ph*Math.PI), reach=env*20*wWind;
+      ctx.globalAlpha=0.42*env;
+      ctx.beginPath(); ctx.moveTo(0,seaTop+2);
+      for(let x=0;x<=W;x+=20){ ctx.lineTo(x,seaTop-reach+Math.sin(x*0.05+i*2+t*2)*3); }
+      ctx.lineTo(W,seaTop+2); ctx.closePath(); ctx.fill(); }
+    ctx.globalAlpha=1; ctx.restore(); }
   // litter (depth-sorted so nearer items overlap correctly)
   const sorted=bLitter.slice().sort((a,b)=>a.y-b.y);
   for(const c of sorted) drawLitter(c,t);
   // tiny crabs scuttle on a healthy shore (none on a neglected one)
   if(hi>0.05){ ctx.globalAlpha=hi;
     drawBeachCrab(200,360,t,0); drawBeachCrab(760,470,t,2.3);
+    ctx.globalAlpha=1; }
+  // a windblown wrapper tumbling across the sand (a stray bit of litter on the breeze)
+  { const windy=(typeof G!=='undefined'&&G.weather==='wind'), cyc=(t*(windy?0.12:0.06))%1;
+    const wxp=BEACH_AREA.x0+cyc*(BEACH_AREA.x1-BEACH_AREA.x0), wyp=300+Math.sin(cyc*11)*44;
+    ctx.save(); ctx.globalAlpha=windy?0.85:0.5; ctx.translate(wxp,wyp); ctx.rotate(t*5);
+    ctx.fillStyle='rgba(250,248,240,.9)'; ctx.strokeStyle='rgba(120,118,108,.5)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(-4,-3); ctx.lineTo(4,-4); ctx.lineTo(5,3); ctx.lineTo(-3,4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore(); }
+  // a seabird that drops to the sand, rests a beat, then lifts off — only on a healthy shore
+  if(hi>0.1){ const cyc=(t*0.06)%1, lx=632, gy0=70, landY=300;
+    let gy, flying=true;
+    if(cyc<0.32){ gy=gy0+(landY-gy0)*(cyc/0.32); } else if(cyc<0.62){ gy=landY; flying=false; } else { gy=landY+(gy0-landY)*((cyc-0.62)/0.38); }
+    const gx=lx+(flying?Math.sin(t*2)*6:0); ctx.globalAlpha=hi;
+    if(flying){ drawGull(gx,gy,Math.sin(t*5)*0.5+0.5); }
+    else { ctx.save(); ctx.translate(gx,gy);
+      ctx.fillStyle='rgba(74,58,44,.18)'; ctx.beginPath(); ctx.ellipse(0,4,7,2,0,0,7); ctx.fill();
+      inked(ctx,'#f4f1ea',1.6); ctx.beginPath(); ctx.ellipse(0,0,6,4,0,0,7); fillStroke(ctx);
+      inked(ctx,'#f4f1ea',1.4); ctx.beginPath(); ctx.arc(5,-3,2.6,0,7); fillStroke(ctx);
+      ctx.fillStyle='#e0a836'; ctx.beginPath(); ctx.moveTo(7,-3); ctx.lineTo(10,-2.4); ctx.lineTo(7,-1.6); ctx.fill();
+      ctx.fillStyle=MIN.ink; ctx.beginPath(); ctx.arc(5.6,-3.4,0.7,0,7); ctx.fill();
+      ctx.strokeStyle='#d59f2e'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(-1,4); ctx.lineTo(-1,7); ctx.moveTo(2,4); ctx.lineTo(2,7); ctx.stroke();
+      ctx.restore(); }
     ctx.globalAlpha=1; }
   // a creature tangled in a washed-up net (the rescue)
   drawBeachRescue(t);
