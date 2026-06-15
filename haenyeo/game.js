@@ -1424,10 +1424,10 @@ function buyGear(kind){
 
 /* ---------------- CO-OP MARKET (walkable fish market) ---------------- */
 const MARKET={x0:36,y0:140,x1:924,y1:586};
-const sellCounter={x:330,y:300,w:300,h:46};   // central seafood counter — solid
-const sellStation={x:480,y:392};             // stand here to sell your catch
+const sellCounter={x:402,y:452,w:156,h:38};   // Migyeong's buyer's counter — out on the open floor, clear of the stalls
+const sellStation={x:480,y:516};             // stand here (just below the counter) to sell your catch
 const marketExit={x:438,y:548,w:84,h:34};
-const vendor={name:'Migyeong', roman:'Migyeong', skin:'#f0c89a', scarf:'#c0506e', x:480, y:286, id:'vendor',
+const vendor={name:'Migyeong', roman:'Migyeong', skin:'#f0c89a', scarf:'#c0506e', x:480, y:438, id:'vendor',
   look:{ hairStyle:'bob', hair:'#2a2220', vest:'#3a6e8c', glasses:true, top:'#f2ead2', bottom:'#4a4a52', skin:'#e7c9a0' }};
 const VENDOR_LINES=[
   "Fresh catch? Let's see what the sea gave you today.",
@@ -1447,6 +1447,10 @@ const MARKET_STALLS=[
   {x:483,y:400,kr:'표고버섯',cn:'香菇',  fact:"香菇(표고버섯)——在濟州潮濕的森林裡以橡木段栽培,菇傘厚實多肉,用於煮湯與涼拌。"},
   {x:608,y:400,kr:'녹차',cn:'綠茶',      fact:"綠茶(녹차)——濟州火山土壤與海霧孕育出優質綠茶,是韓國主要的抹茶產區之一。"},
   {x:740,y:400,kr:'오메기떡',cn:'오메기年糕', fact:"오메기年糕(오메기떡)——濟州的糯小米年糕,外裹紅豆或艾草,口感Q彈,是島上人人喜愛的點心。"},
+  // SIDE stalls (left/right) — per layout: 右上 peanuts, 右下 tangerine, 左下 citrus souvenirs
+  {x:808,y:268,kr:'우도 땅콩',cn:'牛島花生', fact:"牛島花生(우도 땅콩)——濟州外海牛島(우도)的特產小花生,香氣濃、顆粒小,可烤來當零嘴或做成花生冰淇淋。"},
+  {x:808,y:446,kr:'감귤',cn:'柑橘',       fact:"柑橘(감귤)——濟州最日常的蜜柑,冬天整片橘園金黃。香甜好剝,是島上家家戶戶的零嘴(比漢拏峰小巧親民)。"},
+  {x:152,y:446,kr:'감귤 선물',cn:'柑橘伴手禮', fact:"柑橘伴手禮——濟州熱門的伴手禮:漢拏峰巧克力、柑橘果醬與軟糖,裝進小盒帶回家分送親友。"},
 ];
 const MARKET_LANE={x0:200,x1:760,y0:300,y1:560};   // where shoppers roam (the open aisle)
 let marketShoppers=[];

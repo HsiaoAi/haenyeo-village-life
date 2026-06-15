@@ -2838,7 +2838,7 @@ function ensureMarketImg(){ if(marketImgTried)return; marketImgTried=true;
   const im=new Image(); im.onload=()=>{ marketImg=im; }; im.src='market.png?v=1'; }
 /* Migyeong's buyer's counter — a wooden stall with a weighing scale + a basket of catch */
 function drawSellStall(){
-  const cx=480, top=302, cl=cx-86, cr=cx+86, W2=cr-cl;
+  const c=sellCounter, cx=c.x+c.w/2, top=c.y, cl=c.x, cr=c.x+c.w, W2=c.w;
   const wood='#9c6b3a', woodD='#5e3f26', woodL='#b98a52';
   ctx.save(); ctx.lineJoin='round'; ctx.lineCap='round';
   // front panel (planks) + counter top
