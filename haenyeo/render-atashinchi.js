@@ -1376,7 +1376,8 @@ function drawBeachCompanions(t){
     ctx.strokeStyle=MIN.ink;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(hx1,hy1);ctx.lineTo(hx2,hy2);ctx.stroke();
     ctx.strokeStyle='#9c6a3e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(hx1,hy1);ctx.lineTo(hx2,hy2);ctx.stroke();
   } else if(tm>=1020||tm<180){        // 17:00 → 3:00 — drive-in beach movie, on late into the night
-    // ---- screen on two posts, kept clear of the bulteok on the right ----
+    // ---- screen on two posts, shifted left so it doesn't overlap the 포장마차 on the right ----
+    ctx.save(); ctx.translate(-52,0);
     inked(ctx,'#5a3a22',2.4);rr(ctx,96,498,8,60,2);fillStroke(ctx);rr(ctx,236,498,8,60,2);fillStroke(ctx);
     inked(ctx,'#11161f',3);rr(ctx,84,452,168,92,4);fillStroke(ctx);
     ctx.save();rr(ctx,90,458,156,80,3);ctx.clip();
@@ -1405,6 +1406,7 @@ function drawBeachCompanions(t){
     // dog & robot sitting on top of the car, facing the screen
     drawBeachDog(ctx,cx-16,cy-8+bob(0)*0.3,0.5,'side');
     drawBeachRobot(ctx,cx+16,cy-8+bob(1)*0.3,0.52,'side');
+    ctx.restore();
     // faint stars above
     ctx.save();ctx.fillStyle='#fdf8e6';
     for(let i=0;i<10;i++){const sx=(i*97+300)%900, sy=86+((i*61)%62); const tw=0.4+0.6*Math.sin(t*2+i*1.7);
