@@ -3710,19 +3710,19 @@ function drawHomeDebug(){
 function drawEat(){
   drawHome();
   const t=performance.now()*0.001;
-  const bx=P.x+34, by=HOME_TABLETOP.y;   // the bowl is pulled in front of the seated diner
+  const bx=P.x+22, by=HOME_TABLETOP.y;   // the bowl on the table just above the seated diner
   ctx.save();ctx.fillStyle='rgba(20,16,10,.28)';ctx.fillRect(0,0,W,H);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='screen';
   const sp=ctx.createRadialGradient(bx,by,8,bx,by,150);sp.addColorStop(0,'rgba(255,212,134,.28)');sp.addColorStop(1,'rgba(255,212,134,0)');
   ctx.fillStyle=sp;ctx.beginPath();ctx.arc(bx,by,150,0,7);ctx.fill();ctx.restore();
-  drawPlayerEating(ctx,P.x,P.y,P.face,t);            // seated on the floor cushion
+  drawPlayerSittingByFire(P.x,P.y,t);                // clean cross-legged seated pose, facing the table
   ctx.save();ctx.globalCompositeOperation='screen';
   for(let i=0;i<4;i++){const ph=t*1.3+i*1.6;const sy=by-14-((ph*9)%26);const sx=bx+Math.sin(ph*1.6)*5;const a=0.16*(1-((ph*9)%26)/26);
     ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`;ctx.beginPath();ctx.arc(sx,sy,4+i,0,7);ctx.fill();}
   ctx.restore();
   drawRamenBowl(ctx,bx,by);
   const cyc=(Math.sin(eatT*5)*0.5+0.5);
-  const mouthX=P.x+12, mouthY=P.y-24;
+  const mouthX=P.x, mouthY=P.y-17;
   const clumpX=bx+(mouthX-bx)*cyc, clumpY=(by-6)+(mouthY-(by-6))*cyc;
   ctx.strokeStyle=MIN.gold;ctx.lineWidth=1.6;ctx.lineCap='round';
   for(let s=-1;s<=1;s++){ctx.beginPath();ctx.moveTo(bx+s*3,by-4);ctx.quadraticCurveTo(clumpX+s*2,(by-4+clumpY)/2,clumpX+s*2,clumpY);ctx.stroke();}
