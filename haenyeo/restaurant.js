@@ -185,7 +185,7 @@ function spawnGuest(){
   // about half the guests also order a drink — soju or matcha
   let drink=null; if(Math.random()<0.55){ drink = Math.random()<0.5 ? 'soju' : 'matcha'; }
   rGuests.push({ seat, state:'waiting', wait:0, patience:22+Math.random()*11, want,
-                 plate:null, drink, drinkDone:false, drinkQuality:0, bob:0, bobPhase:Math.random()*6.28, joy:0,
+                 plate:null, dishDone:false, drink, drinkDone:false, drinkQuality:0, bob:0, bobPhase:Math.random()*6.28, joy:0,
                  skin:look.skin, look:look.look, face:look.face });
   return true;
 }
@@ -211,27 +211,38 @@ function passAction(){
   tone(560,.06,'triangle',.05);
 }
 
-function serveGuest(g){
+/* drink and dish are SEPARATE tickets: serve the dish first, then come back
+   empty-handed to pour the drink. One item delivered at a time. */
+function serveDish(g){
   if(!rCarry) return;
   if(rBan<=0.001){ if(toastCd<=0){toast('반찬 ran out — refill at the side station!');toastCd=2;} return; }
-  if(g.drink && !g.drinkDone){ startPour(g); return; }  // pour their drink before plating up
-  finishServe(g);
-}
-function finishServe(g){
   const plate=rCarry; rCarry=null;
   rBan=Math.max(0, rBan-0.16);                          // each dish spends some 반찬
-  let pay=Math.round(plate.dish.price*starMult(plate.stars));
-  let bonus=0, drinkPay=0;
-  if(g.drink){ const dr=DRINKS[g.drink]; drinkPay=dr.price;
-    if((g.drinkQuality||0)>=0.78){ bonus=Math.round((pay+drinkPay)*0.25); g.joy=1; } }   // a clean pour earns a tip
-  pay+=drinkPay+bonus;
-  rEarned+=pay; rTips+=bonus; rServed++;
-  g.state='served'; g.plate=plate; g.served=1.0;
-  G.renown=(G.renown||0) + Math.round(6*starMult(plate.stars)) + (g.drink?3:0) + (bonus?4:0);
+  const pay=Math.round(plate.dish.price*starMult(plate.stars));
+  rEarned+=pay; rServed++; g.dishDone=true; g.plate=plate;
+  G.renown=(G.renown||0)+Math.round(6*starMult(plate.stars));
   const t=rTables[g.seat];
-  for(let i=0;i<10;i++) rParts.push({x:t.x,y:t.y-26,vx:(Math.random()-.5)*2.4,vy:-Math.random()*2.4-0.4,life:1,c:bonus?'#5cbfb0':'#f0bd4c',heart:i<3});
+  for(let i=0;i<8;i++) rParts.push({x:t.x,y:t.y-26,vx:(Math.random()-.5)*2.2,vy:-Math.random()*2.2-0.4,life:1,c:'#f0bd4c',heart:i<2});
+  tone(720,.14,'sine',.06);
+  toast('+'+pay+' won'+((g.drink&&!g.drinkDone)?' · now pour the '+DRINKS[g.drink].name:''));
+  settleGuest(g);
+}
+function serveDrink(g){                                  // called after a successful pour
+  const dr=DRINKS[g.drink]; let pay=dr.price, bonus=0;
+  if((g.drinkQuality||0)>=0.78){ bonus=Math.round(dr.price*0.6); g.joy=1; }
+  pay+=bonus; rEarned+=pay; rTips+=bonus; rServed++; g.drinkDone=true;
+  G.renown=(G.renown||0)+3+(bonus?3:0);
+  const t=rTables[g.seat];
+  for(let i=0;i<8;i++) rParts.push({x:t.x,y:t.y-26,vx:(Math.random()-.5)*2.4,vy:-Math.random()*2.4-0.4,life:1,c:bonus?'#5cbfb0':'#f0bd4c',heart:i<2});
   tone(bonus?880:720,.16,'sine',.06);
-  if(bonus) toast('Perfect pour! +'+pay+' won (with tip)'); else toast('+'+pay+' won'+(drinkPay?' (dish + drink)':''));
+  if(bonus) toast('Perfect pour! +'+pay+' won (with tip)'); else toast('+'+pay+' won');
+  settleGuest(g);
+}
+function settleGuest(g){
+  // leave content once the dish AND any drink are both delivered; otherwise keep
+  // sitting (with a little extra patience) for the remaining item
+  if(g.dishDone && (!g.drink || g.drinkDone)){ g.state='served'; g.served=1.0; }
+  else { g.wait=Math.max(0, g.wait-7); }
 }
 
 /* ---- drink pour minigame: tap once to lock the rising fill near the gold line ---- */
@@ -241,9 +252,9 @@ function lockPour(){
   rPour.locked=true;
   const target=rPour.drink.target, miss=Math.abs(rPour.level-target);
   const quality=Math.max(0, 1-miss/0.5);               // 1 = bang on the line
-  const g=rPour.g; g.drinkDone=true; g.drinkQuality=quality;
+  const g=rPour.g; g.drinkQuality=quality;
   tone(quality>=0.78?880:460,.12,'sine',.05);
-  setTimeout(()=>{ if(rPour&&rPour.g===g){ rPour=null; finishServe(g); } }, 300);
+  setTimeout(()=>{ if(rPour&&rPour.g===g){ rPour=null; serveDrink(g); } }, 300);
 }
 // game.js routes kitchen canvas taps here
 function restaurantTap(p){ if(rPour&&!rPour.locked) lockPour(); }
@@ -279,12 +290,18 @@ function updateRestaurant(dt){
   if(atPass && !rP._atPass){ rP._atPass=true; passAction(); }
   if(!atPass) rP._atPass=false;
   if(Math.hypot(rP.x-rBanchan.x,rP.y-rBanchan.y)<48){ rBan=Math.min(1, rBan+dt*0.9); }   // refill 반찬
-  // serve the nearby guest who ordered the dish you're carrying (wrong dish won't take)
+  // carrying a plate: serve it to the nearby guest who ordered that dish (and hasn't got it yet)
   if(rCarry){
     let best=null,bd=46;
-    for(const g of rGuests){ if(g.state!=='waiting'||g.want!==rCarry.dish.id) continue;
+    for(const g of rGuests){ if(g.state!=='waiting'||g.dishDone||g.want!==rCarry.dish.id) continue;
       const t=rTables[g.seat]; const d=Math.hypot(rP.x-t.x,rP.y-t.y); if(d<bd){bd=d;best=g;} }
-    if(best) serveGuest(best);
+    if(best) serveDish(best);
+  } else {
+    // empty-handed: walk up to a guest who's had their dish and still wants a drink → pour it
+    let best=null,bd=42;
+    for(const g of rGuests){ if(g.state!=='waiting'||!g.dishDone||!g.drink||g.drinkDone) continue;
+      const t=rTables[g.seat]; const d=Math.hypot(rP.x-t.x,rP.y-t.y); if(d<bd){bd=d;best=g;} }
+    if(best) startPour(best);
   }
 
   // ---- guests grow impatient ----
@@ -440,14 +457,17 @@ function drawGuest(g){
   if(g.joy>0){ ctx.font='15px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#e0567a'; ctx.fillText('♥', x, by); }
   else if(g.state==='served'){ /* contentment — nothing, they're eating */ }
   else {
-    // a white thought bubble holding the order: a steaming bowl (everyone wants a dish),
-    // plus a small teacup badge only if this guest also wants tea.
+    // a white thought bubble holding the CURRENT order — the dish first, then the
+    // drink once the dish has been served (one item at a time).
     ctx.fillStyle='rgba(255,255,255,.94)'; ctx.strokeStyle='rgba(30,18,8,.4)'; ctx.lineWidth=1.4;
     ctx.beginPath(); ctx.arc(x,by,13,0,7); ctx.fill(); ctx.stroke();
-    const wd = (typeof dishById==='function') ? dishById(g.want) : null;   // the specific dish this guest ordered
-    if(wd && wd.icon){ ctx.font='15px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(wd.icon, x, by+1); }
-    else drawFoodIcon(x, by+1);
-    if(g.drink && !g.drinkDone) drawDrinkBadge(x+11, by+10, g.drink);
+    if(!g.dishDone){
+      const wd = (typeof dishById==='function') ? dishById(g.want) : null;
+      if(wd && wd.icon){ ctx.font='15px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(wd.icon, x, by+1); }
+      else drawFoodIcon(x, by+1);
+    } else if(g.drink && !g.drinkDone){
+      drawDrinkBadge(x, by+1, g.drink);   // dish done — now the drink is what they're waiting on
+    }
     const pr=Math.max(0,1-g.wait/g.patience);
     ctx.strokeStyle = pr<0.3?'#d35a31':'#e0a836'; ctx.lineWidth=2.6;
     ctx.beginPath(); ctx.arc(x,by,15,-Math.PI/2,-Math.PI/2+pr*6.283); ctx.stroke();
