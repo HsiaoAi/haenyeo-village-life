@@ -2859,6 +2859,10 @@ function drawSellStall(){
   inked(ctx,'#fbf7ec',2); ctx.beginPath();ctx.arc(sx,sy-19,8,0,7); fillStroke(ctx);                    // dial
   ctx.strokeStyle=MIN.ink;ctx.lineWidth=1; for(let a=-2.4;a<=-0.7;a+=0.42){ctx.beginPath();ctx.moveTo(sx+Math.cos(a)*5.5,sy-19+Math.sin(a)*5.5);ctx.lineTo(sx+Math.cos(a)*7.5,sy-19+Math.sin(a)*7.5);ctx.stroke();}
   ctx.strokeStyle='#d35a31';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx,sy-19);ctx.lineTo(sx+3.5,sy-24);ctx.stroke();   // needle
+  // a little gold ₩ coin sign on the counter front — reads as "sell your catch here"
+  const px=cx, py=top+24;
+  inked(ctx,MIN.gold,1.8); ctx.beginPath();ctx.arc(px,py,9,0,7); fillStroke(ctx);
+  ctx.fillStyle=MIN.ink2; ctx.font='700 11px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('₩',px,py+0.5);
   ctx.restore();
 }
 function drawMarket(){
@@ -2889,8 +2893,8 @@ function drawMarket(){
   ctx.save();ctx.globalCompositeOperation='screen';
   const sun=ctx.createLinearGradient(0,86,0,420);sun.addColorStop(0,'rgba(210,235,245,.1)');sun.addColorStop(1,'rgba(210,235,245,0)');
   ctx.fillStyle=sun;ctx.fillRect(W/2-90,86,180,360);ctx.restore();
-  tag(vendor.roman, vendor.x, vendor.y-30, 11, MIN.gold);
-  tag('Sell', sellStation.x, sellStation.y+8, 11, MIN.gold);
+  // (no floating Migyeong/Sell labels — the counter + scale + sign read as a buyer's stall;
+  //  walking up shows the "Sell catch" prompt, like every other stall)
   tag('← out', marketExit.x+marketExit.w/2, marketExit.y+marketExit.h/2, 11, MIN.gold);
 }
 
