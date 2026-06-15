@@ -2437,8 +2437,8 @@ function drawShop(){
   drawPerson(keeper.x,keeper.y,{skin:keeper.skin,scarf:keeper.scarf,look:keeper.look,idle:1.3});
   // player
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
-  // interaction labels
-  tag(keeper.roman, keeper.x, keeper.y-30, 11, MIN.gold);
+  // no floating keeper name — walking up shows the "Talk to Mr. Gicheol" prompt,
+  // like the market stalls; just the exit marker stays
   tag('← out', exitZone.x+exitZone.w/2, exitZone.y+exitZone.h/2, 11, MIN.gold);
 }
 
