@@ -840,7 +840,7 @@ function newDay(){
   tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; tickClock._past=false;
   rollWeather(true);   // a new day's weather, announced
   // overnight the tide washes fresh litter onto the shore — worse on rough days
-  const drift = (G.weather==='wind'?12:(G.weather==='rain'?10:7));
+  const drift = (G.weather==='wind'?BEACH_TUNING.driftWind:(G.weather==='rain'?BEACH_TUNING.driftRain:BEACH_TUNING.driftCalm));
   G.beachHealth -= drift; clampHealth();
   NPCS.forEach(n=>{ n.atHome=false; n.x=n.ax; n.y=n.ay; n.tx=n.ax; n.ty=n.ay; n.moving=false; n.wait=Math.random()*2; });  // villagers back out for the morning
   $('clkDate').textContent=SEASONS[G.season]+' · Day '+G.day;
@@ -1496,7 +1496,7 @@ function startDive(){
   dNet=[]; diveCatch={}; dCreatures=[];dBubbles=[];dParts=[]; dFresh=0;
   dBeat={active:false,p:0}; dSting=0; dHintT=0;
   // a clean shore makes the sea richer — more life to find; a trashed one, sparse (moderate)
-  const h01=G.beachHealth/100, creatureN=Math.round(14+h01*10);   // ~14 (neglected) → ~24 (pristine)
+  const h01=G.beachHealth/100, creatureN=Math.round(BEACH_TUNING.diveCreatureBase+h01*BEACH_TUNING.diveCreatureFromHealth);   // ~14 (neglected) → ~24 (pristine)
   for(let i=0;i<creatureN;i++)spawnC();
   // drifting moon jellies — brushing one stings and costs breath
   dJellies=[];
@@ -1762,7 +1762,22 @@ $('surfBtn').onclick=()=>endDive();
 $('diveClose').onclick=()=>{ $('pDive').classList.add('hidden'); scene='village'; P.x=330; P.y=BEACH_Y-24; P.face=1; };
 
 /* ---------------- BEACH CLEAN-UP (walk the sand, gather litter, dig out treasure) ---------------- */
-const BEACH_BAG=12;
+/* ---- all beach balance knobs in one place (tune here, see SPEC.md §B) ---- */
+const BEACH_TUNING={
+  bag:12,                                   // collection bag capacity
+  tideSeconds:46,                           // base tide-timer length
+  litterBase:8, litterPerNeglect:12, litterMax:18, litterWeatherBump:3,   // count = min(max, base + round((100-health)/perNeglect) + weatherBump)
+  rescueChanceRough:0.70, rescueChanceCalm:0.45, cutSeconds:2.6,
+  healthPerLitter:0.9, healthPerTreasure:0.4, healthPerRescue:14, healthSortBonus:6, healthSortAccGate:0.8,
+  driftCalm:7, driftRain:10, driftWind:12,  // overnight beach-health loss by weather
+  riskRefY:300, riskSpan:275, riskEcoMax:4, // value-by-distance: round(clamp((y-refY)/span)*ecoMax)
+  comboWindow:2.2, comboCap:5, comboPitchBase:520, comboPitchStep:40,
+  spotlessRadius:150, spotlessEco:5, spotlessCd:4,
+  ecoPerLitterSort:2, wrongSortPayout:0.4, rescueEco:15,
+  tideBaseY:575, tideRise:200, tideEase:1.5,
+  diveCreatureBase:14, diveCreatureFromHealth:10,   // dive richness: round(base + health01*fromHealth)
+};
+const BEACH_BAG=BEACH_TUNING.bag;
 const BEACH_AREA={x0:18, x1:W-18, y0:152, y1:558};
 let bLitter=[], bParts=[], bFloats=[], bRings=[], beachCatch={}, bBagCount=0, bTime=0, bTimeMax=46;
 let bCombo=0, bComboT=0, bSpotlessCd=0;   // quick-grab combo + area-clear cooldown
@@ -1777,7 +1792,7 @@ function makeRescue(){
   const k=RESCUE_KINDS[Math.floor(Math.random()*RESCUE_KINDS.length)];
   return { k, x:BEACH_AREA.x0+80+Math.random()*(BEACH_AREA.x1-BEACH_AREA.x0-160),
            y:BEACH_AREA.y0+120+Math.random()*(BEACH_AREA.y1-BEACH_AREA.y0-200),
-           cut:0, cutMax:2.6, freed:false, fleeT:0, bob:Math.random()*6.28, r:22 };
+           cut:0, cutMax:BEACH_TUNING.cutSeconds, freed:false, fleeT:0, bob:Math.random()*6.28, r:22 };
 }
 // quiet lines that fade in as a freed animal looks back, then leaves
 const RESCUE_LINES=["One less life lost to the sea's neglect.","It looked back once. Then it was free.","The sea remembers kindness."];
@@ -1791,7 +1806,7 @@ function pickBeachItem(){
 /* the waterline marches up the sand as the tide timer runs out (accelerating near the end).
    575 = the dry baseline · ~375 = fully in. Shared by updateBeach (flooding) and drawBeach (visual). */
 function tideLineY(){ if(!bTimeMax) return 575;
-  const p=Math.max(0,Math.min(1,1-(bTime/bTimeMax))); return 575 - Math.pow(p,1.5)*200; }
+  const p=Math.max(0,Math.min(1,1-(bTime/bTimeMax))); return BEACH_TUNING.tideBaseY - Math.pow(p,BEACH_TUNING.tideEase)*BEACH_TUNING.tideRise; }
 function placeLitter(c){
   const s=pickBeachItem();
   c.s=s; c.r=s.r||12; c.buried=!!s.buried; c.dig=0;
@@ -1808,14 +1823,14 @@ function startBeachClean(){
   spendEnergy('beach');
   scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bFloats=[]; bRings=[]; bLitter=[];
   bCombo=0; bComboT=0; bSpotlessCd=0;
-  bTimeMax=46; bTime=bTimeMax;
+  bTimeMax=BEACH_TUNING.tideSeconds; bTime=bTimeMax;
   // a dirtier shore washes up more to clean (8 pristine → ~16 neglected), and rough
   // weather surges the debris further — the tide drags in more on wind/rain days
-  const weatherBump=(G.weather==='wind'||G.weather==='rain')?3:0;
-  const litterN=Math.min(18, 8+Math.round((100-G.beachHealth)/12)+weatherBump);
+  const weatherBump=(G.weather==='wind'||G.weather==='rain')?BEACH_TUNING.litterWeatherBump:0;
+  const litterN=Math.min(BEACH_TUNING.litterMax, BEACH_TUNING.litterBase+Math.round((100-G.beachHealth)/BEACH_TUNING.litterPerNeglect)+weatherBump);
   for(let i=0;i<litterN;i++) spawnL();
   // sometimes a creature is tangled in a washed-up net (more likely after rough weather)
-  const rescueChance = (G.weather==='wind'||G.weather==='rain') ? 0.7 : 0.45;
+  const rescueChance = (G.weather==='wind'||G.weather==='rain') ? BEACH_TUNING.rescueChanceRough : BEACH_TUNING.rescueChanceCalm;
   bRescue = Math.random()<rescueChance ? makeRescue() : null;
   P.x=W/2; P.y=BEACH_AREA.y0+40; P.face=1; P.moving=false; P.anim=0;
   $('beachHud').classList.add('show'); $('leaveBeachBtn').classList.add('show');
@@ -1841,23 +1856,23 @@ function updateBeach(dt){
     const grab=()=>{
       const gx=c.x, gy=c.y, col=c.s.color, treasure=c.s.treasure;
       beachCatch[c.s.id]=(beachCatch[c.s.id]||0)+1; bBagCount++;
-      bCombo=(bComboT>0)?bCombo+1:1; bComboT=2.2; const mult=Math.min(5,bCombo);
+      bCombo=(bComboT>0)?bCombo+1:1; bComboT=BEACH_TUNING.comboWindow; const mult=Math.min(BEACH_TUNING.comboCap,bCombo);
       // risk/reward: litter snatched closer to the rising tide is worth bonus eco-points
-      const risk=Math.max(0,Math.min(1,(gy-300)/275)), ecoBonus=Math.round(risk*4)+(mult>1?mult:0);
+      const risk=Math.max(0,Math.min(1,(gy-BEACH_TUNING.riskRefY)/BEACH_TUNING.riskSpan)), ecoBonus=Math.round(risk*BEACH_TUNING.riskEcoMax)+(mult>1?mult:0);
       if(ecoBonus>0){ G.eco=(G.eco||0)+ecoBonus; bFloats.push({x:c.x,y:c.y-8,txt:'+'+ecoBonus+' ♻',life:1.1,col:'#7fd0c0'}); }
       bRings.push({x:gx,y:gy,life:1,col});
       if(mult>1) bFloats.push({x:gx,y:gy-22,txt:'COMBO x'+mult,life:1.0,col:'#f0c23a'});
-      tone(treasure?740:(520+Math.min(7,bCombo)*40),.07,'triangle',.06);
+      tone(treasure?740:(BEACH_TUNING.comboPitchBase+Math.min(7,bCombo)*BEACH_TUNING.comboPitchStep),.07,'triangle',.06);
       for(let i=0;i<8;i++)bParts.push({x:gx,y:gy,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:1,c:col});
-      G.beachHealth += treasure?0.4:0.9; clampHealth();   // every piece removed heals the shore a little
+      G.beachHealth += treasure?BEACH_TUNING.healthPerTreasure:BEACH_TUNING.healthPerLitter; clampHealth();   // every piece removed heals the shore a little
       const bp=$('bagPct'); if(bp){ bp.style.animation='none'; void bp.offsetWidth; bp.style.animation='bagbump .3s'; }   // counter bump
       if(c.s.treasure) toast('\u2726 '+c.s.name+' (+'+c.s.value+' won)');
       else maybeShowFact(c.s);                                // first time picking up this debris \u2192 a real fact
       placeLitter(c);
       // area clear: the local patch is now empty \u2192 a small Spotless! bonus + a bright flash
       if(bSpotlessCd<=0){
-        const localLeft=bLitter.filter(o=>o!==c && o.y<=tideLineY()+6 && Math.hypot(o.x-gx,o.y-gy)<150).length;
-        if(localLeft===0){ bSpotlessCd=4; G.eco=(G.eco||0)+5;
+        const localLeft=bLitter.filter(o=>o!==c && o.y<=tideLineY()+6 && Math.hypot(o.x-gx,o.y-gy)<BEACH_TUNING.spotlessRadius).length;
+        if(localLeft===0){ bSpotlessCd=BEACH_TUNING.spotlessCd; G.eco=(G.eco||0)+BEACH_TUNING.spotlessEco;
           bRings.push({x:gx,y:gy,life:1.3,col:'#fff7d8',big:true});
           bFloats.push({x:gx,y:gy-36,txt:'SPOTLESS! +5',life:1.4,col:'#fff7d8'});
           toast('Spotless! A patch of shore gleams \u2728'); }
@@ -1907,7 +1922,7 @@ function updateBeach(dt){
           bRescue.lookFace=(P.x<=bRescue.x)?-1:1;     // turn to face the diver
           bRescue.narration=RESCUE_LINES[(G.rescueLineIdx=((G.rescueLineIdx||0)+1)%RESCUE_LINES.length)];
           G.money+=k.reward; $('moneyV').textContent=G.money;   // rewards kept intact
-          G.eco+=15; G.beachHealth+=14; clampHealth();
+          G.eco+=BEACH_TUNING.rescueEco; G.beachHealth+=BEACH_TUNING.healthPerRescue; clampHealth();
           if(typeof recordRescue==='function') recordRescue(k);   // remembered later, in the dives
           for(let i=0;i<16;i++)bParts.push({x:bRescue.x,y:bRescue.y,vx:(Math.random()-.5)*3.5,vy:(Math.random()-.5)*3.5,life:1.2,c:'#5cbfb0'});
           softChime();                                // gentle warm chime (toast + fact card land after the look-back)
@@ -1968,14 +1983,14 @@ function pickBin(binId){
   const chosen=document.querySelector('#sortBins .chip[data-bin="'+binId+'"]');
   if(right){
     sortStreak++; const sb=Math.min(6,sortStreak), streakBonus=(sb>1?sb:0);
-    sortTally.correct+=e.n; sortTally.won+=b.value*e.n; sortTally.eco+=e.n*2+streakBonus;
+    sortTally.correct+=e.n; sortTally.won+=b.value*e.n; sortTally.eco+=e.n*BEACH_TUNING.ecoPerLitterSort+streakBonus;
     if(chosen){ chosen.classList.add('gulp'); }     // the bin "eats" it
     const streakTxt = sb>1 ? ` \u00b7 \uc5f0\uc18d Streak x${sortStreak}!${streakBonus?' +'+streakBonus+' \u267b':''}` : '';
     $('sortFeedback').innerHTML=`\u2713 \ub9de\uc544\uc694! Correct \u2014 +${b.value*e.n} won${streakTxt}`;
     tone(620+sb*70,.12,'sine',.06);              // rising pitch with the streak
   } else {
     sortStreak=0;
-    const got=Math.round(b.value*e.n*0.4);
+    const got=Math.round(b.value*e.n*BEACH_TUNING.wrongSortPayout);
     sortTally.won+=got;
     const correct=recycleBin(b.category);
     if(chosen){ chosen.classList.add('buzz'); }     // soft buzz on the wrong bin
@@ -1990,7 +2005,7 @@ $('sortNext').onclick=()=>{
   // done sorting \u2014 tally, pay, reward
   $('pSort').classList.add('hidden');
   const acc = sortTally.total ? sortTally.correct/sortTally.total : 1;
-  if(acc>=0.8){ G.beachHealth+=6; clampHealth(); }   // a tidy sorter keeps the shore that bit cleaner
+  if(acc>=BEACH_TUNING.healthSortAccGate){ G.beachHealth+=BEACH_TUNING.healthSortBonus; clampHealth(); }   // a tidy sorter keeps the shore that bit cleaner
   G.eco += sortTally.eco;
   G.money += sortTally.won + sortTally.treasure; $('moneyV').textContent=G.money;
   showBeachResult(acc);
