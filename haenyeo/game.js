@@ -199,7 +199,7 @@ PETS.forEach((p,i)=>{ p.ax=p.x; p.ay=p.y; p.tx=p.x; p.ty=p.y; p.anim=0; p.face=1
   p.wait=0.5+Math.random()*2.5; p.phase=i*2.3; });
 
 /* ---------------- GAME STATE ---------------- */
-const G={ day:1, money:0, time:6*60, wetsuitIdx:0, netIdx:0, toolIdx:0, maskIdx:0, tewakIdx:0,
+const G={ day:1, money:0, time:6*60, wetsuitIdx:0, netIdx:0, toolIdx:0, maskIdx:0, tewakIdx:0, bagIdx:0, cutIdx:0,
   friendship:{}, talkedToday:{}, catch:{}, catchQ:{}, trash:{}, season:0, meal:null, preparedMeal:null,
   suit:'traditional', owned:{traditional:true, modern:false}, weather:'sunny',
   renown:0,        // 해녀의 부엌 word-of-mouth — drives the kitchen rank (see restaurant.js)
@@ -363,6 +363,10 @@ const GEAR={
   tewak:  [{name:'Tewak buoy', recover:1.0, cost:0},
            {name:'Foam tewak', recover:1.5, cost:240},
            {name:'Big tewak',  recover:2.0, cost:520}],
+  // beach collection sack — how much litter you can carry per tide
+  bag:    [{cap:12,cost:0}, {cap:16,cost:180}, {cap:22,cost:420}],
+  // net-cutter — how fast you free a tangled animal on the shore
+  cutter: [{name:'Bare hands',spd:1.0,cost:0}, {name:'Diving knife',spd:1.5,cost:260}, {name:'Sharp shears',spd:2.2,cost:520}],
 };
 // two distinct diving outfits — traditional cotton mul-ot vs a modern neoprene wetsuit
 const SUITS={
@@ -376,6 +380,8 @@ function netCap(){ return GEAR.net[G.netIdx].cap; }
 function toolDig(){ return GEAR.tool[G.toolIdx].dig; }     // dig-speed multiplier
 function maskVis(){ return GEAR.mask[G.maskIdx].vis; }     // clear-sight radius underwater
 function tewakRecover(){ return GEAR.tewak[G.tewakIdx].recover; }   // surface breath-recovery multiplier
+function bagCap(){ return GEAR.bag[G.bagIdx].cap; }                  // beach litter sack capacity
+function cutSpeed(){ return GEAR.cutter[G.cutIdx].spd; }             // net-cut speed multiplier
 
 /* ---------------- PLAYER + INPUT ---------------- */
 const P={x:470,y:280,r:13,face:1,moving:false,anim:0,sitting:false,swimming:false};
@@ -1173,6 +1179,32 @@ function buildStore(){
     b.onclick=()=>{ buyGear('tewak'); buildStore(); };
     c.appendChild(b); list.appendChild(c);
   }
+  // --- beach sack (litter capacity per tide) ---
+  {
+    const arr=GEAR.bag, idx=G.bagIdx, maxed=idx>=arr.length-1, next=arr[Math.min(idx+1,arr.length-1)];
+    const pips=arr.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('');
+    const c=document.createElement('div');c.className='scard';
+    c.innerHTML=`<span class="sicon">${GEAR_ICON.net}</span><div class="meta"><div class="t">Beach sack<span class="levelpips">${pips}</span></div>
+      <div class="d">Litter per tide ${arr[idx].cap}${maxed?' · MAX':` → ${next.cap}`}</div></div>`;
+    const b=document.createElement('button');b.className='btn';
+    b.textContent = maxed?'Maxed':`${next.cost} won`;
+    b.disabled = maxed || G.money<next.cost; if(b.disabled)b.style.opacity=.5;
+    b.onclick=()=>{ buyGear('bag'); buildStore(); };
+    c.appendChild(b); list.appendChild(c);
+  }
+  // --- net cutter (rescue speed) ---
+  {
+    const arr=GEAR.cutter, idx=G.cutIdx, maxed=idx>=arr.length-1, next=arr[Math.min(idx+1,arr.length-1)];
+    const pips=arr.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('');
+    const c=document.createElement('div');c.className='scard';
+    c.innerHTML=`<span class="sicon">${GEAR_ICON.tool}</span><div class="meta"><div class="t">${arr[idx].name}<span class="levelpips">${pips}</span></div>
+      <div class="d">Cut speed ${arr[idx].spd.toFixed(1)}×${maxed?' · MAX':` → ${next.spd.toFixed(1)}× (${next.name})`}</div></div>`;
+    const b=document.createElement('button');b.className='btn';
+    b.textContent = maxed?'Maxed':`${next.cost} won`;
+    b.disabled = maxed || G.money<next.cost; if(b.disabled)b.style.opacity=.5;
+    b.onclick=()=>{ buyGear('cutter'); buildStore(); };
+    c.appendChild(b); list.appendChild(c);
+  }
 }
 function openStore(){
   scene='panel'; panelBg='shop';
@@ -1345,6 +1377,20 @@ function buyGear(kind){
     if(G.money<arr[nx].cost){toast('Not enough won');return;}
     G.money-=arr[nx].cost; G.netIdx=nx; $('moneyV').textContent=G.money;
     toast('New net! +capacity');
+    return;
+  }
+  if(kind==='bag'){
+    const arr=GEAR.bag, nx=G.bagIdx+1; if(nx>=arr.length)return;
+    if(G.money<arr[nx].cost){toast('Not enough won');return;}
+    G.money-=arr[nx].cost; G.bagIdx=nx; $('moneyV').textContent=G.money;
+    toast('Bigger sack — carry more litter each tide!');
+    return;
+  }
+  if(kind==='cutter'){
+    const arr=GEAR.cutter, nx=G.cutIdx+1; if(nx>=arr.length)return;
+    if(G.money<arr[nx].cost){toast('Not enough won');return;}
+    G.money-=arr[nx].cost; G.cutIdx=nx; $('moneyV').textContent=G.money;
+    toast('Sharper cutter — free tangled animals faster!');
     return;
   }
   if(kind==='tool'){
@@ -1795,7 +1841,7 @@ function makeRescue(){
   const k=RESCUE_KINDS[Math.floor(Math.random()*RESCUE_KINDS.length)];
   return { k, x:BEACH_AREA.x0+80+Math.random()*(BEACH_AREA.x1-BEACH_AREA.x0-160),
            y:BEACH_AREA.y0+120+Math.random()*(BEACH_AREA.y1-BEACH_AREA.y0-200),
-           cut:0, cutMax:BEACH_TUNING.cutSeconds, freed:false, fleeT:0, bob:Math.random()*6.28, r:22 };
+           cut:0, cutMax:BEACH_TUNING.cutSeconds/cutSpeed(), freed:false, fleeT:0, bob:Math.random()*6.28, r:22 };
 }
 // quiet lines that fade in as a freed animal looks back, then leaves
 const RESCUE_LINES=["One less life lost to the sea's neglect.","It looked back once. Then it was free.","The sea remembers kindness."];
@@ -1906,7 +1952,7 @@ function updateBeach(dt){
     };
     if(c.buried){
       if(near){
-        if(bBagCount>=BEACH_BAG){ toast('Bag full \u2014 head back!'); }
+        if(bBagCount>=bagCap()){ toast('Bag full \u2014 head back!'); }
         else {
           c.dig+=dt;
           if(Math.random()<.5)bParts.push({x:c.x+(Math.random()-.5)*c.r*2,y:c.y+(Math.random()-.3)*c.r,vx:(Math.random()-.5)*2.4,vy:-Math.random()*2.2,life:.7,c:'#c9a36a'});
@@ -1915,7 +1961,7 @@ function updateBeach(dt){
         }
       } else { c.dig=Math.max(0,c.dig-dt*1.4); }
     } else {
-      if(near){ if(bBagCount>=BEACH_BAG){ toast('Bag full \u2014 head back!'); } else grab(); }
+      if(near){ if(bBagCount>=bagCap()){ toast('Bag full \u2014 head back!'); } else grab(); }
     }
   }
   // ---- ghost-net wildlife rescue: walk up and hold to cut the net away ----
@@ -1965,8 +2011,8 @@ function updateBeach(dt){
   if(bRings.length>30) bRings.splice(0,bRings.length-30);
   bComboT-=dt; if(bComboT<=0) bCombo=0; bSpotlessCd-=dt;   // combo lapses after a pause
   bTime-=dt; if(bTime<=0){ endBeach(); return; }
-  $('bagFill').style.width=(bBagCount/BEACH_BAG*100)+'%';
-  $('bagPct').textContent=bBagCount+'/'+BEACH_BAG;
+  $('bagFill').style.width=(bBagCount/bagCap()*100)+'%';
+  $('bagPct').textContent=bBagCount+'/'+bagCap();
   $('tideFill').style.width=(bTime/bTimeMax*100)+'%';
   { const sf=$('shoreFill'); if(sf){ const h=Math.round(G.beachHealth);
       sf.style.width=h+'%'; sf.style.background = h<35?'linear-gradient(90deg,#c9512c,#e8714a)':(h<70?'linear-gradient(90deg,#e0a836,#f0d27a)':'linear-gradient(90deg,#6aa647,#acd684)');
@@ -2052,7 +2098,7 @@ function showBeachResult(acc){
   if(bGoal){
     let met=false;
     if(bGoal.key==='rescue') met=bRescuedThis;
-    else if(bGoal.key==='bag') met=bBagCount>=BEACH_BAG;
+    else if(bGoal.key==='bag') met=bBagCount>=bagCap();
     else if(bGoal.key==='sort') met=sortTally.total>0 && (sortTally.correct/sortTally.total)>=0.9;
     else if(bGoal.key==='heal') met=(G.beachHealth-bHealthStart)>=10;
     if(met){ G.money+=bGoal.reward; row('🎯 Goal cleared!', bGoal.label+' · +'+bGoal.reward+' won'); }
@@ -2186,7 +2232,8 @@ $('startBtn').onclick=()=>{ $('pTitle').classList.add('hidden'); scene='village'
 
 function restartGame(){
   G.day=1; G.money=0; G.time=6*60; G.season=0; G.catch={}; G.catchQ={}; G.trash={}; G.renown=0; G.beachHealth=60; G.eco=0; G.energy=100; G.factsSeen={}; G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false; G.meal=null; G.preparedMeal=null; tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; G.weather='sunny';
-  G.netIdx=0; G.toolIdx=0; G.maskIdx=0; G.tewakIdx=0; G.suit='traditional'; G.owned={traditional:true, modern:false};
+  G.netIdx=0; G.toolIdx=0; G.maskIdx=0; G.tewakIdx=0; G.bagIdx=0; G.cutIdx=0; G.suit='traditional'; G.owned={traditional:true, modern:false};
+  G.shoreCleaned=0; G.shoreMilestone=0;
   NPCS.forEach(n=>{G.friendship[n.id]=0; n.x=n.ax; n.y=n.ay; n.tx=n.ax; n.ty=n.ay; n.talking=false; n.moving=false; n.atHome=false; n.wait=Math.random()*2;});
   PETS.forEach(p=>{ p.x=p.ax; p.y=p.ay; p.tx=p.ax; p.ty=p.ay; p.moving=false; p.petJoy=0; G.friendship[p.id]=0; p.wait=0.5+Math.random()*2.5; });
   P.x=240; P.y=330; P.face=1; P.sitting=false;
