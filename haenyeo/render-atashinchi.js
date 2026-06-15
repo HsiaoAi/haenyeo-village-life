@@ -1343,6 +1343,12 @@ function drawBeachCompanions(t){
   const tm=(typeof G!=='undefined')?G.time:600;
   const bob=ph=>Math.sin(t*1.8+ph)*1.1;
   ctx.save();
+  // a burst of hearts when the diver joins the dog & robot's activity
+  if(typeof joinCheerT!=='undefined' && joinCheerT>0){ ctx.save(); ctx.fillStyle='#ff7eb3';
+    for(let i=0;i<4;i++){ const hp=((1.5-joinCheerT)+i*0.25)%1, hx=joinCheerX+(i-1.5)*9+Math.sin(t*3+i)*3, hy=joinCheerY-12-hp*42;
+      ctx.globalAlpha=Math.min(1,joinCheerT)*(1-hp); ctx.beginPath();
+      ctx.moveTo(hx,hy+3); ctx.bezierCurveTo(hx-4,hy-1,hx-2,hy-4,hx,hy-1.6); ctx.bezierCurveTo(hx+2,hy-4,hx+4,hy-1,hx,hy+3); ctx.fill(); }
+    ctx.globalAlpha=1; ctx.restore(); }
   // daytime beach corner — hand-drawn lounge set (thatched umbrella over two
   // wooden deck chairs on a straw mat, with cats), cleared from 18:00 onward
   if(tm>=300&&tm<1020){

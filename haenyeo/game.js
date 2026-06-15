@@ -496,6 +496,7 @@ function rectHit(x,y){
   return false;
 }
 function updateVillage(dt){
+  if(joinCheerT>0) joinCheerT-=dt;
   if(P.sitting){
     const wantMove=keys['arrowleft']||keys['a']||keys['arrowright']||keys['d']||keys['arrowup']||keys['w']||keys['arrowdown']||keys['s']||(joy.on&&joy.moved);
     if(P.sitAt==='bulteok'){
@@ -649,6 +650,9 @@ function nearest(){
     const d=Math.hypot(P.x-LOUNGER.x,P.y-LOUNGER.y);
     if(d<48) best={type:'lounger'};
   }
+  { const act=activityNow();   // walk up to the dog & robot's current activity to join in
+    if(act && !(G.joinedToday&&G.joinedToday[act.key])){
+      const d=Math.hypot(P.x-act.x,P.y-act.y); if(d<56 && d<bd){ bd=d; best={type:'joinact',act}; } } }
   if(beachEnabled()){
     if(!best && P.y>=BEACH_Y && P.x < coastX(P.y)-8){
       best = {type:'beach'};   // sand → clean the beach; out in the water you swim to the boat/divers to dive
@@ -659,6 +663,27 @@ function nearest(){
   return best;
 }
 let current=null;
+/* the dog & robot cycle through a daily beach activity — the diver can join in (once each per day) */
+let joinCheerT=0, joinCheerX=0, joinCheerY=0;
+function activityNow(){
+  const tm=G.time;
+  if(tm>=1020||tm<180) return {key:'movie', label:'movie night', x:178, y:572};
+  if(tm>=180&&tm<300) return null;                                  // heading home / asleep
+  if(tm>=480&&tm<600) return {key:'surf', label:'surfing', x:520, y:545};
+  if(tm>=600&&tm<660) return {key:'hike', label:'morning hike', x:470, y:202};
+  if(tm>=660&&tm<720) return {key:'picnic', label:'picnic', x:470, y:560};
+  if(tm>=720&&tm<840) return {key:'skate', label:'roller skating', x:470, y:520};
+  if(tm>=840&&tm<1020) return {key:'dive', label:'diving', x:520, y:545};
+  return {key:'yoga', label:'beach yoga', x:282, y:556};            // 5:00–8:00
+}
+function joinActivity(act){
+  G.joinedToday=G.joinedToday||{}; G.joinedToday[act.key]=true;
+  if(G.friendship) G.friendship.dog=Math.min(MAX_HEARTS*HEART_PTS,(G.friendship.dog||0)+12);
+  G.renown=(G.renown||0)+3; G.energy=Math.min(100,G.energy+8); updateEnergyHud();
+  joinCheerT=1.5; joinCheerX=act.x; joinCheerY=act.y;
+  tone(660,.1,'sine',.05); tone(880,.12,'sine',.045);
+  toast('You joined the '+act.label+' with the dog & robot ♥');
+}
 function refreshPrompt(){
   current=nearest();
   if(P.sitting && P.sitAt!=='bulteok') current={type:'lounger'};
@@ -672,6 +697,7 @@ function refreshPrompt(){
   else if(current.type==='pojangmacha') txt=kitchenOpen()?'Open 해녀의 부엌 · the Kitchen':'해녀의 부엌 · opens 17:00–03:00';
   else if(current.type==='lounger') txt=P.sitting?'Stand up':'Rest on the lounger';
   else if(current.type==='door') txt = current.b.name==='home'?'Go inside':(current.b.name==='coop'?'Enter market':(current.b.name==='museum'?'Enter the museum':'Enter shop'));
+  else if(current.type==='joinact') txt='Join the '+current.act.label;
   else if(current.type==='beach') txt='Clean the beach';
   else if(current.type==='sea') txt='Dive';
   el.textContent=txt; el.classList.add('show');
@@ -690,6 +716,7 @@ function doInteract(){
   }
   else if(current.type==='lounger'){ if(P.sitting) standFromLounger(); else sitOnLounger(); }
   else if(current.type==='door'){ if(current.b.name==='home') enterHome(); else if(current.b.name==='coop') enterMarket(); else if(current.b.name==='museum') enterMuseum(); else enterShop(); }
+  else if(current.type==='joinact') joinActivity(current.act);
   else if(current.type==='beach') startBeachClean();
   else if(current.type==='sea') openDiveStart();
 }
@@ -799,7 +826,7 @@ function askSleep(){   // the home bed — a full night that rolls into the next
 function newDay(){
   G.day++; G.season=Math.floor((G.day-1)/7)%4;
   G.time=6*60;
-  G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false;
+  G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false; G.joinedToday={};
   G.energy=100; updateEnergyHud();   // morning restores your stamina
   tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; tickClock._past=false;
   rollWeather(true);   // a new day's weather, announced
