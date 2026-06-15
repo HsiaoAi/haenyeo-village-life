@@ -1873,10 +1873,10 @@ function updateBeach(dt){
       const sp=$('shorePct'); if(sp)sp.textContent=h+'% · '+(h<34?'Neglected':h<67?'Recovering':'Thriving'); } }
 }
 /* sorting session state */
-let sortQueue=[], sortIdx=0, sortTally={won:0, eco:0, correct:0, total:0, treasure:0};
+let sortQueue=[], sortIdx=0, sortStreak=0, sortTally={won:0, eco:0, correct:0, total:0, treasure:0};
 function endBeach(){
   $('beachHud').classList.remove('show'); $('leaveBeachBtn').classList.remove('show');
-  sortTally={won:0, eco:0, correct:0, total:0, treasure:0};
+  sortTally={won:0, eco:0, correct:0, total:0, treasure:0}; sortStreak=0;
   // treasures are salvaged straight to won \u2014 no sorting needed
   for(const b of BEACH_ITEMS){ const n=beachCatch[b.id]||0; if(n>0 && b.treasure){ sortTally.treasure+=n*b.value; } }
   // litter goes to the \ubd84\ub9ac\uc218\uac70 sorting screen
@@ -1910,16 +1910,22 @@ function pickBin(binId){
     if(c.dataset.bin===b.category) c.classList.add('sel'); });
   const right=(binId===b.category);
   sortTally.total+=e.n;
+  const chosen=document.querySelector('#sortBins .chip[data-bin="'+binId+'"]');
   if(right){
-    sortTally.correct+=e.n; sortTally.won+=b.value*e.n; sortTally.eco+=e.n*2;
-    $('sortFeedback').innerHTML=`\u2713 \ub9de\uc544\uc694! Correct \u2014 +${b.value*e.n} won`;
-    tone(720,.12,'sine',.06);
+    sortStreak++; const sb=Math.min(6,sortStreak), streakBonus=(sb>1?sb:0);
+    sortTally.correct+=e.n; sortTally.won+=b.value*e.n; sortTally.eco+=e.n*2+streakBonus;
+    if(chosen){ chosen.classList.add('gulp'); }     // the bin "eats" it
+    const streakTxt = sb>1 ? ` \u00b7 \uc5f0\uc18d Streak x${sortStreak}!${streakBonus?' +'+streakBonus+' \u267b':''}` : '';
+    $('sortFeedback').innerHTML=`\u2713 \ub9de\uc544\uc694! Correct \u2014 +${b.value*e.n} won${streakTxt}`;
+    tone(620+sb*70,.12,'sine',.06);              // rising pitch with the streak
   } else {
+    sortStreak=0;
     const got=Math.round(b.value*e.n*0.4);
     sortTally.won+=got;
     const correct=recycleBin(b.category);
+    if(chosen){ chosen.classList.add('buzz'); }     // soft buzz on the wrong bin
     $('sortFeedback').innerHTML=`\u2717 Not quite \u2014 ${b.kr} goes in <b>${correct?correct.kr:b.category}</b>. (+${got} won)`;
-    tone(220,.16,'sawtooth',.05);
+    tone(196,.18,'sine',.045);                    // gentle low buzz, not harsh
   }
   $('sortNext').textContent = (sortIdx>=sortQueue.length-1) ? '\ub9c8\uce68 Finish' : '\ub2e4\uc74c Next \u25b6';
   $('sortNext').classList.remove('hidden');
@@ -1947,7 +1953,24 @@ function showBeachResult(acc){
   $('beachNote').textContent = (acc!=null && acc>=0.8)
     ? 'Well sorted \u2014 the shore breathes easier, and the sea will thank you.'
     : (sortTally.total ? 'Every piece off the sand helps. Check the bins again next time.' : 'The sand was clean today.');
+  // result flourish: celebrate a perfect \ubd84\ub9ac\uc218\uac70, otherwise an encouraging tally
+  const cheer=$('beachCheer');
+  if(cheer){ cheer.innerHTML=''; cheer.classList.remove('pop');
+    const perfect=(sortTally.total>0 && sortTally.correct===sortTally.total);
+    if(sortTally.total>0){
+      cheer.textContent = perfect ? '\uc644\ubcbd\ud55c \ubd84\ub9ac\uc218\uac70! Perfect! \u2728' : (acc>=0.6?'\uc798\ud588\uc5b4\uc694! Nicely sorted':'\ubd84\ub9ac\uc218\uac70 \uc5f0\uc2b5 \u2014 keep at it!');
+      void cheer.offsetWidth; cheer.classList.add('pop');
+      if(perfect) beachConfetti(cheer);
+    } else { cheer.textContent=''; }
+  }
   scene='panel'; panelBg='village'; $('pBeach').classList.remove('hidden');
+}
+function beachConfetti(host){
+  const cols=['#e8714a','#f2c75a','#5cbfb0','#6aa647','#d68aa6'];
+  for(let i=0;i<18;i++){ const s=document.createElement('span'); s.className='confetti';
+    s.style.left=(8+Math.random()*84)+'%'; s.style.background=cols[i%cols.length];
+    s.style.animationDelay=(Math.random()*0.35).toFixed(2)+'s';
+    host.appendChild(s); setTimeout(()=>s.remove(),1900); }
 }
 { const e=$('leaveBeachBtn'); if(e) e.onclick=()=>endBeach(); }
 { const e=$('beachClose'); if(e) e.onclick=()=>{ $('pBeach').classList.add('hidden'); scene='village'; P.x=150; P.y=BEACH_Y+40; P.face=1; }; }
