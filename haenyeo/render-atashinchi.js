@@ -2836,6 +2836,31 @@ function buildMarketBG(){
 let marketImg=null, marketImgTried=false;
 function ensureMarketImg(){ if(marketImgTried)return; marketImgTried=true;
   const im=new Image(); im.onload=()=>{ marketImg=im; }; im.src='market.png?v=1'; }
+/* Migyeong's buyer's counter — a wooden stall with a weighing scale + a basket of catch */
+function drawSellStall(){
+  const cx=480, top=302, cl=cx-86, cr=cx+86, W2=cr-cl;
+  const wood='#9c6b3a', woodD='#5e3f26', woodL='#b98a52';
+  ctx.save(); ctx.lineJoin='round'; ctx.lineCap='round';
+  // front panel (planks) + counter top
+  inked(ctx,woodD,2.6); rr(ctx,cl,top+9,W2,30,4); fillStroke(ctx);
+  ctx.strokeStyle='rgba(70,45,25,.4)'; ctx.lineWidth=1; for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(cl+i*W2/5,top+11);ctx.lineTo(cl+i*W2/5,top+38);ctx.stroke();}
+  inked(ctx,wood,2.6); rr(ctx,cl-6,top,W2+12,15,5); fillStroke(ctx);
+  ctx.fillStyle=woodL; rr(ctx,cl-2,top+2,W2+4,6,3); ctx.fill();
+  // a basket of the day's catch (left)
+  const bx=cl+34, by=top+1;
+  inked(ctx,'#cdab74',2); ctx.beginPath();ctx.ellipse(bx,by,20,8,0,0,7); fillStroke(ctx);
+  ctx.strokeStyle='rgba(110,80,40,.45)';ctx.lineWidth=1; for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(bx+i*7,by-7);ctx.lineTo(bx+i*7,by+7);ctx.stroke();}
+  for(let i=0;i<3;i++){ inked(ctx,i%2?'#8fb0c0':'#a9c2d0',1.6); ctx.save();ctx.translate(bx-9+i*9,by-5);ctx.rotate(-0.35+i*0.3);ctx.beginPath();ctx.ellipse(0,0,8,3.4,0,0,7);fillStroke(ctx); ctx.fillStyle=MIN.ink;ctx.beginPath();ctx.arc(5,-0.5,0.8,0,7);ctx.fill(); ctx.restore(); }
+  // platform weighing scale (right) — the catch is bought by weight
+  const sx=cr-30, sy=top+4;
+  inked(ctx,'#c4c8cc',1.8); ctx.beginPath();ctx.ellipse(sx,sy-16,11,3.2,0,0,7); fillStroke(ctx);      // pan
+  inked(ctx,'#9aa0a6',2); rr(ctx,sx-3,sy-14,6,11,2); fillStroke(ctx);                                  // neck
+  inked(ctx,'#c4c8cc',2); rr(ctx,sx-14,sy-3,28,9,2); fillStroke(ctx);                                  // base
+  inked(ctx,'#fbf7ec',2); ctx.beginPath();ctx.arc(sx,sy-19,8,0,7); fillStroke(ctx);                    // dial
+  ctx.strokeStyle=MIN.ink;ctx.lineWidth=1; for(let a=-2.4;a<=-0.7;a+=0.42){ctx.beginPath();ctx.moveTo(sx+Math.cos(a)*5.5,sy-19+Math.sin(a)*5.5);ctx.lineTo(sx+Math.cos(a)*7.5,sy-19+Math.sin(a)*7.5);ctx.stroke();}
+  ctx.strokeStyle='#d35a31';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx,sy-19);ctx.lineTo(sx+3.5,sy-24);ctx.stroke();   // needle
+  ctx.restore();
+}
 function drawMarket(){
   const t=performance.now()*0.001;
   ensureMarketImg();
@@ -2850,15 +2875,9 @@ function drawMarket(){
     ctx.restore();
     ctx.fillStyle=MIN.gold;for(let i=0;i<14;i++){const x=18+i*32, y=sy+Math.sin(x*0.05)*sag+3;ctx.beginPath();ctx.arc(x,y,1.5,0,7);ctx.fill();}
   }
-  // hand-drawn seafood on the counter — only for the procedural bg; the illustration already shows goods
-  if(!usingImg){
-    const c=sellCounter;
-    for(let i=0;i<6;i++){const fx=c.x+24+i*((c.w-48)/5), fy=c.y+18;
-      inked(ctx,i%2?'#9c6b3a':'#b5563a',1.4);ctx.beginPath();ctx.ellipse(fx,fy,9,4.4,(i%2?0.3:-0.3),0,7);fillStroke(ctx);
-      ctx.fillStyle=MIN.ink;ctx.beginPath();ctx.arc(fx-6,fy-1,1,0,7);ctx.fill();}
-    inked(ctx,MIN.verm,1.8);ctx.beginPath();ctx.arc(c.x+c.w/2,c.y+16,7,Math.PI,0);ctx.lineTo(c.x+c.w/2+7,c.y+20);ctx.quadraticCurveTo(c.x+c.w/2,c.y+24,c.x+c.w/2-7,c.y+20);ctx.closePath();fillStroke(ctx);
-  }
+  // Migyeong, drawn first so her counter sits in front of her
   drawPerson(vendor.x,vendor.y,{skin:vendor.skin,scarf:vendor.scarf,look:vendor.look,face:1,idle:0.6});
+  drawSellStall();   // her wooden buyer's counter + weighing scale + a basket of the day's catch
   // more vendors tending the side & back stalls — a lively market
   drawPerson(120,410,{skin:'#e3c4a0',scarf:MIN.gold,look:{hairStyle:'bun',hair:'#3a2c22',top:'#c0506e',bottom:'#4a4a52',apron:'#ece2c8',elder:true,skin:'#e3c4a0'},face:1,idle:0.4});
   drawPerson(864,412,{skin:'#eccaa2',scarf:MIN.teal,look:{hairStyle:'ponytail',hair:'#241f1b',top:'#3a6e8c',bottom:'#37343d',skin:'#eccaa2'},face:-1,idle:1.1});
