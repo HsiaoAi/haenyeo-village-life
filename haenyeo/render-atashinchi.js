@@ -3642,66 +3642,63 @@ function buildHomeBG(){
   g.strokeStyle=MIN.ink;g.lineWidth=2;g.strokeRect(em.x,em.y,em.w,em.h);
   homeBG=el;
 }
+/* the Dave-the-Diver-style Jeju home interior (generated art) */
+let homeImg=null, homeImgTried=false;
+function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
+  const im=new Image();
+  im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{homeImg=im;}); } else { homeImg=im; } };
+  im.src='home-bg.png?v=1'; }
+// live-overlay anchors tuned to the home-bg.png art
+const HOME_CAULDRON={x:206, y:224};   // 정지 iron cauldron — steam rises here
+const HOME_TABLETOP={x:480, y:408};   // dining table top — plated bowl sits here
+const HOME_GRAMO   ={x:300, y:492};   // gramophone — music notes drift up here
 function drawHome(){
-  if(!homeBG) buildHomeBG();
-  ctx.drawImage(homeBG,0,0,W,H);
+  ensureHomeImg();
+  if(homeImg && homeImg.complete && homeImg.naturalWidth){ ctx.drawImage(homeImg,0,0,W,H); }
+  else { if(!homeBG) buildHomeBG(); ctx.drawImage(homeBG,0,0,W,H); }   // procedural fallback while the art loads
   const t=performance.now()*0.001;
-  // cauldron steam + hearth-fire glow (정지)
-  const hx=hearthBlk.x+hearthBlk.w*0.42, htop=hearthBlk.y+6;
-  ctx.save();ctx.globalCompositeOperation='screen';
-  for(let i=0;i<3;i++){const ph=t*1.3+i*2.1; const sy=htop-10-((ph*9)%30);
-    const sx=hx+Math.sin(ph*1.6)*6; const a=0.18*(1-((ph*9)%30)/30);
-    ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`;ctx.beginPath();ctx.arc(sx,sy,4+i,0,7);ctx.fill();}
-  const fg=ctx.createRadialGradient(hx,hearthBlk.y+hearthBlk.h-8,1,hx,hearthBlk.y+hearthBlk.h-8,22);
-  fg.addColorStop(0,'rgba(255,140,60,.4)');fg.addColorStop(1,'rgba(255,140,60,0)');
-  ctx.fillStyle=fg;ctx.beginPath();ctx.arc(hx,hearthBlk.y+hearthBlk.h-8,22,0,7);ctx.fill();
+  // hot steam curling up from the 정지 cauldron (the kitchen is always simmering)
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  for(let i=0;i<5;i++){ const ph=t*1.2+i*1.5; const sy=HOME_CAULDRON.y-((ph*11)%46);
+    const sx=HOME_CAULDRON.x+Math.sin(ph*1.5)*8; const a=0.32*(1-((ph*11)%46)/46);
+    ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`; ctx.beginPath(); ctx.arc(sx,sy,5+i,0,7); ctx.fill(); }
   ctx.restore();
-  // wardrobe / changing armoire
-  (function(wx,wy){
-    ctx.save();
-    ctx.fillStyle='rgba(20,12,8,.18)';ctx.beginPath();ctx.ellipse(wx,wy+38,40,9,0,0,7);ctx.fill();
-    inked(ctx,'#6e4a2a',2.4);rr(ctx,wx-38,wy-44,76,82,5);fillStroke(ctx);
-    ctx.fillStyle='#3a2716';rr(ctx,wx-30,wy-36,60,66,3);ctx.fill();
-    ctx.strokeStyle=MIN.gold;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(wx-28,wy-30);ctx.lineTo(wx+28,wy-30);ctx.stroke();
-    // traditional suit
-    inked(ctx,MIN.white,1.6);rr(ctx,wx-25,wy-26,20,20,3);fillStroke(ctx);
-    inked(ctx,'#26242c',1.6);rr(ctx,wx-25,wy-8,20,22,3);fillStroke(ctx);
-    // modern wetsuit (greyed if not owned)
-    ctx.globalAlpha=(typeof G!=='undefined'&&G.owned&&G.owned.modern)?1:0.4;
-    inked(ctx,'#26252e',1.6);rr(ctx,wx+5,wy-26,20,40,3);fillStroke(ctx);
-    ctx.strokeStyle=MIN.jade;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(wx+15,wy-24);ctx.lineTo(wx+15,wy+10);ctx.stroke();
-    ctx.globalAlpha=1;
-    inked(ctx,'#9c7338',1.6);rr(ctx,wx-50,wy+18,20,14,3);fillStroke(ctx);
-    ctx.fillStyle=MIN.white;rr(ctx,wx-49,wy+15,18,5,2);ctx.fill();
-    ctx.restore();
-  })(wardrobeStation.x,wardrobeStation.y);
-  // plated ramyeon waiting on the table
+  // plated ramyeon steaming on the table while it waits to be eaten
   if(G.preparedMeal && scene!=='eating'){
-    const bx=homeTable.x+homeTable.w/2, by=homeTable.y+36;
+    const bx=HOME_TABLETOP.x, by=HOME_TABLETOP.y;
     ctx.save();ctx.globalCompositeOperation='screen';
     for(let i=0;i<3;i++){const ph=t*1.3+i*2.0; const sy=by-12-((ph*8)%24);
-      const sx=bx+Math.sin(ph*1.7)*4; const a=0.14*(1-((ph*8)%24)/24);
+      const sx=bx+Math.sin(ph*1.7)*4; const a=0.16*(1-((ph*8)%24)/24);
       ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`;ctx.beginPath();ctx.arc(sx,sy,3+i,0,7);ctx.fill();}
     ctx.restore();
     drawRamenBowl(ctx,bx,by);
   }
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
-  // cozy warm wash
-  ctx.save();ctx.fillStyle='rgba(255,196,120,.06)';ctx.fillRect(0,0,W,H);ctx.restore();
+  ctx.save();ctx.fillStyle='rgba(255,196,120,.05)';ctx.fillRect(0,0,W,H);ctx.restore();   // gentle warm wash
   // music notes drifting up from the gramophone while it plays
   if(typeof musicOn!=='undefined' && musicOn){
     ctx.save();
-    const gx=gramoStation.x+22, gy=gramoStation.y-26;
-    for(let i=0;i<4;i++){
-      const ph=(t*0.5+i*0.7)%1;
-      const nx=gx+Math.sin(ph*7+i)*9, ny=gy-ph*46;
-      ctx.globalAlpha=Math.max(0,0.9*(1-ph));
-      ctx.fillStyle=i%2?MIN.red:MIN.teal;
-      ctx.font='700 '+(13+i)+'px "Gowun Batang", serif';ctx.textAlign='center';
-      ctx.fillText(i%2?'♪':'♫', nx, ny);
-    }
+    for(let i=0;i<4;i++){ const ph=(t*0.5+i*0.7)%1; const nx=HOME_GRAMO.x+Math.sin(ph*7+i)*9, ny=HOME_GRAMO.y-ph*46;
+      ctx.globalAlpha=Math.max(0,0.9*(1-ph)); ctx.fillStyle=i%2?MIN.red:MIN.teal;
+      ctx.font='700 '+(13+i)+'px "Gowun Batang", serif';ctx.textAlign='center'; ctx.fillText(i%2?'♪':'♫', nx, ny); }
     ctx.restore();
   }
+  if(window.__homeDebug && typeof drawHomeDebug==='function') drawHomeDebug();
+}
+/* tuning overlay — dots + labels at every interaction stand-point */
+function drawHomeDebug(){
+  const S={stove:stoveStation,gopang:gopangStation,table:tableStation,bed:bedStation,mask:maskStation,
+           wardrobe:wardrobeStation,gramo:gramoStation,jang:jangStation,photo:photoStation};
+  ctx.save(); ctx.font='700 10px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const k in S){ const s=S[k];
+    ctx.fillStyle='rgba(255,60,60,.9)'; ctx.beginPath(); ctx.arc(s.x,s.y,6,0,7); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.strokeStyle='rgba(0,0,0,.8)'; ctx.lineWidth=3;
+    ctx.strokeText(k,s.x,s.y-12); ctx.fillText(k,s.x,s.y-12); }
+  // also the no-walk blocks
+  ctx.strokeStyle='rgba(60,160,255,.9)'; ctx.lineWidth=2;
+  for(const b of [hearthBlk,gopangBlk,homeTable,gudeulBlk]) ctx.strokeRect(b.x,b.y,b.w,b.h);
+  ctx.restore();
 }
 function drawEat(){
   drawHome();

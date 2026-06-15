@@ -912,22 +912,22 @@ $('sellClose').onclick=()=>{ $('pSell').classList.add('hidden'); scene='market';
 
 /* ---------------- HOME INTERIOR (walkable room) ---------------- */
 const HOME={x0:40,y0:150,x1:920,y1:586};
-/* authentic Jeju 초가집 — solid furniture against the basalt back wall (no-walk);
-   you approach each piece from the open wooden floor in front. */
-const hearthBlk={x:66,  y:300, w:182, h:60};   // 정지 — clay stove + iron cauldron
-const gopangBlk={x:300, y:306, w:92,  h:54};   // 고팡 — onggi storage stack
-const homeTable={x:430, y:322, w:118, h:48};   // low dining table (center)
-const gudeulBlk={x:628, y:300, w:282, h:62};   // 구들방 — raised sleeping platform
-const stoveStation   ={x:157, y:374};          // cook at the hearth
-const gopangStation  ={x:346, y:372};          // store catch in the 고팡
-const tableStation   ={x:489, y:392};          // eat a plated meal
-const bedStation     ={x:704, y:374};          // sleep on the folded bedding
-const maskStation    ={x:842, y:374};          // grandmother's 왕눈 mask on the low table
-const photoStation   ={x:560, y:316};          // family photo on the wall
-const wardrobeStation={x:118, y:486};          // change wetsuit (armoire)
-const gramoStation   ={x:250, y:500};          // gramophone — music
-const jangStation    ={x:864, y:500};          // 항아리 crocks — ferment
-const homeExit={x:452, y:548, w:84, h:36};
+/* hotspots tuned to home-bg.png (Dave-the-Diver art) — each well separated so
+   it's easy to walk up to. Solid furniture blocks keep the player off the props. */
+const hearthBlk={x:150, y:250, w:182, h:96};   // 정지 — stone hearth + iron cauldron (left)
+const gopangBlk={x:414, y:252, w:106, h:96};   // 고팡 — onggi jar stack
+const homeTable={x:428, y:398, w:112, h:46};   // low dining table (center foreground)
+const gudeulBlk={x:626, y:252, w:236, h:98};   // 구들방 — raised sleeping platform (right)
+const stoveStation   ={x:212, y:384};          // cook at the hearth
+const gopangStation  ={x:458, y:372};          // store catch in the 고팡
+const tableStation   ={x:484, y:434};          // eat a plated meal
+const photoStation   ={x:632, y:360};          // family photo on the wall
+const bedStation     ={x:748, y:362};          // sleep on the folded bedding
+const maskStation    ={x:892, y:392};          // grandmother's 왕눈 mask on the low table
+const wardrobeStation={x:108, y:512};          // change wetsuit (armoire, foreground left)
+const gramoStation   ={x:288, y:512};          // gramophone — music
+const jangStation    ={x:772, y:520};          // 항아리 crocks — ferment (foreground right)
+const homeExit={x:438, y:540, w:84, h:38};
 let homeCur=null, homeMaskIdx=0, homePhotoIdx=0, homeJangIdx=0;
 
 /* ---- gramophone: opens the Village Radio music player (see music.js) ---- */
