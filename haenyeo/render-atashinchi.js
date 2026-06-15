@@ -1019,16 +1019,46 @@ function drawMuseumMarkers(){
     ctx.fillStyle=MIN.ink; ctx.font='700 15px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('···', bx, by-1);
   }
-  // tangled net you help mend (idea 3)
+  // tangled net you help mend (idea 3) — lively while you're working it
   if(typeof MUSEUM_NET!=='undefined'){
     const n=MUSEUM_NET, done=(typeof museumNetDone!=='undefined'&&museumNetDone);
     const prog=done?1:Math.min(1,(typeof museumNetCut!=='undefined'?museumNetCut:0)/n.max);
+    const active=cur && cur.type==='net' && !done;
     ctx.save(); ctx.translate(n.x,n.y);
-    inked(ctx, done?'#d6c08c':'#bda472', 2); ctx.beginPath(); ctx.ellipse(0,5,18,8,0,0,7); fillStroke(ctx);
-    ctx.strokeStyle=MIN.ink; ctx.lineWidth=1;
-    if(done){ for(let i=-12;i<=12;i+=6){ ctx.beginPath();ctx.moveTo(i,-3);ctx.lineTo(i+6,9);ctx.stroke(); ctx.beginPath();ctx.moveTo(i,9);ctx.lineTo(i+6,-3);ctx.stroke(); } }
-    else { const knots=6-Math.round(prog*4); for(let i=0;i<knots;i++){ const a=i*1.7; ctx.beginPath(); ctx.moveTo(Math.cos(a)*12,Math.sin(a)*6-1); ctx.quadraticCurveTo(Math.cos(a+1)*4,Math.sin(a+2)*9, Math.cos(a+2)*12,Math.sin(a+1)*6-1); ctx.stroke(); } }
-    if(!done && prog>0){ ctx.strokeStyle=MIN.teal; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,1,22,-Math.PI/2,-Math.PI/2+prog*6.283); ctx.stroke(); }
+    // soft contact shadow + rope coil the net rests in
+    ctx.fillStyle='rgba(20,12,8,.16)'; ctx.beginPath(); ctx.ellipse(0,10,20,6,0,0,7); ctx.fill();
+    inked(ctx, done?'#d8c187':'#b6a06e', 2.4); ctx.beginPath(); ctx.ellipse(0,4,19,9,0,0,7); fillStroke(ctx);
+    // the mesh, clipped inside the loop
+    ctx.save(); ctx.beginPath(); ctx.ellipse(0,4,17,8,0,0,7); ctx.clip();
+    ctx.lineWidth=1; ctx.strokeStyle=done?'#7a6440':MIN.ink; ctx.lineJoin='round';
+    if(done){
+      for(let i=-18;i<=18;i+=5){ ctx.beginPath();ctx.moveTo(i,-7);ctx.lineTo(i+7,13);ctx.stroke(); ctx.beginPath();ctx.moveTo(i,13);ctx.lineTo(i+7,-7);ctx.stroke(); }
+    } else {
+      const slack=(1-prog)*4, sway=active?6:2.4;
+      for(let r=0;r<3;r++){ const yy=-3+r*5; ctx.beginPath();
+        for(let x=-17;x<=17;x+=2){ const yo=yy + Math.sin(x*0.5+museumT*sway+r*1.3)*slack*0.5 + Math.sin(x*0.9-museumT*1.5)*slack*0.3;
+          x===-17?ctx.moveTo(x,yo):ctx.lineTo(x,yo); } ctx.stroke(); }
+      for(let c=-2;c<=2;c++){ const xx=c*7; ctx.beginPath();
+        for(let y=-7;y<=11;y+=2){ const xo=xx+Math.sin(y*0.6+museumT*(active?5:2)+c)*slack*0.5; y===-7?ctx.moveTo(xo,y):ctx.lineTo(xo,y);} ctx.stroke(); }
+      // stubborn knots that jiggle (while mending) and pop away as you progress
+      const knots=Math.max(0,Math.round((1-prog)*5));
+      for(let i=0;i<knots;i++){ const a=i*1.7+museumT*(active?2:0.4); const kx=Math.cos(a)*11, ky=4+Math.sin(a*1.3)*5, j=active?Math.sin(museumT*9+i)*1.2:0;
+        ctx.fillStyle='#6a5436'; ctx.beginPath(); ctx.arc(kx+j,ky,1.9,0,7); ctx.fill(); }
+    }
+    ctx.restore();
+    // netting-needle sliding across + loose fibres flicking, only while you work
+    if(active){ const sx=Math.sin(museumT*4)*13; inked(ctx,'#efe1bb',1.6); rr(ctx,sx-3,-9,6,3,1.5); fillStroke(ctx);
+      ctx.strokeStyle='rgba(120,90,50,.7)'; ctx.lineWidth=1;
+      for(let i=0;i<3;i++){ const ph=museumT*3+i*2.1, fx=sx+Math.cos(ph)*5, fy=-7+Math.sin(ph)*3; ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(fx+2,fy-3);ctx.stroke(); } }
+    // progress ring: faint track + teal arc (glows while active)
+    if(!done){
+      ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,2,24,0,7); ctx.stroke();
+      if(prog>0){ if(active){ ctx.save(); ctx.shadowColor=MIN.teal; ctx.shadowBlur=8; }
+        ctx.strokeStyle=MIN.teal; ctx.lineWidth=3.4; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,2,24,-Math.PI/2,-Math.PI/2+prog*6.283); ctx.stroke(); ctx.lineCap='butt'; if(active) ctx.restore(); }
+    } else {
+      const tw=0.5+0.5*Math.sin(museumT*3); ctx.globalAlpha=0.55+0.45*tw; ctx.fillStyle=MIN.gold;
+      ctx.font='700 12px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('✓',0,3); ctx.globalAlpha=1;
+    }
     ctx.restore();
   }
   // visitor's ledger (idea 5)
