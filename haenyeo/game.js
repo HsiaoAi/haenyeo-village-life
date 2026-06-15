@@ -1436,17 +1436,17 @@ const VENDOR_LINES=[
 ];
 // ---- Jeju specialty stalls — walk up to one to introduce the product (educational) ----
 const MARKET_STALLS=[
-  {x:230,y:272,kr:'전복',name:'Abalone',          fact:"전복 (abalone) — the haenyeo's prize shellfish, grazing on kelp for years. Jeju's cold currents make it especially prized; eaten raw, as porridge (전복죽), or grilled."},
-  {x:390,y:272,kr:'성게',name:'Sea urchin',       fact:"성게 (sea urchin) — its golden roe (uni) is a delicacy the haenyeo crack open fresh. 성게미역국, urchin-seaweed soup, is a Jeju favourite."},
-  {x:590,y:272,kr:'김·미역',name:'Gim & seaweed',  fact:"김·미역 — laver and brown seaweed gathered off the rocks. 미역국 (seaweed soup) is eaten on birthdays and by new mothers, for strength."},
-  {x:720,y:272,kr:'갈치',name:'Hairtail',         fact:"갈치 (cutlassfish) — a long silver ribbon-fish, a Jeju icon caught at night. Best grilled (갈치구이) or simmered (갈치조림)."},
-  {x:175,y:400,kr:'건어물',name:'Dried fish',      fact:"건어물 — fish and squid cured in Jeju's salty sea-wind. Drying deepens the umami and keeps the catch through the winter."},
-  {x:765,y:400,kr:'문어',name:'Octopus',          fact:"문어 (octopus) — a haenyeo catch blanched tender into 숙회. Said to restore your strength after a hard dive."},
-  {x:300,y:415,kr:'표고버섯',name:'Pyogo mushroom', fact:"표고버섯 (shiitake) — grown on oak logs in Jeju's misty forests; thick, meaty caps for soups and namul."},
-  {x:660,y:415,kr:'한라봉',name:'Hallabong',       fact:"한라봉 — a premium Jeju citrus with a bump on top like Hallasan's peak; bigger and sweeter than ordinary tangerines."},
-  {x:300,y:545,kr:'흑돼지',name:'Black pork',      fact:"흑돼지 (Jeju black pork) — the island's heritage pig, rich and chewy. A must-eat Jeju barbecue."},
-  {x:480,y:545,kr:'우도 땅콩',name:'Udo peanuts',  fact:"우도 땅콩 — tiny sweet peanuts from Udo islet off Jeju, roasted as a snack or churned into peanut ice cream."},
-  {x:660,y:545,kr:'녹차',name:'Green tea',         fact:"녹차 — Jeju's volcanic soil and sea-mist grow fine green tea; the island is one of Korea's great matcha regions."},
+  // BACK ROW (read from y262, in front of the back stalls; the central dried-fish stall is the Sell counter)
+  {x:176,y:262,kr:'전복',name:'Abalone',            fact:"전복 (abalone) — the haenyeo's prize shellfish, grazing on kelp for years. Jeju's cold currents make it especially prized; eaten raw, as porridge (전복죽), or grilled."},
+  {x:344,y:262,kr:'성게·문어',name:'Urchin & octopus', fact:"성게 (sea urchin) and 문어 (octopus) — both haenyeo catches. The urchin's golden roe is a delicacy; the octopus is blanched tender into 숙회."},
+  {x:644,y:262,kr:'김·미역',name:'Gim & seaweed',    fact:"김·미역 — laver and brown seaweed gathered off the rocks. 미역국 (seaweed soup) is eaten on birthdays and by new mothers, for strength."},
+  {x:758,y:262,kr:'갈치',name:'Hairtail',           fact:"갈치 (cutlassfish) — a long silver ribbon-fish, a Jeju icon caught at night. Best grilled (갈치구이) or simmered (갈치조림)."},
+  // MID ROW (read from y400, in front of each stall)
+  {x:220,y:400,kr:'흑돼지',name:'Black pork',        fact:"흑돼지 (Jeju black pork) — the island's heritage pig, rich and chewy. A must-eat Jeju barbecue."},
+  {x:344,y:400,kr:'감귤',name:'Tangerine',          fact:"감귤 — Jeju's signature tangerines, ripening across the island's groves each winter. Sweet, easy to peel, and everywhere on Jeju."},
+  {x:483,y:400,kr:'표고버섯',name:'Pyogo mushroom',   fact:"표고버섯 (shiitake) — grown on oak logs in Jeju's misty forests; thick, meaty caps for soups and namul."},
+  {x:608,y:400,kr:'녹차',name:'Green tea',           fact:"녹차 — Jeju's volcanic soil and sea-mist grow fine green tea; the island is one of Korea's great matcha regions."},
+  {x:740,y:400,kr:'오메기떡',name:'Omegi tteok',      fact:"오메기떡 — a chewy Jeju rice cake of glutinous millet, coated in red bean or mugwort. A beloved island sweet."},
 ];
 const MARKET_LANE={x0:200,x1:760,y0:300,y1:560};   // where shoppers roam (the open aisle)
 let marketShoppers=[];
