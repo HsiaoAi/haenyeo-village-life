@@ -3647,7 +3647,7 @@ let homeImg=null, homeImgTried=false;
 function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{homeImg=im;}); } else { homeImg=im; } };
-  im.src='home-bg.png?v=1'; }
+  im.src='home-bg.png?v=2'; }
 // live-overlay anchors tuned to the home-bg.png art
 const HOME_CAULDRON={x:206, y:224};   // 정지 iron cauldron — steam rises here
 const HOME_TABLETOP={x:480, y:408};   // dining table top — plated bowl sits here
@@ -3673,7 +3673,10 @@ function drawHome(){
     ctx.restore();
     drawRamenBowl(ctx,bx,by);
   }
+  // the diver — scaled up a touch so she reads at the right size against the larger furniture
+  ctx.save(); const HS=1.34, fy=P.y+16; ctx.translate(P.x,fy); ctx.scale(HS,HS); ctx.translate(-P.x,-fy);
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
+  ctx.restore();
   ctx.save();ctx.fillStyle='rgba(255,196,120,.05)';ctx.fillRect(0,0,W,H);ctx.restore();   // gentle warm wash
   // music notes drifting up from the gramophone while it plays
   if(typeof musicOn!=='undefined' && musicOn){
@@ -3703,7 +3706,7 @@ function drawHomeDebug(){
 function drawEat(){
   drawHome();
   const t=performance.now()*0.001;
-  const bx=homeTable.x+homeTable.w/2, by=homeTable.y+30;
+  const bx=HOME_TABLETOP.x, by=HOME_TABLETOP.y;
   ctx.save();ctx.fillStyle='rgba(20,16,10,.3)';ctx.fillRect(0,0,W,H);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='screen';
   const sp=ctx.createRadialGradient(bx,by,8,bx,by,150);sp.addColorStop(0,'rgba(255,212,134,.28)');sp.addColorStop(1,'rgba(255,212,134,0)');
@@ -3714,7 +3717,7 @@ function drawEat(){
   ctx.restore();
   drawRamenBowl(ctx,bx,by);
   const cyc=(Math.sin(eatT*5)*0.5+0.5);
-  const mouthX=P.x+6, mouthY=P.y-22;
+  const mouthX=P.x+6, mouthY=P.y-34;
   const clumpX=bx+(mouthX-bx)*cyc, clumpY=(by-6)+(mouthY-(by-6))*cyc;
   ctx.strokeStyle=MIN.gold;ctx.lineWidth=1.6;ctx.lineCap='round';
   for(let s=-1;s<=1;s++){ctx.beginPath();ctx.moveTo(bx+s*3,by-4);ctx.quadraticCurveTo(clumpX+s*2,(by-4+clumpY)/2,clumpX+s*2,clumpY);ctx.stroke();}
