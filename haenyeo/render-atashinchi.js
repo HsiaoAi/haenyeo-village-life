@@ -1824,6 +1824,7 @@ function drawVillage(){
     if(P.sitting && P.sitAt==='bulteok') drawPlayerSittingByFire(P.x,P.y,tc);
     else if(P.sitting) drawPlayerOnLounger(tc);
     else if(P.swimming) drawPlayerSwimming(P.x,P.y,tc,P.face,(typeof G!=='undefined'&&G.suit==='modern'));
+    else if(typeof joinAnim!=='undefined' && joinAnim) drawPlayerJoining(P.x,P.y,tc);
     else drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   }
   // flat day/night wash
@@ -2108,6 +2109,36 @@ function drawBeachLoungeSet(g,x,y,s,t){
 /* the player stretched out on the right deck chair — head back on the rest,
    legs along the seat, eyes closed, listening to the waves. Drawn over the
    lounge set at its chair origin (world 140,588). */
+/* the player joining the dog & robot's activity — a happy little bounce with arms thrown up */
+function drawPlayerJoining(x,y,t){
+  const hop=Math.abs(Math.sin(t*5))*7, lean=Math.sin(t*5)*0.07, sw=Math.sin(t*5)*0.3;
+  const TOP=MIN.verm, BOT='#3f5e7a', skin='#eccaa2';
+  ctx.save(); ctx.translate(x,y);
+  ctx.fillStyle='rgba(74,58,44,.2)'; ctx.beginPath(); ctx.ellipse(0,16,12,4,0,0,7); ctx.fill();   // shadow stays grounded
+  ctx.translate(0,-hop); ctx.rotate(lean);
+  // legs (a little apart, bouncing)
+  inked(ctx,BOT,2.4); rr(ctx,-5.5,5,5,11,2); fillStroke(ctx); rr(ctx,0.5,5,5,11,2); fillStroke(ctx);
+  // torso
+  inked(ctx,TOP,3); rr(ctx,-9,-7,18,17,8); fillStroke(ctx);
+  // both arms thrown up in celebration
+  inked(ctx,TOP,2.4);
+  ctx.save(); ctx.translate(-8,-5); ctx.rotate(-0.95+sw); rr(ctx,-2,-12,4.2,13,2); fillStroke(ctx);
+    inked(ctx,skin,1.8); ctx.beginPath(); ctx.arc(0,-13,2.6,0,7); fillStroke(ctx); ctx.restore();
+  inked(ctx,TOP,2.4);
+  ctx.save(); ctx.translate(8,-5); ctx.rotate(0.95+sw); rr(ctx,-2.2,-12,4.2,13,2); fillStroke(ctx);
+    inked(ctx,skin,1.8); ctx.beginPath(); ctx.arc(0,-13,2.6,0,7); fillStroke(ctx); ctx.restore();
+  // ponytail + head + a happy face
+  inked(ctx,'#2a2018',2); ctx.beginPath(); ctx.ellipse(-8.6,-13,3.4,7.6,0.35,0,7); fillStroke(ctx);
+  inked(ctx,skin,2.6); ctx.beginPath(); ctx.arc(0,-17,10.5,0,7); fillStroke(ctx);
+  ctx.fillStyle=MIN.ink; ctx.beginPath(); ctx.arc(-3.4,-18,1.1,0,7); ctx.arc(3.4,-18,1.1,0,7); ctx.fill();
+  ctx.strokeStyle=MIN.ink; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(0,-15,3,0.15*Math.PI,0.85*Math.PI); ctx.stroke();
+  ctx.restore();
+  // cheer sparkles popping around
+  ctx.save(); ctx.fillStyle='#f2c75a';
+  for(let i=0;i<3;i++){ const a=t*3+i*2.1; ctx.globalAlpha=0.45+0.45*Math.sin(t*6+i*2);
+    ctx.beginPath(); ctx.arc(x+Math.cos(a)*20, y-28+Math.sin(a)*7, 1.7,0,7); ctx.fill(); }
+  ctx.globalAlpha=1; ctx.restore();
+}
 /* the player sitting on the warm stone by the bulteok fire — knees up, hands warming, facing the hearth */
 function drawPlayerSittingByFire(x,y,t){
   const sway=Math.sin(t*1.6)*0.5;

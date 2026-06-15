@@ -496,6 +496,14 @@ function rectHit(x,y){
   return false;
 }
 function updateVillage(dt){
+  if(joinAnim){   // join-in animation cutscene: hold input, celebrate, then reward
+    joinAnim.t+=dt; P.moving=false; $('prompt').classList.remove('show');
+    if(joinAnim.t>=joinAnim.dur){ joinAnim=null;
+      if(G.friendship) G.friendship.dog=Math.min(MAX_HEARTS*HEART_PTS,(G.friendship.dog||0)+12);
+      G.renown=(G.renown||0)+3; G.energy=Math.min(100,G.energy+8); updateEnergyHud();
+      tone(880,.14,'sine',.045); toast('A good time with the dog & robot ♥'); }
+    $('clkTime').textContent=fmtTime(G.time); return;
+  }
   if(joinCheerT>0) joinCheerT-=dt;
   if(P.sitting){
     const wantMove=keys['arrowleft']||keys['a']||keys['arrowright']||keys['d']||keys['arrowup']||keys['w']||keys['arrowdown']||keys['s']||(joy.on&&joy.moved);
@@ -664,7 +672,7 @@ function nearest(){
 }
 let current=null;
 /* the dog & robot cycle through a daily beach activity — the diver can join in (once each per day) */
-let joinCheerT=0, joinCheerX=0, joinCheerY=0;
+let joinCheerT=0, joinCheerX=0, joinCheerY=0, joinAnim=null;
 function activityNow(){
   const tm=G.time;
   if(tm>=1020||tm<180) return {key:'movie', label:'movie night', x:178, y:572};
@@ -677,12 +685,13 @@ function activityNow(){
   return {key:'yoga', label:'beach yoga', x:282, y:556};            // 5:00–8:00
 }
 function joinActivity(act){
-  G.joinedToday=G.joinedToday||{}; G.joinedToday[act.key]=true;
-  if(G.friendship) G.friendship.dog=Math.min(MAX_HEARTS*HEART_PTS,(G.friendship.dog||0)+12);
-  G.renown=(G.renown||0)+3; G.energy=Math.min(100,G.energy+8); updateEnergyHud();
-  joinCheerT=1.5; joinCheerX=act.x; joinCheerY=act.y;
-  tone(660,.1,'sine',.05); tone(880,.12,'sine',.045);
-  toast('You joined the '+act.label+' with the dog & robot ♥');
+  if(joinAnim) return;
+  G.joinedToday=G.joinedToday||{}; G.joinedToday[act.key]=true;   // mark now so it can't re-trigger
+  // hop over beside the companions and play a little join-in animation (reward lands when it ends)
+  joinAnim={act, t:0, dur:2.8};
+  P.x=Math.max(40,Math.min(W-40,act.x+24)); P.y=act.y; P.face=-1; P.moving=false; P.sitting=false;
+  $('prompt').classList.remove('show');
+  tone(660,.1,'sine',.05);
 }
 function refreshPrompt(){
   current=nearest();
