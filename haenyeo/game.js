@@ -1436,17 +1436,17 @@ const VENDOR_LINES=[
 ];
 // ---- Jeju specialty stalls — walk up to one to introduce the product (educational) ----
 const MARKET_STALLS=[
-  // BACK ROW (read from y262, in front of the back stalls; the central dried-fish stall is the Sell counter)
-  {x:176,y:262,kr:'전복',name:'Abalone',            fact:"전복 (abalone) — the haenyeo's prize shellfish, grazing on kelp for years. Jeju's cold currents make it especially prized; eaten raw, as porridge (전복죽), or grilled."},
-  {x:344,y:262,kr:'성게·문어',name:'Urchin & octopus', fact:"성게 (sea urchin) and 문어 (octopus) — both haenyeo catches. The urchin's golden roe is a delicacy; the octopus is blanched tender into 숙회."},
-  {x:644,y:262,kr:'김·미역',name:'Gim & seaweed',    fact:"김·미역 — laver and brown seaweed gathered off the rocks. 미역국 (seaweed soup) is eaten on birthdays and by new mothers, for strength."},
-  {x:758,y:262,kr:'갈치',name:'Hairtail',           fact:"갈치 (cutlassfish) — a long silver ribbon-fish, a Jeju icon caught at night. Best grilled (갈치구이) or simmered (갈치조림)."},
-  // MID ROW (read from y400, in front of each stall)
-  {x:220,y:400,kr:'흑돼지',name:'Black pork',        fact:"흑돼지 (Jeju black pork) — the island's heritage pig, rich and chewy. A must-eat Jeju barbecue."},
-  {x:344,y:400,kr:'감귤',name:'Tangerine',          fact:"감귤 — Jeju's signature tangerines, ripening across the island's groves each winter. Sweet, easy to peel, and everywhere on Jeju."},
-  {x:483,y:400,kr:'표고버섯',name:'Pyogo mushroom',   fact:"표고버섯 (shiitake) — grown on oak logs in Jeju's misty forests; thick, meaty caps for soups and namul."},
-  {x:608,y:400,kr:'녹차',name:'Green tea',           fact:"녹차 — Jeju's volcanic soil and sea-mist grow fine green tea; the island is one of Korea's great matcha regions."},
-  {x:740,y:400,kr:'오메기떡',name:'Omegi tteok',      fact:"오메기떡 — a chewy Jeju rice cake of glutinous millet, coated in red bean or mugwort. A beloved island sweet."},
+  // BACK ROW (前方 y262 站位;正中央的乾貨攤＝賣場櫃台)
+  {x:176,y:262,kr:'전복',cn:'鮑魚',      fact:"鮑魚(전복)——海女最珍貴的漁獲,以海帶為食、需數年才能採收。濟州冰冷的洋流讓牠格外鮮美,可生食、煮成鮑魚粥(전복죽)或炭烤。"},
+  {x:344,y:262,kr:'성게·문어',cn:'海膽·章魚', fact:"海膽(성게)與章魚(문어)都是海女的漁獲。海膽金黃的卵是珍味;章魚則汆燙成軟嫩的「숙회」。"},
+  {x:644,y:262,kr:'김·미역',cn:'海苔·海帶', fact:"海苔與海帶(김·미역)採自礁岩。海帶湯(미역국)是生日與產後必喝,象徵滋補與感謝。"},
+  {x:758,y:262,kr:'갈치',cn:'白帶魚',    fact:"白帶魚(갈치)——細長銀亮的濟州名魚,夜裡延繩釣起。最適合炭烤(갈치구이)或燉煮(갈치조림)。"},
+  // MID ROW (前方 y400 站位)
+  {x:220,y:400,kr:'흑돼지',cn:'黑豬肉',  fact:"濟州黑豬(흑돼지)——島上著名的傳統黑毛豬,油脂濃郁、肉質有嚼勁,是濟州烤肉的代表。"},
+  {x:344,y:400,kr:'감귤',cn:'柑橘',      fact:"柑橘(감귤)——濟州的代表水果,每到冬天橘園遍地金黃。香甜好剝,島上隨處可見。"},
+  {x:483,y:400,kr:'표고버섯',cn:'香菇',  fact:"香菇(표고버섯)——在濟州潮濕的森林裡以橡木段栽培,菇傘厚實多肉,用於煮湯與涼拌。"},
+  {x:608,y:400,kr:'녹차',cn:'綠茶',      fact:"綠茶(녹차)——濟州火山土壤與海霧孕育出優質綠茶,是韓國主要的抹茶產區之一。"},
+  {x:740,y:400,kr:'오메기떡',cn:'오메기年糕', fact:"오메기年糕(오메기떡)——濟州的糯小米年糕,外裹紅豆或艾草,口感Q彈,是島上人人喜愛的點心。"},
 ];
 const MARKET_LANE={x0:200,x1:760,y0:300,y1:560};   // where shoppers roam (the open aisle)
 let marketShoppers=[];
@@ -1512,7 +1512,7 @@ function refreshMarketPrompt(){
   let txt='';
   if(marketCur.type==='sell') txt='Sell catch';
   else if(marketCur.type==='exit') txt='Leave market';
-  else if(marketCur.type==='stall') txt=marketCur.stall.kr+' '+marketCur.stall.name+' · 알아보기';
+  else if(marketCur.type==='stall') txt=marketCur.stall.cn+' · 介紹';
   el.textContent=txt; el.classList.add('show');
 }
 function doMarketInteract(){
