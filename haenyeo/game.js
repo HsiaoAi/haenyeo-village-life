@@ -1783,6 +1783,7 @@ const BEACH_BAG=BEACH_TUNING.bag;
 const BEACH_AREA={x0:18, x1:W-18, y0:152, y1:558};
 let bLitter=[], bParts=[], bFloats=[], bRings=[], beachCatch={}, bBagCount=0, bTime=0, bTimeMax=46;
 let bCombo=0, bComboT=0, bSpotlessCd=0;   // quick-grab combo + area-clear cooldown
+let bGoal=null, bMod=null, bModEco=0, bHealthStart=0, bRescuedThis=false;   // daily goal + session modifier
 /* ghost-net wildlife rescue — a creature tangled in washed-up net; hold to cut it free */
 let bRescue=null;
 const RESCUE_KINDS=[
@@ -1835,6 +1836,28 @@ function startBeachClean(){
   // sometimes a creature is tangled in a washed-up net (more likely after rough weather)
   const rescueChance = (G.weather==='wind'||G.weather==='rain') ? BEACH_TUNING.rescueChanceRough : BEACH_TUNING.rescueChanceCalm;
   bRescue = Math.random()<rescueChance ? makeRescue() : null;
+  // ---- session modifier (variety, SPEC §A3) ----
+  bMod=null; bModEco=0;
+  const rough=(G.weather==='wind'||G.weather==='rain');
+  if(rough && Math.random()<0.55){ bMod='surge';
+    for(let i=0;i<4;i++) spawnL();                       // an extra debris wave
+    bModEco=1;                                           // every piece cleaned pays +1 eco today
+    toast('⛈ Storm surge — debris everywhere. Cleaning pays extra today.');
+  } else if(!rough && G.beachHealth>=67 && Math.random()<0.55){ bMod='wildlife';
+    if(!bRescue) bRescue=makeRescue();                   // a lively, healthy shore → something to free
+    toast('☀ A lively shore today — keep an eye out for wildlife.');
+  } else if(Math.random()<0.25){ bMod='bounty';
+    const tr=BEACH_ITEMS.find(b=>b.treasure); if(tr){ const c=placeLitter({}); c.s=tr; c.r=tr.r||12; c.buried=!!tr.buried; c.digMax=tr.treasure?1.5:0; bLitter.push(c); }
+    toast('✦ Word is a salvage washed up on the shore today.');
+  }
+  // ---- daily goal (SPEC §A2) ----
+  bHealthStart=G.beachHealth; bRescuedThis=false;
+  const goals=[{key:'bag', label:'Fill your collection bag', reward:30},
+               {key:'sort', label:'Sort at least 90% correctly', reward:35}];
+  if(bRescue) goals.push({key:'rescue', label:'Free the tangled animal', reward:40});
+  if(G.beachHealth<82) goals.push({key:'heal', label:'Heal the shore by +10', reward:30});
+  bGoal=goals[Math.floor(Math.random()*goals.length)]; bGoal.done=false;
+  toast('🎯 Goal: '+bGoal.label);
   P.x=W/2; P.y=BEACH_AREA.y0+40; P.face=1; P.moving=false; P.anim=0;
   $('beachHud').classList.add('show'); $('leaveBeachBtn').classList.add('show');
   $('prompt').classList.remove('show'); $('mealBadge').classList.remove('show');
@@ -1861,7 +1884,7 @@ function updateBeach(dt){
       beachCatch[c.s.id]=(beachCatch[c.s.id]||0)+1; bBagCount++;
       bCombo=(bComboT>0)?bCombo+1:1; bComboT=BEACH_TUNING.comboWindow; const mult=Math.min(BEACH_TUNING.comboCap,bCombo);
       // risk/reward: litter snatched closer to the rising tide is worth bonus eco-points
-      const risk=Math.max(0,Math.min(1,(gy-BEACH_TUNING.riskRefY)/BEACH_TUNING.riskSpan)), ecoBonus=Math.round(risk*BEACH_TUNING.riskEcoMax)+(mult>1?mult:0);
+      const risk=Math.max(0,Math.min(1,(gy-BEACH_TUNING.riskRefY)/BEACH_TUNING.riskSpan)), ecoBonus=Math.round(risk*BEACH_TUNING.riskEcoMax)+(mult>1?mult:0)+bModEco;
       if(ecoBonus>0){ G.eco=(G.eco||0)+ecoBonus; bFloats.push({x:c.x,y:c.y-8,txt:'+'+ecoBonus+' ♻',life:1.1,col:'#7fd0c0'}); }
       bRings.push({x:gx,y:gy,life:1,col});
       if(mult>1) bFloats.push({x:gx,y:gy-22,txt:'COMBO x'+mult,life:1.0,col:'#f0c23a'});
@@ -1921,7 +1944,7 @@ function updateBeach(dt){
         if(bRescue.cut>=bRescue.cutMax){
           // freed!
           const k=bRescue.k;
-          bRescue.freed=true; bRescue.lookT=1.3; bRescue.fleeT=2.2;
+          bRescue.freed=true; bRescue.lookT=1.3; bRescue.fleeT=2.2; bRescuedThis=true;
           bRescue.lookFace=(P.x<=bRescue.x)?-1:1;     // turn to face the diver
           bRescue.narration=RESCUE_LINES[(G.rescueLineIdx=((G.rescueLineIdx||0)+1)%RESCUE_LINES.length)];
           G.money+=k.reward; $('moneyV').textContent=G.money;   // rewards kept intact
@@ -2025,6 +2048,21 @@ function showBeachResult(acc){
     row('Eco-points', '+'+sortTally.eco);
   }
   if(sortTally.treasure) row('Treasure salvage', sortTally.treasure+' won');
+  // daily goal result (SPEC §A2)
+  if(bGoal){
+    let met=false;
+    if(bGoal.key==='rescue') met=bRescuedThis;
+    else if(bGoal.key==='bag') met=bBagCount>=BEACH_BAG;
+    else if(bGoal.key==='sort') met=sortTally.total>0 && (sortTally.correct/sortTally.total)>=0.9;
+    else if(bGoal.key==='heal') met=(G.beachHealth-bHealthStart)>=10;
+    if(met){ G.money+=bGoal.reward; row('🎯 Goal cleared!', bGoal.label+' · +'+bGoal.reward+' won'); }
+    else row('🎯 Goal missed', bGoal.label);
+    bGoal=null;
+  }
+  // long arc: cumulative shore restored (SPEC §A4)
+  G.shoreCleaned=(G.shoreCleaned||0)+bBagCount;
+  for(const m of [50,100,200,400,800]){ if(G.shoreCleaned>=m && (G.shoreMilestone||0)<m){ G.shoreMilestone=m;
+    row('🏖 Shore restored', G.shoreCleaned+' pieces cleaned — thank you'); break; } }
   const earned=sortTally.won+sortTally.treasure;
   const t=document.createElement('div'); t.className='line tot'; t.innerHTML=`<span>Earned</span><span>${earned} won</span>`; list.appendChild(t);
   $('beachNote').textContent = (acc!=null && acc>=0.8)
