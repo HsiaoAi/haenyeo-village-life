@@ -750,68 +750,117 @@ function drawPojangmachaFolded(g,b){
 }
 /* evening — the tent raised, enclosed, window glowing warm */
 function drawPojangmachaUp(g,b){
-  const x=b.x, y=b.y, w=b.w, h=b.h, baseY=y+h;
+  const x=b.x, y=b.y, w=b.w, h=b.h, baseY=y+h, cx=x+w/2;
+  const tnow=performance.now()*0.001;
   g.save(); g.lineJoin='round'; g.lineCap='round';
   const tarp='#d9542a', tarpHi='#ef7e54', tarpSh='#b8431d', valance='#c2461f',
-        wood='#9c6b3a', woodD='#5e3f26', cream='#fbf3df', ink=MIN.ink;
-  const cx=x+w/2, sideW=Math.round(w*0.18), fx0=x+sideW, fw=w-sideW, topY=y+22;
+        wood='#9c6b3a', woodD='#5e3f26', cream='#fbf3df', ink=MIN.ink,
+        steel='#9aa0a6', steelD='#5c6066', navy='#2f3a5c';
+  const sideW=Math.round(w*0.16), fx0=x+sideW, fw=w-sideW, topY=y+22;
   // soft contact shadow on the sand
-  g.fillStyle='rgba(20,12,8,.20)'; g.beginPath(); g.ellipse(cx,baseY+3,w*0.56,9,0,0,7); g.fill();
-  // left side wall — gives the tent a little depth
+  g.fillStyle='rgba(20,12,8,.20)'; g.beginPath(); g.ellipse(cx,baseY+3,w*0.58,9,0,0,7); g.fill();
+  // ---- steel frame poles (a touch taller than the canvas) ----
+  g.strokeStyle=steelD; g.lineWidth=4.5; g.beginPath(); g.moveTo(fx0+2,topY-6); g.lineTo(fx0+2,baseY); g.moveTo(x+w-3,topY-6); g.lineTo(x+w-3,baseY); g.stroke();
+  g.strokeStyle=steel; g.lineWidth=2; g.beginPath(); g.moveTo(fx0+1,topY-6); g.lineTo(fx0+1,baseY); g.moveTo(x+w-4,topY-6); g.lineTo(x+w-4,baseY); g.stroke();
+  // ---- left side wall — depth ----
   g.fillStyle=tarpSh; g.strokeStyle=ink; g.lineWidth=2.6;
-  g.beginPath(); g.moveTo(x+4,topY+12); g.quadraticCurveTo(x+2,topY+4,fx0,topY+2); g.lineTo(fx0,baseY); g.lineTo(x+4,baseY-2); g.closePath(); g.fill(); g.stroke();
-  // front tarp face — big rounded corners + a soft wavy hem (cute)
+  g.beginPath(); g.moveTo(x+3,topY+12); g.quadraticCurveTo(x+1,topY+3,fx0,topY+1); g.lineTo(fx0,baseY); g.lineTo(x+3,baseY-2); g.closePath(); g.fill(); g.stroke();
+  // ---- front canvas with rounded top + wavy hem ----
   g.fillStyle=tarp; g.strokeStyle=ink; g.lineWidth=2.8;
   g.beginPath();
   g.moveTo(fx0,topY+14); g.quadraticCurveTo(fx0,topY,fx0+14,topY);
   g.lineTo(x+w-14,topY); g.quadraticCurveTo(x+w,topY,x+w,topY+14);
-  g.lineTo(x+w,baseY-8);
-  for(let i=0;i<=4;i++){ const bx=x+w-(i/4)*fw; g.quadraticCurveTo(bx+fw/8,baseY+(i%2?2:8),bx,baseY+(i%2?6:2)); }
+  g.lineTo(x+w,baseY-6);
+  for(let i=0;i<=4;i++){ const bx=x+w-(i/4)*fw; g.quadraticCurveTo(bx+fw/8,baseY+(i%2?2:7),bx,baseY+(i%2?5:1)); }
   g.closePath(); g.fill(); g.stroke();
-  // soft sheen down the front-left
-  g.globalAlpha=.4; g.fillStyle=tarpHi;
-  g.beginPath(); g.moveTo(fx0+8,topY+18); g.quadraticCurveTo(fx0+3,baseY-20,fx0+13,baseY-10); g.lineTo(fx0+22,baseY-12); g.quadraticCurveTo(fx0+18,topY+20,fx0+8,topY+18); g.closePath(); g.fill(); g.globalAlpha=1;
-  // scalloped valance flap across the top
-  g.fillStyle=valance; g.strokeStyle=ink; g.lineWidth=2.4;
-  g.beginPath(); g.moveTo(fx0-2,topY+1); g.lineTo(x+w+2,topY+1); g.lineTo(x+w+2,topY+13);
-  const sc=5; for(let i=0;i<=sc;i++){ const sx=x+w+2-(i/sc)*(fw+4); g.quadraticCurveTo(sx+(fw+4)/sc/2,topY+21,sx,topY+13); }
+  g.globalAlpha=.35; g.fillStyle=tarpHi; g.beginPath(); g.moveTo(fx0+8,topY+18); g.quadraticCurveTo(fx0+3,baseY-20,fx0+13,baseY-12); g.lineTo(fx0+20,baseY-14); g.quadraticCurveTo(fx0+16,topY+20,fx0+8,topY+18); g.closePath(); g.fill(); g.globalAlpha=1;
+  // ---- draped scalloped valance ----
+  g.fillStyle=valance; g.strokeStyle=ink; g.lineWidth=2.2;
+  g.beginPath(); g.moveTo(fx0-2,topY+1); g.lineTo(x+w+2,topY+1); g.lineTo(x+w+2,topY+12);
+  const sc=6; for(let i=0;i<=sc;i++){ const sx2=x+w+2-(i/sc)*(fw+4); g.quadraticCurveTo(sx2+(fw+4)/sc/2,topY+19,sx2,topY+12); }
   g.closePath(); g.fill(); g.stroke();
   g.globalAlpha=.4; g.fillStyle=tarpHi; g.fillRect(fx0+2,topY+3,fw-4,3); g.globalAlpha=1;
-  // ---- warm glowing window with a cozy food-cart interior ----
-  const wx=fx0+fw*0.24, wy=topY+20, ww=fw*0.52, wh=h*0.34;
-  const wg=g.createLinearGradient(wx,wy,wx,wy+wh); wg.addColorStop(0,'#ffe39a'); wg.addColorStop(1,'#f0a23a');
-  g.fillStyle=wg; g.strokeStyle=woodD; g.lineWidth=2.4; rr(g,wx,wy,ww,wh,5); g.fill(); g.stroke();
-  g.fillStyle='#fff3c4'; g.beginPath(); g.arc(wx+ww*0.30,wy+5,2.2,0,7); g.fill();                       // hanging bulb
-  g.fillStyle='rgba(60,30,16,.5)'; g.fillRect(wx,wy+wh*0.72,ww,wh*0.28);                                  // counter
-  g.fillStyle='rgba(60,30,16,.6)'; g.beginPath(); g.ellipse(wx+ww*0.68,wy+wh*0.5,ww*0.15,wh*0.30,0,0,7); g.fill();   // cook silhouette
-  g.fillStyle='rgba(40,22,12,.7)'; g.beginPath(); g.ellipse(wx+ww*0.32,wy+wh*0.68,ww*0.12,wh*0.10,0,Math.PI,0); g.fill();  // pot
-  g.strokeStyle='rgba(255,250,230,.6)'; g.lineWidth=1.3; g.beginPath(); g.moveTo(wx+ww*0.30,wy+wh*0.58); g.quadraticCurveTo(wx+ww*0.24,wy+wh*0.40,wx+ww*0.30,wy+wh*0.28); g.stroke();  // steam in window
-  g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1.6; g.beginPath(); g.moveTo(wx+5,wy+5); g.lineTo(wx+ww*0.34,wy+5); g.stroke();  // glass sheen
-  // a little menu paper on the tarp, right of the window — seafood hint
-  const mpx=x+w-22, mpy=wy+1;
-  inked(g,'#fbf7ec',1.6); rr(g,mpx,mpy,15,28,2); fillStroke(g);
-  g.strokeStyle='rgba(60,40,20,.5)'; g.lineWidth=1; for(let i=0;i<3;i++){ g.beginPath(); g.moveTo(mpx+3,mpy+9+i*6); g.lineTo(mpx+12,mpy+9+i*6); g.stroke(); }
-  g.fillStyle='#d98a4a'; g.beginPath(); g.ellipse(mpx+7.5,mpy+5,4,2,0,0,7); g.fill();                     // grilled-fish glyph
-  // steam wisps leaking from the top
-  g.strokeStyle='rgba(245,240,225,.5)'; g.lineWidth=2;
-  const st=performance.now()*0.002;
-  for(let i=0;i<2;i++){ const sxp=fx0+12+i*9; g.beginPath(); g.moveTo(sxp,topY-1); g.quadraticCurveTo(sxp-5+Math.sin(st+i)*3,topY-11,sxp+Math.sin(st*1.3+i)*2,topY-21); g.stroke(); }
-  // rooftop hand-written signboard on two little posts
-  const sgw=60,sgh=16,sgx=cx-sgw/2,sgy=y-4;
-  g.strokeStyle=woodD; g.lineWidth=2.4; g.beginPath(); g.moveTo(sgx+8,sgy+sgh); g.lineTo(sgx+8,topY+1); g.moveTo(sgx+sgw-8,sgy+sgh); g.lineTo(sgx+sgw-8,topY+1); g.stroke();
+  // ---- window with a cozy interior (grill · soju · hanging menu strips) ----
+  const wx=fx0+8, wy=topY+18, ww=fw*0.50, wh=h*0.40;
+  g.save(); rr(g,wx,wy,ww,wh,4); g.clip();
+  const wg=g.createLinearGradient(wx,wy,wx,wy+wh); wg.addColorStop(0,'#ffe6a6'); wg.addColorStop(1,'#f0a23a');
+  g.fillStyle=wg; g.fillRect(wx,wy,ww,wh);
+  g.strokeStyle='rgba(150,80,50,.30)'; g.lineWidth=1; for(let ry=wy+4; ry<wy+wh*0.55; ry+=5){ g.beginPath(); g.moveTo(wx,ry); g.lineTo(wx+ww,ry); g.stroke(); }   // brick
+  const bf=0.8+0.2*Math.sin(tnow*5);
+  g.strokeStyle='rgba(60,40,20,.5)'; g.lineWidth=1; g.beginPath(); g.moveTo(wx+ww*0.30,wy); g.lineTo(wx+ww*0.30,wy+5); g.stroke();
+  g.fillStyle=`rgba(255,245,200,${bf.toFixed(2)})`; g.beginPath(); g.arc(wx+ww*0.30,wy+6,2.3,0,7); g.fill();   // bulb
+  g.fillStyle='rgba(70,38,20,.55)'; g.fillRect(wx,wy+wh*0.72,ww,wh*0.28);   // counter
+  g.fillStyle='#3a2a22'; rr(g,wx+ww*0.08,wy+wh*0.60,ww*0.40,wh*0.12,2); g.fill();   // grill
+  for(let fi=0;fi<3;fi++){ g.fillStyle='#cda45e'; g.beginPath(); g.ellipse(wx+ww*0.16+fi*ww*0.13, wy+wh*0.64, ww*0.055, wh*0.045,0,0,7); g.fill(); }   // grilling fish
+  g.fillStyle='rgba(40,22,12,.7)'; g.beginPath(); g.ellipse(wx+ww*0.72,wy+wh*0.64,ww*0.12,wh*0.10,0,Math.PI,0); g.fill();   // pot
+  g.strokeStyle='rgba(255,250,230,.55)'; g.lineWidth=1.1; g.beginPath(); g.moveTo(wx+ww*0.72,wy+wh*0.56); g.quadraticCurveTo(wx+ww*0.66,wy+wh*0.40,wx+ww*0.72,wy+wh*0.28); g.stroke();
+  for(let si=0;si<2;si++){ g.fillStyle='#5a9e54'; rr(g,wx+ww*0.55+si*5,wy+wh*0.58,3,wh*0.18,1); g.fill(); }   // soju bottles
+  for(let mi=0;mi<3;mi++){ const mxx=wx+ww*0.80+mi*4; g.fillStyle='rgba(250,243,223,.92)'; g.fillRect(mxx,wy+2,3,wh*0.44);   // hanging menu strips
+    g.strokeStyle='rgba(80,40,20,.4)'; g.lineWidth=0.6; for(let k=0;k<3;k++){ g.beginPath(); g.moveTo(mxx+0.6,wy+5+k*4); g.lineTo(mxx+2.4,wy+5+k*4); g.stroke(); } }
+  g.restore();
+  g.strokeStyle=woodD; g.lineWidth=2.4; rr(g,wx,wy,ww,wh,4); g.stroke();
+  g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1.4; g.beginPath(); g.moveTo(wx+4,wy+4); g.lineTo(wx+ww*0.4,wy+4); g.stroke();
+  // ---- navy noren (제주 해녀마을) on the right, with haenyeo + shell ----
+  const nx=x+w-25, ny=topY+13, nw=21, nh=h*0.42;
+  g.fillStyle=navy; g.strokeStyle=ink; g.lineWidth=1.6; rr(g,nx,ny,nw,nh,2); fillStroke(g);
+  g.strokeStyle='rgba(255,255,255,.16)'; g.lineWidth=1; for(let s=1;s<3;s++){ g.beginPath(); g.moveTo(nx+s*nw/3,ny+nh*0.5); g.lineTo(nx+s*nw/3,ny+nh); g.stroke(); }
+  g.fillStyle='rgba(238,244,255,.92)'; g.beginPath(); g.arc(nx+6,ny+9,3,Math.PI*0.9,Math.PI*0.1,true); g.lineTo(nx+9,ny+12); g.lineTo(nx+3,ny+12); g.closePath(); g.fill();   // haenyeo
+  g.strokeStyle='rgba(238,244,255,.85)'; g.lineWidth=1.1; g.beginPath(); g.arc(nx+15,ny+10,3,Math.PI,0); g.stroke(); for(let r=0;r<3;r++){ g.beginPath(); g.moveTo(nx+15,ny+10); g.lineTo(nx+13+r*2,ny+7.4); g.stroke(); }   // shell
+  // ---- rooftop signboard: 포장마차 + wave + waving haenyeo mascot ----
+  const sgw=Math.min(86,fw-4), sgx=cx-sgw/2, sgy=y-8, sgh=15;
+  g.strokeStyle=woodD; g.lineWidth=2.2; g.beginPath(); g.moveTo(sgx+10,sgy+sgh); g.lineTo(sgx+10,topY+1); g.moveTo(sgx+sgw-10,sgy+sgh); g.lineTo(sgx+sgw-10,topY+1); g.stroke();
   inked(g,cream,2); rr(g,sgx,sgy,sgw,sgh,3); fillStroke(g);
-  g.fillStyle='#c2461f'; g.font='700 11px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='middle';
-  g.fillText('해녀의 부엌', cx, sgy+sgh/2+0.5);
-  // seafood by the entrance: a soju bottle + a sora (sea-snail) shell on the sand
-  inked(g,'#4f8f5a',1.8); rr(g,fx0-1,baseY-15,5,15,2); fillStroke(g);
-  g.fillStyle=cream; g.fillRect(fx0+0.2,baseY-9,3.4,3.4);
-  inked(g,'#9c6b3a',1.6); g.beginPath(); g.ellipse(fx0+9,baseY-2,5,4,0,0,7); fillStroke(g);
-  // two cute plastic stools out front-left (clear of the bulteok to the right)
-  const stool=(sx,sy,col)=>{ g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(sx,sy+6,9,3,0,0,7); g.fill();
-    inked(g,col,2); rr(g,sx-8,sy-2,16,7,3); fillStroke(g);
-    g.strokeStyle=shade(col,-30); g.lineWidth=2; g.beginPath(); g.moveTo(sx-6,sy+4); g.lineTo(sx-7,sy+11); g.moveTo(sx+6,sy+4); g.lineTo(sx+7,sy+11); g.stroke(); };
-  stool(fx0+18, baseY+10, '#e0884a');
-  stool(fx0-2, baseY+16, '#4fae9e');
+  g.strokeStyle='#4f8fb0'; g.lineWidth=1.5; g.beginPath(); g.moveTo(sgx+4,sgy+sgh-5); g.quadraticCurveTo(sgx+7,sgy+sgh-9,sgx+10,sgy+sgh-5); g.quadraticCurveTo(sgx+13,sgy+sgh-1,sgx+16,sgy+sgh-5); g.stroke();   // wave
+  const mhx=sgx+sgw-8, mhy=sgy+sgh/2;
+  g.fillStyle='#3a4658'; g.beginPath(); g.arc(mhx,mhy,4,0,7); g.fill();
+  g.fillStyle='#cfe0ee'; g.beginPath(); g.arc(mhx-0.5,mhy-0.4,2,0,7); g.fill();
+  g.strokeStyle='#3a4658'; g.lineWidth=1.4; g.beginPath(); g.moveTo(mhx+3,mhy-2); g.lineTo(mhx+6,mhy-5+Math.sin(tnow*4)*1); g.stroke();   // waving
+  g.fillStyle='#c2461f'; g.font='700 10px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText('포장마차', cx-4, sgy+sgh/2+0.5);
+  // ---- red paper lantern (맛있수다) swaying at the left pole ----
+  const lny=topY+9, sway=Math.sin(tnow*1.4)*1.3, lnx=fx0-2+sway;
+  g.strokeStyle=woodD; g.lineWidth=1.3; g.beginPath(); g.moveTo(fx0+1,topY-3); g.lineTo(lnx,lny-7); g.stroke();
+  g.save(); g.translate(lnx,lny);
+  g.fillStyle='#d3402a'; g.strokeStyle='#8e2417'; g.lineWidth=1.4; g.beginPath(); g.ellipse(0,0,6.5,8.5,0,0,7); fillStroke(g);
+  g.fillStyle='#f0c23a'; g.fillRect(-6.5,-1.6,13,3.2);
+  g.strokeStyle='rgba(0,0,0,.22)'; g.lineWidth=0.8; for(let s=-1;s<=1;s++){ g.beginPath(); g.moveTo(s*3,-7.5); g.lineTo(s*3,7.5); g.stroke(); }
+  g.strokeStyle='#f0c23a'; g.lineWidth=1.3; g.beginPath(); g.moveTo(-2,8.5); g.lineTo(-2,11.5); g.moveTo(2,8.5); g.lineTo(2,11.5); g.stroke();
+  g.restore();
+  // ---- 영업중 plaque between window and noren ----
+  const ogx=wx+ww+3, ogy=topY+15;
+  g.strokeStyle=woodD; g.lineWidth=1.2; g.beginPath(); g.moveTo(ogx+6,topY+10); g.lineTo(ogx+6,ogy); g.stroke();
+  inked(g,'#3a4658',1.6); rr(g,ogx,ogy,13,17,2); fillStroke(g);
+  g.fillStyle='#ffd23a'; g.font='700 6px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText('영업', ogx+6.5, ogy+6); g.fillText('중♡', ogx+6.5, ogy+12);
+  // ---- steam wisps from the top ----
+  g.strokeStyle='rgba(245,240,225,.5)'; g.lineWidth=2;
+  for(let i=0;i<2;i++){ const sxp=fx0+16+i*10; g.beginPath(); g.moveTo(sxp,topY-1); g.quadraticCurveTo(sxp-5+Math.sin(tnow+i)*3,topY-11,sxp+Math.sin(tnow*1.3+i)*2,topY-20); g.stroke(); }
+  // ---- A-frame chalkboard (오늘의 메뉴) on the sand, left of the tent ----
+  const cbx=x-24, cby=baseY-28, cbw=22, cbh=29;
+  g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(cbx+cbw/2,baseY+1,15,4,0,0,7); g.fill();
+  g.strokeStyle=woodD; g.lineWidth=2.2; g.beginPath(); g.moveTo(cbx+3,cby+cbh-2); g.lineTo(cbx,baseY); g.moveTo(cbx+cbw-3,cby+cbh-2); g.lineTo(cbx+cbw,baseY); g.stroke();
+  inked(g,'#33291f',2); rr(g,cbx,cby,cbw,cbh,2); fillStroke(g);
+  g.fillStyle='#dfeaae'; g.font='700 5px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='top';
+  g.fillText('오늘의', cbx+cbw/2, cby+3); g.fillText('메뉴', cbx+cbw/2, cby+9);
+  g.fillStyle='#e0884a'; for(let mi=0;mi<3;mi++){ g.beginPath(); g.arc(cbx+5,cby+17+mi*4,1.3,0,7); g.fill(); }
+  g.strokeStyle='#4f8fb0'; g.lineWidth=1; g.beginPath(); g.moveTo(cbx+2,cby+cbh-3); g.quadraticCurveTo(cbx+cbw/2,cby+cbh-6,cbx+cbw-2,cby+cbh-3); g.stroke();
+  // ---- soju crate + orange tewak float, front-right ----
+  const crx=x+w-7, cry=baseY+9;
+  g.fillStyle='rgba(20,12,8,.16)'; g.beginPath(); g.ellipse(crx-2,cry+6,15,4,0,0,7); g.fill();
+  inked(g,'#3f8f86',1.8); rr(g,crx-12,cry-6,18,12,2); fillStroke(g);
+  g.fillStyle='#5a9e54'; for(let s=0;s<3;s++){ g.beginPath(); g.arc(crx-8+s*5,cry-7,1.7,0,7); g.fill(); }
+  inked(g,'#f08a3a',2); g.beginPath(); g.arc(crx+10,cry+3,5.5,0,7); fillStroke(g);   // tewak
+  g.strokeStyle='rgba(255,255,255,.45)'; g.lineWidth=0.8; g.beginPath(); g.arc(crx+10,cry+3,5.5,0,7); g.stroke(); g.beginPath(); g.moveTo(crx+5,cry+3); g.lineTo(crx+15,cry+3); g.stroke();
+  // ---- plastic stools (blue + red) + a wooden bench out front ----
+  const stool=(sx,sy,col)=>{ g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(sx,sy+6,8,3,0,0,7); g.fill();
+    inked(g,col,2); rr(g,sx-7,sy-2,14,6,3); fillStroke(g);
+    g.strokeStyle=shade(col,-30); g.lineWidth=2; g.beginPath(); g.moveTo(sx-5,sy+4); g.lineTo(sx-6,sy+10); g.moveTo(sx+5,sy+4); g.lineTo(sx+6,sy+10); g.stroke(); };
+  const bnx=fx0+18, bny=baseY+12;
+  g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(bnx+11,bny+7,21,4,0,0,7); g.fill();
+  inked(g,wood,2); rr(g,bnx-2,bny-3,28,5,2); fillStroke(g);
+  g.strokeStyle=woodD; g.lineWidth=2.4; g.beginPath(); g.moveTo(bnx+2,bny+2); g.lineTo(bnx+2,bny+9); g.moveTo(bnx+22,bny+2); g.lineTo(bnx+22,bny+9); g.stroke();
+  stool(fx0+6, baseY+15, '#3f86c4');     // blue
+  stool(fx0+fw-16, baseY+17, '#d3402a'); // red
   g.restore();
 }
 function drawBuilding(g,b){
