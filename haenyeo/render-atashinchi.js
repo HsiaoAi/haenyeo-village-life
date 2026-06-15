@@ -2433,13 +2433,43 @@ function drawShop(){
   ensureShopImg();
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
   else { ctx.fillStyle='#e9ddc4'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#caa066'; ctx.fillRect(0,124,W,H-124); }
-  // shopkeeper, standing on the floor
+  // shopkeeper, standing behind his counter
   drawPerson(keeper.x,keeper.y,{skin:keeper.skin,scarf:keeper.scarf,look:keeper.look,idle:1.3});
+  drawShopCounter();                                     // counter drawn in front of him
   // player
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   // no floating keeper name — walking up shows the "Talk to Mr. Gicheol" prompt,
   // like the market stalls; just the exit marker stays
   tag('← out', exitZone.x+exitZone.w/2, exitZone.y+exitZone.h/2, 11, MIN.gold);
+}
+/* Mr. Gicheol's wooden sales counter — register + a folded wetsuit on top, a gold
+   ₩ sign on the front. Same build as Migyeong's market counter, dive-shop props. */
+function drawShopCounter(){
+  const c=shopCounter, cx=c.x+c.w/2, top=c.y, cl=c.x, cr=c.x+c.w, W2=c.w;
+  const wood='#9c6b3a', woodD='#5e3f26', woodL='#b98a52';
+  ctx.save(); ctx.lineJoin='round'; ctx.lineCap='round';
+  // front planks + counter top
+  inked(ctx,woodD,2.6); rr(ctx,cl,top+9,W2,30,4); fillStroke(ctx);
+  ctx.strokeStyle='rgba(70,45,25,.4)'; ctx.lineWidth=1; for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(cl+i*W2/5,top+11);ctx.lineTo(cl+i*W2/5,top+38);ctx.stroke();}
+  inked(ctx,wood,2.6); rr(ctx,cl-6,top,W2+12,15,5); fillStroke(ctx);
+  ctx.fillStyle=woodL; rr(ctx,cl-2,top+2,W2+4,6,3); ctx.fill();
+  // folded wetsuit on the left
+  const wx=cl+32, wy=top-1;
+  inked(ctx,'#2f3b46',2); rr(ctx,wx-16,wy-9,32,12,3); fillStroke(ctx);
+  inked(ctx,'#3a6e8c',2); rr(ctx,wx-16,wy-4,32,7,3); fillStroke(ctx);
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(wx-13,wy-6);ctx.lineTo(wx+13,wy-6);ctx.stroke();
+  // cash register on the right
+  const rx=cr-32, ry=top+3;
+  inked(ctx,'#b6532f',2.4); rr(ctx,rx-15,ry-14,30,16,3); fillStroke(ctx);     // body
+  inked(ctx,'#7e3a20',2); rr(ctx,rx-13,ry-23,22,10,2); fillStroke(ctx);       // raised display back
+  inked(ctx,'#f3ead0',1.6); rr(ctx,rx-10,ry-21,16,6,1.5); fillStroke(ctx);    // screen
+  ctx.fillStyle=MIN.ink2||MIN.ink; ctx.font='700 8px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('₩',rx-2,ry-17.5);
+  ctx.fillStyle='#7e3a20'; for(let i=0;i<3;i++)for(let j=0;j<2;j++){ctx.beginPath();ctx.arc(rx-9+i*6,ry-8+j*5,1.5,0,7);ctx.fill();}
+  // gold ₩ sign on the counter front
+  const px=cx-4, py=top+24;
+  inked(ctx,MIN.gold,1.8); ctx.beginPath();ctx.arc(px,py,9,0,7); fillStroke(ctx);
+  ctx.fillStyle=MIN.ink2||MIN.ink; ctx.font='700 11px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('₩',px,py+0.5);
+  ctx.restore();
 }
 
 /* ---------------- CO-OP MARKET (fish market) ---------------- */

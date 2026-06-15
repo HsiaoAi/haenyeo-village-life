@@ -1428,8 +1428,11 @@ function doMuseumInteract(){
   }
 }
 
+/* Mr. Gicheol's sales counter — he stands behind it, you buy across it (like Migyeong's stall) */
+const shopCounter={x:400, y:314, w:156, h:36};
 function shopHit(x,y){
-  return false;                                          // open floor — buy by talking to the keeper
+  const c=shopCounter;                                   // can't walk through the counter
+  return x>c.x-2 && x<c.x+c.w+2 && y>c.y-2 && y<c.y+c.h+8;
 }
 function updateShop(dt){
   let mx=0,my=0;
@@ -1446,7 +1449,8 @@ function updateShop(dt){
 }
 function shopNearest(){
   let best=null,bd=44;
-  const dk=Math.hypot(P.x-keeper.x,P.y-(keeper.y+12)); if(dk<52){bd=dk;best={type:'keeper'};}
+  const fx=shopCounter.x+shopCounter.w/2, fy=shopCounter.y+shopCounter.h+6;   // talk across the counter front
+  const dk=Math.hypot(P.x-fx,P.y-fy); if(dk<56){bd=dk;best={type:'keeper'};}
   if(P.x>exitZone.x-10&&P.x<exitZone.x+exitZone.w+10&&P.y>exitZone.y-24) best={type:'exit'};
   return best;
 }
