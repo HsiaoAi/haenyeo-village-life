@@ -3651,7 +3651,7 @@ function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
   im.src='home-bg.png?v=2'; }
 // live-overlay anchors tuned to the home-bg.png art
 const HOME_CAULDRON={x:206, y:224};   // 정지 iron cauldron — steam rises here
-const HOME_TABLETOP={x:482, y:416};   // dining table top — plated bowl sits here
+const HOME_TABLETOP={x:480, y:388};   // dining table top — plated bowl sits here
 const HOME_GRAMO   ={x:300, y:492};   // gramophone — music notes drift up here
 function drawHome(){
   ensureHomeImg();
