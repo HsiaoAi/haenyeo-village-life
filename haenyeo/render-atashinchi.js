@@ -2833,12 +2833,17 @@ function buildMarketBG(){
   drawPeanutSacks(g,856,540);
   marketBG=el;
 }
+let marketImg=null, marketImgTried=false;
+function ensureMarketImg(){ if(marketImgTried)return; marketImgTried=true;
+  const im=new Image(); im.onload=()=>{ marketImg=im; }; im.src='market.png?v=1'; }
 function drawMarket(){
-  if(!marketBG) buildMarketBG();
-  ctx.drawImage(marketBG,0,0,W,H);
   const t=performance.now()*0.001;
-  // warm bulbs glowing along both overhead strands
-  for(const [sy,sag] of [[120,5],[466,10]]){
+  ensureMarketImg();
+  const usingImg = marketImg && marketImg.complete && marketImg.naturalWidth;
+  if(usingImg){ ctx.drawImage(marketImg,0,0,W,H); }
+  else { if(!marketBG) buildMarketBG(); ctx.drawImage(marketBG,0,0,W,H); }
+  // warm bulbs glowing along both overhead strands (procedural bg only — the illustration has its own)
+  if(!usingImg) for(const [sy,sag] of [[120,5],[466,10]]){
     ctx.save();ctx.globalCompositeOperation='screen';
     for(let i=0;i<14;i++){const x=18+i*32, y=sy+Math.sin(x*0.05)*sag+3; const a=0.5+0.3*Math.sin(t*2+i);
       ctx.fillStyle=`rgba(255,210,120,${a})`;ctx.beginPath();ctx.arc(x,y,2.6,0,7);ctx.fill();}

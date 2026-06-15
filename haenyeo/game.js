@@ -1921,6 +1921,7 @@ function updateBeach(dt){
   if(m>0){mx/=m;my/=m; if(mx!==0)P.face=mx>0?1:-1; P.x+=mx*SPEED; P.y+=my*SPEED; P.anim+=dt*9;}
   P.x=Math.max(BEACH_AREA.x0,Math.min(BEACH_AREA.x1,P.x));
   P.y=Math.max(BEACH_AREA.y0,Math.min(BEACH_AREA.y1,P.y));
+  P.y=Math.min(P.y, tideLineY()-P.r-3);   // stay on the sand — can't wade into the rising sea
   // gather litter / dig out treasure
   const tideY=tideLineY();
   for(const c of bLitter){
