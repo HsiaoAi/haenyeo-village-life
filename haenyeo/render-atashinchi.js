@@ -984,9 +984,52 @@ function drawMuseum(){
   } else { ctx.fillStyle='#7a5230'; ctx.font='600 20px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('Haenyeo Museum', W/2, H/2); }
   // exit mat
   inked(ctx,'#d8c089',2);ctx.setLineDash([4,3]);rr(ctx,museumExit.x,museumExit.y,museumExit.w,museumExit.h,5);fillStroke(ctx);ctx.setLineDash([]);
+  drawMuseumMarkers();
   // the visitor
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   tag('← out', museumExit.x+museumExit.w/2, museumExit.y+museumExit.h/2, 11, MIN.gold);
+  drawCultureLog();
+}
+/* gentle "this is interactive" markers over each exhibit + a memory bubble on the grandmothers */
+function drawMuseumMarkers(){
+  if(typeof MUSEUM_EXHIBITS==='undefined') return;
+  const t=(typeof museumT==='number')?museumT:0;
+  const cur=(typeof museumCur==='object'&&museumCur)?museumCur:null;
+  for(const e of MUSEUM_EXHIBITS){
+    const seen=G.cultureLog&&G.cultureLog[e.id];
+    const active=cur&&cur.type==='exhibit'&&cur.ex&&cur.ex.id===e.id;
+    const pulse=0.5+0.5*Math.sin(t*3+e.x*0.05);
+    if(!seen){ // expanding gold hint ring
+      ctx.save(); ctx.globalAlpha=0.45*(1-pulse)+0.12; ctx.strokeStyle=MIN.gold; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(e.x,e.y,9+pulse*8,0,7); ctx.stroke(); ctx.restore();
+    }
+    inked(ctx, seen?'rgba(251,247,236,.92)':(active?'#fbe3b0':MIN.gold), 2);
+    ctx.beginPath(); ctx.arc(e.x,e.y,10,0,7); fillStroke(ctx);
+    ctx.fillStyle=MIN.ink; ctx.font='700 13px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(seen?'✓':'i', e.x, e.y+0.5);
+  }
+  // grandmother memory bubble (bobs gently)
+  if(typeof MUSEUM_GRANDMA!=='undefined'){
+    const g=MUSEUM_GRANDMA, active=cur&&cur.type==='grandma', bob=Math.sin(t*2.4)*2;
+    const bx=g.x, by=g.y-48+bob;
+    inked(ctx, active?'#fbe3b0':MIN.white, 2);
+    rr(ctx,bx-16,by-12,32,21,8); fillStroke(ctx);
+    ctx.beginPath(); ctx.moveTo(bx-5,by+8); ctx.lineTo(bx+3,by+8); ctx.lineTo(bx-3,by+16); ctx.closePath();
+    ctx.fillStyle=active?'#fbe3b0':MIN.white; ctx.strokeStyle=MIN.ink; ctx.lineWidth=2; fillStroke(ctx);
+    ctx.fillStyle=MIN.ink; ctx.font='700 15px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('···', bx, by-1);
+  }
+}
+/* a quiet 도감 counter, top-left */
+function drawCultureLog(){
+  if(typeof cultureCounts!=='function') return;
+  const c=cultureCounts();
+  const txt='해녀 문화 도감  '+c.ex+'/'+c.total+'  ·  기억 '+Math.min(c.mem,6);
+  ctx.font='600 12px "Gowun Batang",serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  const w=ctx.measureText(txt).width+ (G.cultureKeeper?54:18);
+  inked(ctx,'rgba(20,40,48,.82)',2); rr(ctx,14,46,w,26,9); fillStroke(ctx);
+  ctx.fillStyle=MIN.white; ctx.fillText(txt, 24, 60);
+  if(G.cultureKeeper){ ctx.fillStyle=MIN.gold; ctx.font='700 12px "Gowun Batang",serif'; ctx.fillText('🏛', 24+ctx.measureText(txt).width+10, 59); }
 }
 
 /* ---- build & cache the static village backdrop ---- */

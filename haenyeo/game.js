@@ -206,6 +206,7 @@ const G={ day:1, money:0, time:6*60, wetsuitIdx:0, netIdx:0, toolIdx:0, maskIdx:
   beachHealth:60,  // 0–100 shore cleanliness; litter accrues daily, cleaning restores it; feeds the dive
   eco:0,           // eco-points earned by correct 분리수거 sorting & wildlife rescues
   factsSeen:{},    // debris ids whose fact card has been shown (show once)
+  cultureLog:{}, cultureMem:0, cultureKeeper:false,   // 해녀 문화 도감: exhibits examined, grandmother memories heard, "Keeper of Tradition" earned
   energy:100 };    // 0–100 stamina; diving/cleaning/cooking spend it, a night's sleep restores it
 function clampHealth(){ G.beachHealth=Math.max(0,Math.min(100,G.beachHealth)); }
 /* ---- energy / stamina: the day is paced by how tired you are, not the clock ---- */
@@ -410,7 +411,8 @@ let toastT=0;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');toastT=1.6;}
 /* a non-blocking marine-debris fact banner (slides up, fades on its own) */
 let factT=0;
-function showFact(text){ const el=$('factCard'); if(!el||!text) return; const tx=$('factText'); if(tx)tx.textContent=text; el.classList.add('show'); factT=5.5; }
+const FACT_TAG_DEFAULT='알고 계셨나요? · Did you know?';
+function showFact(text, dur, tag){ const el=$('factCard'); if(!el||!text) return; const tx=$('factText'); if(tx)tx.textContent=text; const tg=el.querySelector('.factTag'); if(tg) tg.textContent=tag||FACT_TAG_DEFAULT; el.classList.add('show'); factT=dur||5.5; }
 /* show a debris fact the first time that item is ever picked up */
 function maybeShowFact(item){ if(!item||!item.fact) return; if(G.factsSeen[item.id]) return; G.factsSeen[item.id]=true; showFact(item.fact); }
 
@@ -1263,10 +1265,76 @@ const MUSEUM_BACK_POLY=[
   [330,400],[150,405],[75,408],[70,500],[14,502]
 ];
 const museumExit={x:W/2-44,y:H-46,w:88,h:34};
-let museumCur=null;
+let museumCur=null, museumT=0, museumMemIdx=0;
+
+/* ---- the museum as the game's reflective, educational heart ----
+   Six clickable exhibits open a culture card (real haenyeo facts + an evocative
+   line); the seated grandmothers share rotating, deepening memories. Examining
+   all six and hearing three memories earns the "Keeper of Tradition" log.
+   Positions map onto museum.png (cover-fit); an exhibit is "active" when the
+   player stands roughly in its column inside the gallery. */
+const MUSEUM_EXHIBITS=[
+  {id:'flags', x:46, y:132, name:'Jamsugut', ko:'잠수굿 · 영등굿',
+   fact:'Each spring the village holds the Jamsugut — a shaman rite to Yeongdeung, goddess of wind and sea — praying for calm water and every diver’s safe return.',
+   quote:'“We pray not to conquer the sea, but to come home from it.”'},
+  {id:'nets', x:300, y:256, name:'Nets & Ranks', ko:'망사리 · 계급',
+   fact:'By skill and breath a diver is ranked hagun, junggun, or sanggun. The sanggun go deepest and longest — yet the catch is shared, so the youngest and the oldest are never left behind.',
+   quote:'“The deepest diver eats the same as the youngest.”'},
+  {id:'statue', x:434, y:236, name:'Keeper of Tradition', ko:'해녀상',
+   fact:'Jeju’s haenyeo free-dive for shellfish on a single breath — a craft over a thousand years old. ~23,000 dived in the 1960s; today only ~2,700 remain, most over seventy.',
+   quote:'“We do not take what the sea cannot spare.”'},
+  {id:'sunset', x:589, y:112, name:'Sumbi-sori', ko:'숨비소리 · 노을', sound:true,
+   fact:'Surfacing, a haenyeo lets her held breath go in a long whistle — the sumbi-sori. It is the sound of the sea-women: a body saying, I am still here.',
+   quote:'“I am still here.”'},
+  {id:'gear', x:709, y:184, name:'Goggles & Tewak', ko:'물안경 · 테왁',
+   fact:'No tanks — only goggles, lead weights, a net bag, and the tewak: a buoyant float she rests on between dives and clings to when the water turns rough.',
+   quote:'“The tewak is the only thing that waits for you up there.”'},
+  {id:'pottery', x:846, y:316, name:'Onggi Jars', ko:'항아리',
+   fact:'When the sea closes in winter and storm season, the haenyeo turn to the volcanic fields — farming, and fermenting the harvest in onggi jars. A life split between water and earth.',
+   quote:'“Winter belongs to the soil.”'},
+];
+const MUSEUM_GRANDMA={ x:492, y:382,
+  base:[
+    '“I first dived when I was eight. My mother fit the mask to my face and said: the sea is not something you conquer.”',
+    '“A single morning once gave three times the abalone it gives now. The sea is tired too, you know.”',
+    '“We sing on the way out. If you can no longer hear the others sing, you have swum too far.”',
+    '“My daughter is in Seoul. She says she’ll come home. I have been hearing ‘I’ll come home’ for three years now.”',
+  ],
+  deep:[
+    '“My closest friend did not surface, one winter. The sea gives, and the sea keeps. We still dived the next morning.”',
+    '“When I can no longer dive, who will? Come back, child. Let an old woman teach you to read the water.”',
+  ],
+};
+function museumExhibitAt(){
+  // nearest active exhibit to the player; active = standing in its column, in-gallery
+  let best=null, bestScore=1e9;
+  for(const e of MUSEUM_EXHIBITS){
+    if(Math.abs(P.x-e.x)>58) continue;
+    if(P.y < e.y-30 || P.y > e.y+260) continue;
+    const s=Math.abs(P.x-e.x) + 0.3*Math.abs(P.y-e.y);
+    if(s<bestScore){ bestScore=s; best=e; }
+  }
+  return best;
+}
+function cultureCounts(){ let ex=0; for(const e of MUSEUM_EXHIBITS) if(G.cultureLog[e.id]) ex++; return {ex, total:MUSEUM_EXHIBITS.length, mem:G.cultureMem}; }
+function checkKeeper(){
+  if(G.cultureKeeper) return;
+  const c=cultureCounts();
+  if(c.ex>=c.total && c.mem>=3){
+    G.cultureKeeper=true; G.eco=(G.eco||0)+30;
+    if(typeof tone==='function'){ tone(523,.5,'sine',.05); setTimeout(()=>tone(784,.7,'sine',.05),260); }
+    setTimeout(()=>showFact('You have listened to every voice in this hall. The sea-women’s story now travels with you. (+30 eco · 해녀 문화 지킴이)', 10, '🏛 해녀 문화 지킴이 · Keeper of Tradition'), 400);
+    setTimeout(()=>{ if(typeof toast==='function') toast('🏛 Keeper of Tradition'); }, 900);
+  }
+}
+function playSumbiSori(){
+  if(typeof tone!=='function') return;       // the breath on surfacing: a soft, falling whistle
+  tone(1180,.5,'sine',.045); setTimeout(()=>tone(880,.6,'sine',.04),180); setTimeout(()=>tone(660,.7,'sine',.03),460);
+}
 function enterMuseum(){ scene='museum'; P.x=W/2; P.y=H-80; P.face=1; $('prompt').classList.remove('show'); }
 function leaveMuseum(){ scene='village'; const b=buildings.find(x=>x.name==='museum'); if(b){P.x=b.x+b.w/2;P.y=b.y+b.h+18;} P.face=1; $('prompt').classList.remove('show'); }
 function updateMuseum(dt){
+  museumT+=dt;
   let mx=0,my=0;
   if(keys['arrowleft']||keys['a'])mx-=1; if(keys['arrowright']||keys['d'])mx+=1;
   if(keys['arrowup']||keys['w'])my-=1;   if(keys['arrowdown']||keys['s'])my+=1;
@@ -1281,12 +1349,38 @@ function updateMuseum(dt){
 }
 function refreshMuseumPrompt(){
   const el=$('prompt');
-  const d=Math.hypot(P.x-(museumExit.x+museumExit.w/2),P.y-(museumExit.y+museumExit.h/2));
-  museumCur = d<56 ? 'exit' : null;
-  if(museumCur){ el.textContent='Leave museum'; el.classList.add('show'); }
-  else el.classList.remove('show');
+  const dExit=Math.hypot(P.x-(museumExit.x+museumExit.w/2),P.y-(museumExit.y+museumExit.h/2));
+  const dGran=Math.hypot(P.x-MUSEUM_GRANDMA.x,P.y-MUSEUM_GRANDMA.y);
+  const ex=museumExhibitAt();
+  // priority near the pit: grandmother first, then a wall exhibit, then the exit mat
+  if(dGran<78){ museumCur={type:'grandma'}; el.textContent='Sit with the grandmothers'; el.classList.add('show'); }
+  else if(ex){ museumCur={type:'exhibit', ex}; el.textContent=(G.cultureLog[ex.id]?'Revisit':'Examine')+': '+ex.name; el.classList.add('show'); }
+  else if(dExit<56){ museumCur={type:'exit'}; el.textContent='Leave museum'; el.classList.add('show'); }
+  else { museumCur=null; el.classList.remove('show'); }
 }
-function doMuseumInteract(){ if(museumCur==='exit') leaveMuseum(); }
+function doMuseumInteract(){
+  if(!museumCur) return;
+  if(museumCur.type==='exit'){ leaveMuseum(); return; }
+  if(museumCur.type==='exhibit'){
+    const e=museumCur.ex;
+    const card=e.name+' ('+e.ko+')\n'+e.fact+'\n— '+e.quote;
+    showFact(card, 10, '해녀 문화 · Haenyeo Culture');
+    if(e.sound) playSumbiSori(); else if(typeof tone==='function') tone(560,.1,'sine',.04);
+    if(!G.cultureLog[e.id]){ G.cultureLog[e.id]=true; checkKeeper(); }
+    return;
+  }
+  if(museumCur.type==='grandma'){
+    const base=MUSEUM_GRANDMA.base, deep=MUSEUM_GRANDMA.deep;
+    const all = (G.cultureMem>=base.length) ? base.concat(deep) : base;
+    const line = all[museumMemIdx % all.length];
+    museumMemIdx++;
+    showFact(line, 9, '할머니의 기억 · A grandmother remembers');
+    if(typeof tone==='function') tone(330,.12,'sine',.035);
+    G.cultureMem = Math.min(base.length+deep.length, G.cultureMem+1);
+    checkKeeper();
+    return;
+  }
+}
 
 function shopHit(x,y){
   return false;                                          // open floor — buy by talking to the keeper
