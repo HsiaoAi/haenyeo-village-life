@@ -25,6 +25,13 @@ const DISHES=[
 ];
 function dishById(id){ return DISHES.find(d=>d.id===id); }
 
+/* ---- drinks: poured to order in a little tap-at-the-line minigame. Soju pours
+   quick into a small glass; matcha is whisked higher and frothy. ---- */
+const DRINKS={
+  soju:  {id:'soju',  kr:'소주', name:'Soju',   price:30, col:'#dff0ec', rise:1.05, target:0.70, glass:52, label:'소주 한 잔 · Pour the soju'},
+  matcha:{id:'matcha',kr:'말차', name:'Matcha', price:38, col:'#8fbf5a', rise:0.78, target:0.85, glass:74, label:'말차 따르기 · Whisk the matcha'},
+};
+
 /* ---- guests are drawn with the village NPC sprite (drawPerson), so they match
    the rest of the cast. Each gets a randomized everyday look on arrival. ---- */
 const G_SKIN=['#f1cba2','#eccaa2','#e3c4a0','#e7c9a0','#e3bd96','#d9b890'];
@@ -166,7 +173,7 @@ function startService(){
   $('kitchenHud').classList.add('show');
   $('kitchenDoneBtn').classList.add('show');
   $('prompt').classList.remove('show');
-  toast('Open! Serve the guests their plates 🍲');
+  toast('Open! Serve the plates — pour 소주/말차 for guests who order a drink 🍶🍵');
 }
 
 function freeSeats(){ const used=new Set(rGuests.map(g=>g.seat)); const f=[]; for(let i=0;i<rTables.length;i++) if(!used.has(i)) f.push(i); return f; }
@@ -175,8 +182,10 @@ function spawnGuest(){
   const seat=seats[Math.floor(Math.random()*seats.length)];
   const look=makeGuestLook();
   const want = rDemand.length ? rDemand.pop() : DISHES[Math.floor(Math.random()*DISHES.length)].id;
-  rGuests.push({ seat, state:'waiting', wait:0, patience:20+Math.random()*10, want,
-                 plate:null, wantsTea:false, teaDone:true, bob:0, bobPhase:Math.random()*6.28, joy:0,
+  // about half the guests also order a drink — soju or matcha
+  let drink=null; if(Math.random()<0.55){ drink = Math.random()<0.5 ? 'soju' : 'matcha'; }
+  rGuests.push({ seat, state:'waiting', wait:0, patience:22+Math.random()*11, want,
+                 plate:null, drink, drinkDone:false, drinkQuality:0, bob:0, bobPhase:Math.random()*6.28, joy:0,
                  skin:look.skin, look:look.look, face:look.face });
   return true;
 }
@@ -205,34 +214,36 @@ function passAction(){
 function serveGuest(g){
   if(!rCarry) return;
   if(rBan<=0.001){ if(toastCd<=0){toast('반찬 ran out — refill at the side station!');toastCd=2;} return; }
-  // serving a dish is immediate — no tea pour required
+  if(g.drink && !g.drinkDone){ startPour(g); return; }  // pour their drink before plating up
   finishServe(g);
 }
 function finishServe(g){
   const plate=rCarry; rCarry=null;
   rBan=Math.max(0, rBan-0.16);                          // each dish spends some 반찬
   let pay=Math.round(plate.dish.price*starMult(plate.stars));
-  let bonus=0;
-  if(g.teaPour!=null){ if(g.teaPour>=0.78){ bonus=Math.round(pay*0.30); g.joy=1; } }
-  pay+=bonus;
+  let bonus=0, drinkPay=0;
+  if(g.drink){ const dr=DRINKS[g.drink]; drinkPay=dr.price;
+    if((g.drinkQuality||0)>=0.78){ bonus=Math.round((pay+drinkPay)*0.25); g.joy=1; } }   // a clean pour earns a tip
+  pay+=drinkPay+bonus;
   rEarned+=pay; rTips+=bonus; rServed++;
   g.state='served'; g.plate=plate; g.served=1.0;
-  G.renown=(G.renown||0) + Math.round(6*starMult(plate.stars)) + (bonus?4:0);
+  G.renown=(G.renown||0) + Math.round(6*starMult(plate.stars)) + (g.drink?3:0) + (bonus?4:0);
   const t=rTables[g.seat];
   for(let i=0;i<10;i++) rParts.push({x:t.x,y:t.y-26,vx:(Math.random()-.5)*2.4,vy:-Math.random()*2.4-0.4,life:1,c:bonus?'#5cbfb0':'#f0bd4c',heart:i<3});
   tone(bonus?880:720,.16,'sine',.06);
-  if(bonus) toast('Perfect tea! +'+pay+' won (with tip)'); else toast('+'+pay+' won');
+  if(bonus) toast('Perfect pour! +'+pay+' won (with tip)'); else toast('+'+pay+' won'+(drinkPay?' (dish + drink)':''));
 }
 
-/* ---- tea pour minigame: tap once to lock the rising fill near the gold line ---- */
-function startPour(g){ rPour={g, level:0, dir:1, locked:false, t:0}; tone(420,.1,'sine',.04); }
+/* ---- drink pour minigame: tap once to lock the rising fill near the gold line ---- */
+function startPour(g){ rPour={g, drink:DRINKS[g.drink], level:0, dir:1, locked:false, t:0}; tone(420,.1,'sine',.04); }
 function lockPour(){
   if(!rPour||rPour.locked) return;
   rPour.locked=true;
-  const target=0.82, miss=Math.abs(rPour.level-target);
+  const target=rPour.drink.target, miss=Math.abs(rPour.level-target);
   const quality=Math.max(0, 1-miss/0.5);               // 1 = bang on the line
-  const g=rPour.g; g.teaDone=true; g.teaPour=quality;
-  setTimeout(()=>{ if(rPour&&rPour.g===g){ rPour=null; finishServe(g); } }, 260);
+  const g=rPour.g; g.drinkDone=true; g.drinkQuality=quality;
+  tone(quality>=0.78?880:460,.12,'sine',.05);
+  setTimeout(()=>{ if(rPour&&rPour.g===g){ rPour=null; finishServe(g); } }, 300);
 }
 // game.js routes kitchen canvas taps here
 function restaurantTap(p){ if(rPour&&!rPour.locked) lockPour(); }
@@ -246,7 +257,7 @@ function updateRestaurant(dt){
 
   // ---- the tea pour pauses the floor ----
   if(rPour){
-    if(!rPour.locked){ rPour.t+=dt; rPour.level+=rPour.dir*dt*0.85; if(rPour.level>=1){rPour.level=1;rPour.dir=-1;} if(rPour.level<=0){rPour.level=0;rPour.dir=1;} }
+    if(!rPour.locked){ rPour.t+=dt; rPour.level+=rPour.dir*dt*(rPour.drink?rPour.drink.rise:0.85); if(rPour.level>=1){rPour.level=1;rPour.dir=-1;} if(rPour.level<=0){rPour.level=0;rPour.dir=1;} }
     updateHud(); return;
   }
 
@@ -315,7 +326,7 @@ function endRestaurant(){
   const row=(a,b)=>{ const r=document.createElement('div'); r.className='line'; r.innerHTML=`<span>${a}</span><span>${b}</span>`; list.appendChild(r); };
   row('Guests served', rServed);
   if(rLeft) row('Left waiting', rLeft);
-  if(rTips) row('Tea tips', rTips+' won');
+  if(rTips) row('Pour tips', rTips+' won');
   const t=document.createElement('div'); t.className='line tot'; t.innerHTML=`<span>Earned tonight</span><span>${rEarned} won</span>`; list.appendChild(t);
   const before=rankName();
   $('kitchenNote').textContent = rServed
@@ -436,7 +447,7 @@ function drawGuest(g){
     const wd = (typeof dishById==='function') ? dishById(g.want) : null;   // the specific dish this guest ordered
     if(wd && wd.icon){ ctx.font='15px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(wd.icon, x, by+1); }
     else drawFoodIcon(x, by+1);
-    if(g.wantsTea && !g.teaDone) drawTeaBadge(x+11, by+10);
+    if(g.drink && !g.drinkDone) drawDrinkBadge(x+11, by+10, g.drink);
     const pr=Math.max(0,1-g.wait/g.patience);
     ctx.strokeStyle = pr<0.3?'#d35a31':'#e0a836'; ctx.lineWidth=2.6;
     ctx.beginPath(); ctx.arc(x,by,15,-Math.PI/2,-Math.PI/2+pr*6.283); ctx.stroke();
@@ -453,13 +464,18 @@ function drawFoodIcon(cx,cy){
   ctx.fillStyle='#d98a4a'; ctx.beginPath(); ctx.ellipse(cx,cy-1,6,2,0,0,7); ctx.fill();   // broth/food
   ctx.restore();
 }
-function drawTeaBadge(cx,cy){
+function drawDrinkBadge(cx,cy,drinkId){
+  const dr=DRINKS[drinkId]; if(!dr) return;
   ctx.save();
-  ctx.fillStyle='#5cbfb0'; ctx.strokeStyle='rgba(20,40,38,.5)'; ctx.lineWidth=1.4;
-  ctx.beginPath(); ctx.arc(cx,cy,6,0,7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#fff7e6';   // tiny cup
-  ctx.beginPath(); ctx.moveTo(cx-3,cy-2.4); ctx.lineTo(cx+2.4,cy-2.4); ctx.lineTo(cx+1.4,cy+2.6); ctx.lineTo(cx-2,cy+2.6); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle='#fff7e6'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx+2.6,cy,1.7,-1,1.4); ctx.stroke();   // handle
+  ctx.fillStyle=dr.col; ctx.strokeStyle='rgba(20,34,30,.5)'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.arc(cx,cy,6.5,0,7); ctx.fill(); ctx.stroke();
+  if(drinkId==='soju'){            // a little green soju bottle
+    ctx.fillStyle='#3a7d5d'; ctx.beginPath(); rr(ctx,cx-1.6,cy-4,3.2,8,1); ctx.fill();
+    ctx.fillRect(cx-0.8,cy-5.6,1.6,2);
+  } else {                          // a matcha bowl with frothy top
+    ctx.fillStyle='#fff7e6'; ctx.beginPath(); ctx.moveTo(cx-3.4,cy-1.6); ctx.lineTo(cx+3.4,cy-1.6); ctx.lineTo(cx+2.4,cy+2.8); ctx.lineTo(cx-2.4,cy+2.8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#6f9c3a'; ctx.beginPath(); ctx.ellipse(cx,cy-1.4,3,1,0,0,7); ctx.fill();
+  }
   ctx.restore();
 }
 function drawWaitress(){
@@ -474,24 +490,25 @@ function drawWaitress(){
     ctx.strokeText(rCarry.dish.kr, x, y-40); ctx.fillText(rCarry.dish.kr, x, y-40); }
 }
 function drawPour(){
-  // dim the floor, draw a teacup fill bar
+  const dr=rPour.drink||DRINKS.soju;
+  // dim the floor, draw a fill bar tinted for the drink
   ctx.fillStyle='rgba(8,16,18,.55)'; ctx.fillRect(0,0,W,H);
-  const cx=W/2, cy=H/2, bw=70, bh=200, by=cy-bh/2;
+  const cx=W/2, cy=H/2, bw=dr.glass, bh=200, by=cy-bh/2;
   ctx.font='700 18px "Gowun Batang", serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillStyle='#f6f1e3'; ctx.fillText('Pour the 보리차 — tap at the line', cx, by-34);
-  // cup
+  ctx.fillStyle='#f6f1e3'; ctx.fillText(dr.label+' — tap at the line', cx, by-34);
+  // vessel
   ctx.fillStyle='rgba(255,255,255,.12)'; rr(ctx,cx-bw/2,by,bw,bh,10); ctx.fill();
   ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=2; rr(ctx,cx-bw/2,by,bw,bh,10); ctx.stroke();
-  // tea fill
-  const lv=rPour.level; const fh=bh*lv;
-  ctx.fillStyle=rPour.locked?'#7bd0c0':'#caa24a'; rr(ctx,cx-bw/2+3,by+bh-fh+0,bw-6,fh,8); ctx.fill();
+  // fill
+  const lv=rPour.level, fh=bh*lv;
+  ctx.fillStyle=rPour.locked?'#7bd0c0':dr.col; rr(ctx,cx-bw/2+3,by+bh-fh,bw-6,fh,8); ctx.fill();
   // target line
-  const ty=by+bh*(1-0.82);
+  const ty=by+bh*(1-dr.target);
   ctx.strokeStyle='#f2c75a'; ctx.lineWidth=3; ctx.setLineDash([8,6]);
   ctx.beginPath(); ctx.moveTo(cx-bw/2-12,ty); ctx.lineTo(cx+bw/2+12,ty); ctx.stroke(); ctx.setLineDash([]);
   ctx.font='600 11px "Space Mono", monospace'; ctx.fillStyle='#f2c75a'; ctx.textAlign='left';
   ctx.fillText('aim here', cx+bw/2+16, ty);
-  if(rPour.locked){ const ok=Math.abs(rPour.level-0.82)<0.12;
+  if(rPour.locked){ const ok=Math.abs(rPour.level-dr.target)<0.12;
     ctx.font='700 20px "Gowun Batang", serif'; ctx.textAlign='center';
     ctx.fillStyle=ok?'#7bd0c0':'#e8a07c'; ctx.fillText(ok?'좋아! Perfect pour':'A bit off…', cx, by+bh+30); }
 }
