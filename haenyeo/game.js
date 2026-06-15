@@ -1699,7 +1699,7 @@ $('diveClose').onclick=()=>{ $('pDive').classList.add('hidden'); scene='village'
 /* ---------------- BEACH CLEAN-UP (walk the sand, gather litter, dig out treasure) ---------------- */
 const BEACH_BAG=12;
 const BEACH_AREA={x0:18, x1:W-18, y0:152, y1:558};
-let bLitter=[], bParts=[], beachCatch={}, bBagCount=0, bTime=0, bTimeMax=46;
+let bLitter=[], bParts=[], bFloats=[], beachCatch={}, bBagCount=0, bTime=0, bTimeMax=46;
 /* ghost-net wildlife rescue — a creature tangled in washed-up net; hold to cut it free */
 let bRescue=null;
 const RESCUE_KINDS=[
@@ -1718,19 +1718,25 @@ function pickBeachItem(){
   for(const b of BEACH_ITEMS){ const w=b.treasure?1:4; for(let i=0;i<w;i++) pool.push(b); }   // litter common, treasure rare
   return pool[Math.floor(Math.random()*pool.length)];
 }
+/* the waterline marches up the sand as the tide timer runs out (accelerating near the end).
+   575 = the dry baseline · ~375 = fully in. Shared by updateBeach (flooding) and drawBeach (visual). */
+function tideLineY(){ if(!bTimeMax) return 575;
+  const p=Math.max(0,Math.min(1,1-(bTime/bTimeMax))); return 575 - Math.pow(p,1.5)*200; }
 function placeLitter(c){
   const s=pickBeachItem();
   c.s=s; c.r=s.r||12; c.buried=!!s.buried; c.dig=0;
   c.digMax = s.treasure?1.5:0; c.bob=Math.random()*6.28;
   c.x=BEACH_AREA.x0+16+Math.random()*(BEACH_AREA.x1-BEACH_AREA.x0-32);
-  c.y=BEACH_AREA.y0+24+Math.random()*(BEACH_AREA.y1-BEACH_AREA.y0-48);
+  // fresh litter washes in on the dry sand, above the advancing waterline
+  const dryBottom=Math.min(BEACH_AREA.y1-48, tideLineY()-24);
+  c.y=BEACH_AREA.y0+24+Math.random()*Math.max(40,(dryBottom-(BEACH_AREA.y0+24)));
   return c;
 }
 function spawnL(){ bLitter.push(placeLitter({})); }
 function startBeachClean(){
   if(!haveEnergy('beach')) return;   // too tired to comb the shore
   spendEnergy('beach');
-  scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bLitter=[];
+  scene='beach'; beachCatch={}; bBagCount=0; bParts=[]; bFloats=[]; bLitter=[];
   bTimeMax=46; bTime=bTimeMax;
   // a dirtier shore washes up more to clean (8 pristine → ~16 neglected), and rough
   // weather surges the debris further — the tide drags in more on wind/rain days
@@ -1755,13 +1761,18 @@ function updateBeach(dt){
   P.x=Math.max(BEACH_AREA.x0,Math.min(BEACH_AREA.x1,P.x));
   P.y=Math.max(BEACH_AREA.y0,Math.min(BEACH_AREA.y1,P.y));
   // gather litter / dig out treasure
+  const tideY=tideLineY();
   for(const c of bLitter){
     c.bob+=dt*2;
+    if(c.y > tideY+6){ c.dig=0; continue; }   // washed under the rising tide — out of reach, lost to the sea
     const reach=P.r+c.r+(c.buried?9:2);
     const near=Math.hypot(P.x-c.x,P.y-c.y)<reach;
     const grab=()=>{
       beachCatch[c.s.id]=(beachCatch[c.s.id]||0)+1; bBagCount++;
-      tone(c.s.treasure?740:520,.07,'triangle',.06);
+      // risk/reward: litter snatched closer to the rising tide is worth bonus eco-points
+      const risk=Math.max(0,Math.min(1,(c.y-300)/275)), ecoBonus=Math.round(risk*4);
+      if(ecoBonus>0){ G.eco=(G.eco||0)+ecoBonus; bFloats.push({x:c.x,y:c.y-8,txt:'+'+ecoBonus+' ♻',life:1.1,col:'#7fd0c0'}); }
+      tone(c.s.treasure?740:(risk>0.5?660:520),.07,'triangle',.06);
       for(let i=0;i<8;i++)bParts.push({x:c.x,y:c.y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:1,c:c.s.color});
       G.beachHealth += c.s.treasure?0.4:0.9; clampHealth();   // every piece removed heals the shore a little
       if(c.s.treasure) toast('\u2726 '+c.s.name+' (+'+c.s.value+' won)');
@@ -1812,6 +1823,7 @@ function updateBeach(dt){
     }
   }
   for(const p of bParts){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=dt*1.6;} bParts=bParts.filter(p=>p.life>0);
+  for(const f of bFloats){ f.y-=dt*22; f.life-=dt; } bFloats=bFloats.filter(f=>f.life>0);
   bTime-=dt; if(bTime<=0){ endBeach(); return; }
   $('bagFill').style.width=(bBagCount/BEACH_BAG*100)+'%';
   $('bagPct').textContent=bBagCount+'/'+BEACH_BAG;

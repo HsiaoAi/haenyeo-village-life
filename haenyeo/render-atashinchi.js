@@ -3784,8 +3784,8 @@ function drawBeach(){
     for(let i=0;i<3;i++){ const gx=((t*26*(1+i*0.2)+i*340)%(W+80))-40, gy=40+i*22+Math.sin(t*1.1+i)*5;
       drawGull(gx,gy,Math.sin(t*4+i)*0.5+0.5); }
     ctx.globalAlpha=1; }
-  // ---- sea at the bottom (the tide line) ----
-  const seaTop=575;
+  // ---- sea at the bottom — the tide line marches up the sand as time runs out ----
+  const seaTop=(typeof tideLineY==='function')?Math.round(tideLineY()):575;
   ctx.fillStyle=C_wet;ctx.fillRect(0,seaTop-14,W,14);                 // wet sand
   ctx.fillStyle=C_seaA;ctx.fillRect(0,seaTop,W,H-seaTop);
   ctx.fillStyle=C_seaB;ctx.fillRect(0,seaTop+38,W,H-seaTop-38);
@@ -3811,9 +3811,9 @@ function drawBeach(){
       for(let x=0;x<=W;x+=20){ ctx.lineTo(x,seaTop-reach+Math.sin(x*0.05+i*2+t*2)*3); }
       ctx.lineTo(W,seaTop+2); ctx.closePath(); ctx.fill(); }
     ctx.globalAlpha=1; ctx.restore(); }
-  // litter (depth-sorted so nearer items overlap correctly)
+  // litter (depth-sorted so nearer items overlap correctly); submerged pieces fade as the tide takes them
   const sorted=bLitter.slice().sort((a,b)=>a.y-b.y);
-  for(const c of sorted) drawLitter(c,t);
+  for(const c of sorted){ const sub=c.y>seaTop+6; if(sub)ctx.globalAlpha=0.4; drawLitter(c,t); if(sub)ctx.globalAlpha=1; }
   // tiny crabs scuttle on a healthy shore (none on a neglected one)
   if(hi>0.05){ ctx.globalAlpha=hi;
     drawBeachCrab(200,360,t,0); drawBeachCrab(760,470,t,2.3);
@@ -3858,9 +3858,20 @@ function drawBeach(){
     for(let i=0;i<4;i++){ const lx=W*0.2+i*W*0.2+Math.sin(t*0.2+i)*8; ctx.beginPath();
       ctx.moveTo(lx,0);ctx.lineTo(lx+70,0);ctx.lineTo(lx+200,H*0.7);ctx.lineTo(lx+130,H*0.7);ctx.closePath();ctx.fill(); }
     ctx.globalAlpha=1; ctx.restore(); }
+  // floating risk/reward bonus numbers rising off grabbed litter
+  ctx.save(); ctx.font='700 13px "Gowun Batang", serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const f of (typeof bFloats!=='undefined'?bFloats:[])){ ctx.globalAlpha=Math.max(0,Math.min(1,f.life));
+    ctx.fillStyle=f.col||'#fff'; ctx.strokeStyle='rgba(30,20,12,.5)'; ctx.lineWidth=3; ctx.strokeText(f.txt,f.x,f.y); ctx.fillText(f.txt,f.x,f.y); }
+  ctx.globalAlpha=1; ctx.restore();
   // flat day/night wash + weather
   applyDayLight();
   drawWeather();
+  // race-against-the-tide urgency: a pulsing warm vignette when little time remains
+  if(typeof bTime!=='undefined' && bTimeMax){ const urg=Math.max(0,1-(bTime/(bTimeMax*0.28)));
+    if(urg>0.01){ const pul=0.85+0.15*Math.sin(t*6); ctx.save();
+      const vg=ctx.createRadialGradient(W/2,H/2,H*0.30,W/2,H/2,H*0.74);
+      vg.addColorStop(0,'rgba(190,60,40,0)'); vg.addColorStop(1,`rgba(170,45,30,${(urg*0.34*pul).toFixed(3)})`);
+      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H); ctx.restore(); } }
 }
 
 /* a drifting bioluminescent jellyfish for the night dive (soft cyan glow) */
