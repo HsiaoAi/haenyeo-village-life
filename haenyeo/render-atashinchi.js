@@ -1296,7 +1296,7 @@ function drawBeachCompanions(t){
   ctx.save();
   // daytime beach corner — hand-drawn lounge set (thatched umbrella over two
   // wooden deck chairs on a straw mat, with cats), cleared from 18:00 onward
-  if(tm>=180&&tm<1020){
+  if(tm>=300&&tm<1020){
     drawBeachLoungeSet(ctx,112,588,1,t);
     // a small pile of seashells (kept clear of the lounge mat and the yoga spot)
     ctx.save();ctx.translate(208,590);
@@ -1437,7 +1437,7 @@ function drawBeachCompanions(t){
     };
     dive(665,524,0,'dog');
     dive(800,568,1,'robot');
-  } else {                              // otherwise — calm dawn beach yoga (tree pose) on flat mats
+  } else if(tm>=300){                   // 5:00 onward — calm dawn beach yoga (tree pose); before 5:00 the shore is empty
     // a thin yoga mat unrolled flat on the sand (slight 3/4 view) with a soft
     // contact shadow underneath so it rests on the ground; one end lightly rolled.
     const mat=(mx,my,col)=>{ ctx.save();ctx.translate(mx,my);
@@ -1803,6 +1803,24 @@ function drawVillage(){
       const lg=ctx.createRadialGradient(gx,gy,2,gx,gy,40);
       lg.addColorStop(0,`rgba(255,180,80,${nt*0.7})`); lg.addColorStop(1,'rgba(255,180,80,0)');
       ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(gx,gy,40,0,7); ctx.fill(); ctx.restore(); } }
+  // a lantern lit outside the gear shop through the evening, so its doorway isn't left dark
+  { const sb=buildings.find(b=>b.name==='store');
+    if(sb){ const lx=sb.x+sb.w-13, ly=sb.y+sb.h-24, lit=nt>0.06;
+      if(lit){ ctx.save(); ctx.globalCompositeOperation='screen';
+        const lg=ctx.createRadialGradient(lx,ly,2,lx,ly,46);
+        lg.addColorStop(0,`rgba(255,196,110,${(nt*0.8).toFixed(3)})`); lg.addColorStop(1,'rgba(255,196,110,0)');
+        ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(lx,ly,46,0,7); ctx.fill();
+        const pg=ctx.createRadialGradient(lx,sb.y+sb.h+12,2,lx,sb.y+sb.h+12,32);   // warm pool on the sand
+        pg.addColorStop(0,`rgba(255,188,88,${(nt*0.5).toFixed(3)})`); pg.addColorStop(1,'rgba(255,188,88,0)');
+        ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(lx,sb.y+sb.h+12,32,11,0,0,7); ctx.fill(); ctx.restore(); }
+      // the little wall lantern (bulb brightens after dusk)
+      ctx.save();
+      ctx.strokeStyle=MIN.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(lx,ly-15); ctx.lineTo(lx,ly-9); ctx.stroke();
+      inked(ctx,'#6e4a2c',2); rr(ctx,lx-5,ly-9,10,13,3); fillStroke(ctx);
+      ctx.fillStyle = lit ? `rgba(255,212,124,${(0.6+nt*0.4).toFixed(3)})` : 'rgba(150,140,120,.55)';
+      rr(ctx,lx-3,ly-7,6,9,2); ctx.fill();
+      ctx.restore();
+    } }
   // warm window glow at night
   if(nt>0.12){
     ctx.save();ctx.globalCompositeOperation='screen';
