@@ -1762,11 +1762,12 @@ function drawSea(){
     for(let i=px-22;i<px+18;i+=8){ctx.beginPath();ctx.moveTo(i,py-7);ctx.lineTo(i,py+7);ctx.stroke();}
     inked(ctx,'#7a4f2a',2.2);ctx.beginPath();ctx.arc(px+16,py-8,2.4,0,7);ctx.arc(px+16,py+8,2.4,0,7);fillStroke(ctx);
   })();
-  // haenyeo work the water by day and head home in the evening: from 16:30 the
-  // divers leave one by one and the boat sails off, all gone by 17:00.
+  // haenyeo work the water by day (05:00–17:00) and rest through the evening &
+  // night: from 16:30 the divers leave one by one and the boat sails off, all
+  // gone by 17:00, and they stay home until 05:00.
   {
     const tmin=(typeof G!=='undefined'&&G.time!=null)?G.time:12*60;
-    if(tmin < 17*60){
+    if(tmin>=5*60 && tmin<17*60){
       const leave=Math.max(0,Math.min(1,(tmin-(16*60+30))/30));   // 0 by 16:30 → 1 at 17:00
       const divers=[[655,BEACH_Y+52,0.0,-1],[795,BEACH_Y+95,0.42,-1],[705,BEACH_Y+140,0.74,1]];
       const showN=Math.ceil(divers.length*(1-leave));             // 3 → 0 as evening falls
@@ -3650,7 +3651,7 @@ function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
   im.src='home-bg.png?v=2'; }
 // live-overlay anchors tuned to the home-bg.png art
 const HOME_CAULDRON={x:206, y:224};   // 정지 iron cauldron — steam rises here
-const HOME_TABLETOP={x:480, y:408};   // dining table top — plated bowl sits here
+const HOME_TABLETOP={x:482, y:416};   // dining table top — plated bowl sits here
 const HOME_GRAMO   ={x:300, y:492};   // gramophone — music notes drift up here
 function drawHome(){
   ensureHomeImg();
@@ -3673,10 +3674,13 @@ function drawHome(){
     ctx.restore();
     drawRamenBowl(ctx,bx,by);
   }
-  // the diver — scaled up a touch so she reads at the right size against the larger furniture
-  ctx.save(); const HS=1.34, fy=P.y+16; ctx.translate(P.x,fy); ctx.scale(HS,HS); ctx.translate(-P.x,-fy);
-  drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
-  ctx.restore();
+  // the diver — scaled up a touch so she reads at the right size against the larger furniture.
+  // (the seated eater / lying sleeper are drawn by drawEat / drawRest instead.)
+  if(scene==='home'){
+    ctx.save(); const HS=1.34, fy=P.y+16; ctx.translate(P.x,fy); ctx.scale(HS,HS); ctx.translate(-P.x,-fy);
+    drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
+    ctx.restore();
+  }
   ctx.save();ctx.fillStyle='rgba(255,196,120,.05)';ctx.fillRect(0,0,W,H);ctx.restore();   // gentle warm wash
   // music notes drifting up from the gramophone while it plays
   if(typeof musicOn!=='undefined' && musicOn){
@@ -3707,17 +3711,18 @@ function drawEat(){
   drawHome();
   const t=performance.now()*0.001;
   const bx=HOME_TABLETOP.x, by=HOME_TABLETOP.y;
-  ctx.save();ctx.fillStyle='rgba(20,16,10,.3)';ctx.fillRect(0,0,W,H);ctx.restore();
+  ctx.save();ctx.fillStyle='rgba(20,16,10,.28)';ctx.fillRect(0,0,W,H);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='screen';
   const sp=ctx.createRadialGradient(bx,by,8,bx,by,150);sp.addColorStop(0,'rgba(255,212,134,.28)');sp.addColorStop(1,'rgba(255,212,134,0)');
   ctx.fillStyle=sp;ctx.beginPath();ctx.arc(bx,by,150,0,7);ctx.fill();ctx.restore();
+  drawPlayerEating(ctx,P.x,P.y,P.face,t);            // seated on the floor cushion
   ctx.save();ctx.globalCompositeOperation='screen';
   for(let i=0;i<4;i++){const ph=t*1.3+i*1.6;const sy=by-14-((ph*9)%26);const sx=bx+Math.sin(ph*1.6)*5;const a=0.16*(1-((ph*9)%26)/26);
     ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`;ctx.beginPath();ctx.arc(sx,sy,4+i,0,7);ctx.fill();}
   ctx.restore();
   drawRamenBowl(ctx,bx,by);
   const cyc=(Math.sin(eatT*5)*0.5+0.5);
-  const mouthX=P.x+6, mouthY=P.y-34;
+  const mouthX=P.x+12, mouthY=P.y-24;
   const clumpX=bx+(mouthX-bx)*cyc, clumpY=(by-6)+(mouthY-(by-6))*cyc;
   ctx.strokeStyle=MIN.gold;ctx.lineWidth=1.6;ctx.lineCap='round';
   for(let s=-1;s<=1;s++){ctx.beginPath();ctx.moveTo(bx+s*3,by-4);ctx.quadraticCurveTo(clumpX+s*2,(by-4+clumpY)/2,clumpX+s*2,clumpY);ctx.stroke();}
@@ -3732,6 +3737,53 @@ function drawEat(){
   const p=Math.min(1,eatT/EAT_DUR);
   ctx.fillStyle='rgba(20,12,8,.3)';rr(ctx,bx-26,by+18,52,5,2.5);ctx.fill();
   ctx.fillStyle=MIN.gold;rr(ctx,bx-26,by+18,52*p,5,2.5);ctx.fill();
+}
+/* the diver seated cross-legged on a floor cushion, facing the table to eat */
+function drawPlayerEating(g,x,y,face,t){
+  const br=Math.sin(t*3)*0.5;
+  g.save(); g.translate(x,y); g.scale(1.22,1.22); if(face<0)g.scale(-1,1);
+  g.fillStyle='rgba(74,58,44,.22)'; g.beginPath(); g.ellipse(0,12,15,4.5,0,0,7); g.fill();
+  inked(g,'#3f5e7a',2.2); g.beginPath(); g.ellipse(-5,8,7.5,4,0,0,7); fillStroke(g); g.beginPath(); g.ellipse(8,8,6.5,3.6,0,0,7); fillStroke(g);   // folded legs
+  inked(g,MIN.verm,2.6); rr(g,-8,-9+br,17,16,7); fillStroke(g);                       // torso
+  inked(g,MIN.verm,2.2); rr(g,4,-5+br,12,4.6,2); fillStroke(g);                        // near arm to the bowl
+  inked(g,'#eccaa2',1.8); g.beginPath(); g.arc(16,-3+br,2.6,0,7); fillStroke(g);
+  const hy=-18+br;
+  inked(g,'#2a2018',2); g.beginPath(); g.ellipse(-7.5,hy+3,3,6,0.4,0,7); fillStroke(g);   // ponytail
+  inked(g,'#eccaa2',2.6); g.beginPath(); g.arc(0,hy,9,0,7); fillStroke(g);
+  g.fillStyle=MIN.ink; g.beginPath(); g.arc(2.4,hy+0.5,1.1,0,7); g.arc(-1.4,hy+0.5,1.1,0,7); g.fill();
+  g.strokeStyle='rgba(208,90,60,.45)'; g.lineWidth=1.3; g.beginPath(); g.arc(4.6,hy+3,1.2,0,7); g.stroke();
+  g.restore();
+}
+/* the diver lying under a blanket on the 구들방 bedding for a short rest */
+function drawPlayerLying(g,x,y,t){
+  const br=Math.sin(t*2)*0.5;
+  g.save(); g.translate(x,y);
+  g.fillStyle='rgba(74,58,44,.2)'; g.beginPath(); g.ellipse(0,10,34,6,0,0,7); g.fill();
+  inked(g,MIN.white,2.2); rr(g,-34,-9,18,16,5); fillStroke(g);                          // pillow
+  inked(g,MIN.verm,2.6); rr(g,-18,-9+br,46,18,8); fillStroke(g);                        // blanket
+  g.strokeStyle='rgba(255,255,255,.3)'; g.lineWidth=1.4; g.beginPath(); g.moveTo(-12,-2+br); g.lineTo(24,-2+br); g.stroke();
+  inked(g,'#eccaa2',2.4); g.beginPath(); g.arc(-25,-1,7.5,0,7); fillStroke(g);           // head
+  inked(g,'#2a2018',2); g.beginPath(); g.ellipse(-30,-3,3.4,5,0.6,0,7); fillStroke(g);   // hair
+  g.strokeStyle=MIN.ink; g.lineWidth=1.4; g.beginPath(); g.arc(-22,-1,2,0.2,2.9); g.stroke();   // closed eye
+  g.restore();
+}
+/* short-rest scene — lying on the bedding, Zzz, a fill bar */
+function drawRest(){
+  drawHome();
+  const t=performance.now()*0.001;
+  ctx.save(); ctx.fillStyle='rgba(16,18,34,.34)'; ctx.fillRect(0,0,W,H); ctx.restore();
+  const bx=bedStation.x, by=bedStation.y-24;
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  const sp=ctx.createRadialGradient(bx,by,6,bx,by,130); sp.addColorStop(0,'rgba(255,212,134,.22)'); sp.addColorStop(1,'rgba(255,212,134,0)');
+  ctx.fillStyle=sp; ctx.beginPath(); ctx.arc(bx,by,130,0,7); ctx.fill(); ctx.restore();
+  drawPlayerLying(ctx,bx,by,t);
+  ctx.save(); ctx.textAlign='center';
+  for(let i=0;i<3;i++){ const ph=(t*0.5+i*0.45)%1; ctx.globalAlpha=Math.max(0,0.85*(1-ph)); ctx.fillStyle='#cfe0f0';
+    ctx.font='700 '+(13+i*3)+'px "Gowun Batang",serif'; ctx.fillText('z', bx+16+i*7, by-22-ph*34); }
+  ctx.restore();
+  const p=Math.min(1,(typeof restT!=='undefined'?restT:0)/(typeof REST_DUR!=='undefined'?REST_DUR:5));
+  ctx.fillStyle='rgba(20,12,8,.4)'; rr(ctx,bx-32,by+18,64,5,2.5); ctx.fill();
+  ctx.fillStyle=MIN.teal; rr(ctx,bx-32,by+18,64*p,5,2.5); ctx.fill();
 }
 
 /* ---------------- DIVE ---------------- */

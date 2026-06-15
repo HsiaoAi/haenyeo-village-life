@@ -865,6 +865,25 @@ $('sleepBtn').onclick=()=>{
   $('pSleep').classList.add('hidden'); scene='village';
 };
 $('sleepCancel').onclick=()=>{ $('pSleep').classList.add('hidden'); scene='home'; };
+/* short rest — lie on the bed for a few seconds, recover some stamina; the day does NOT roll over */
+let restT=0; const REST_DUR=5.0;
+function startRest(){
+  scene='resting'; restT=0;
+  P.x=bedStation.x; P.y=bedStation.y+30; P.face=1; P.moving=false;
+  $('pSleep').classList.add('hidden'); $('prompt').classList.remove('show');
+  if(typeof tone==='function') tone(330,.3,'sine',.04);
+}
+function updateRest(dt){ restT+=dt; if(restT>=REST_DUR) finishRest(); }
+function finishRest(){
+  G.energy=Math.min(100, G.energy+45);                 // a nap brings some stamina back
+  G.time=Math.min(G.time+120, 24*60-1);                // ~2 hours pass (stays the same day)
+  if(typeof updateEnergyHud==='function') updateEnergyHud();
+  $('clkTime').textContent=fmtTime(G.time);
+  P.x=bedStation.x; P.y=bedStation.y+30; P.face=1; P.moving=false;   // step off the bedding, free to move
+  scene='home';
+  toast('A short rest · +stamina'); if(typeof tone==='function') tone(520,.3,'sine',.04);
+}
+$('restBtn').onclick=()=>{ startRest(); };
 
 /* ---------------- CO-OP SELL ---------------- */
 function openSell(){
@@ -956,7 +975,13 @@ function stopGramo(){ musicOn=false; if(musicTimer)clearTimeout(musicTimer); mus
 function enterHome(){ scene='home'; panelBg='home'; P.x=494; P.y=556; P.face=1; $('prompt').classList.remove('show'); }
 function leaveHome(){ stopGramo(); scene='village'; const hb=buildings.find(b=>b.name==='home'); P.x=hb.x+hb.w/2; P.y=hb.y+hb.h+18; P.face=1; $('prompt').classList.remove('show'); }
 
+/* the wooden plank floor — the ONLY walkable region (the stone walls, the back
+   wall row and the raised 구들방 platform are all off-limits). */
+const HOME_FLOOR=[
+  [120,422],[150,356],[862,356],[905,388],[905,582],[60,582]
+];
 function homeHit(x,y){
+  if(!pointInPoly(x,y,HOME_FLOOR)) return true;          // only the wood floor is walkable
   for(const b of [hearthBlk,gopangBlk,homeTable,gudeulBlk]){
     if(x>b.x-2 && x<b.x+b.w+2 && y>b.y-2 && y<b.y+b.h+6) return true;
   }
@@ -1070,7 +1095,7 @@ let eatT=0; const EAT_DUR=3.0;
 function startEat(){
   if(!G.preparedMeal) return;
   scene='eating'; eatT=0;
-  P.x=tableStation.x; P.y=tableStation.y+6; P.face=1; P.moving=false;
+  P.x=452; P.y=446; P.face=1; P.moving=false;   // sit on the floor cushion at the table, facing the bowl
   $('prompt').classList.remove('show');
   tone(300,.25,'sine',.04);
 }
@@ -1081,6 +1106,7 @@ function updateEat(dt){
 function finishEat(){
   G.meal=G.preparedMeal; G.preparedMeal=null; updateMealBadge();
   toast('Well fed · '+G.meal.label); tone(520,.4,'sine',.05);
+  P.x=484; P.y=490; P.face=1; P.moving=false;   // get up from the cushion onto the floor
   scene='home';
 }
 function openStatueInfo(){
@@ -2401,6 +2427,7 @@ function frame(now){
     else if(scene==='museum'){updateMuseum(dt);drawMuseum();drawJoy();}
     else if(scene==='home'){updateHome(dt);drawHome();drawJoy();}
     else if(scene==='eating'){updateEat(dt);drawEat();}
+    else if(scene==='resting'){updateRest(dt);drawRest();}
     else if(scene==='dialogue-open'){ if(dialogBg==='shop')drawShop(); else if(dialogBg==='home')drawHome(); else {updateNPCs(dt);updatePets(dt);drawVillage();} }
     else if(scene==='dive'){updateDive(dt);drawDive();}
     else if(scene==='kitchen'){ if(typeof updateRestaurant==='function')updateRestaurant(dt); if(typeof drawRestaurant==='function')drawRestaurant(); drawJoy(); }
