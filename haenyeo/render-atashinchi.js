@@ -3733,14 +3733,42 @@ function drawBeachRescue(t){
   }
   ctx.restore();
 }
+/* a small scuttling crab — only seen on a healthy shore */
+function drawBeachCrab(x,y,t,ph){
+  const wig=Math.sin(t*7+ph)*1.4;
+  ctx.save();ctx.translate(x+Math.sin(t*0.8+ph)*10,y);
+  ctx.fillStyle='rgba(74,58,44,.18)';ctx.beginPath();ctx.ellipse(0,4,9,2.6,0,0,7);ctx.fill();
+  ctx.strokeStyle='#b84a38';ctx.lineWidth=1.6;ctx.lineCap='round';
+  for(const lx of [-1,1]){ for(let i=0;i<3;i++){ ctx.beginPath();ctx.moveTo(lx*5,-1+i*1.4);ctx.lineTo(lx*(8+i*1.4),2+i+wig*lx);ctx.stroke(); } }
+  inked(ctx,'#e0604a',1.8);ctx.beginPath();ctx.ellipse(0,-2,6,4.2,0,0,7);fillStroke(ctx);
+  inked(ctx,'#e0604a',1.4);ctx.beginPath();ctx.arc(-7,-5,2.2,0,7);fillStroke(ctx);ctx.beginPath();ctx.arc(7,-5,2.2,0,7);fillStroke(ctx);
+  ctx.fillStyle=MIN.ink;ctx.beginPath();ctx.arc(-2,-4,0.9,0,7);ctx.arc(2,-4,0.9,0,7);ctx.fill();
+  ctx.restore();
+}
+/* a simple gliding seabird (gull) high over a healthy shore */
+function drawGull(x,y,flap){
+  ctx.save();ctx.strokeStyle='rgba(70,60,52,.7)';ctx.lineWidth=2;ctx.lineCap='round';
+  const w=7, d=3+flap*4;
+  ctx.beginPath();ctx.moveTo(x-w,y);ctx.quadraticCurveTo(x-w*0.4,y-d,x,y);ctx.quadraticCurveTo(x+w*0.4,y-d,x+w,y);ctx.stroke();
+  ctx.restore();
+}
 function drawBeach(){
   const t=performance.now()*0.001;
+  // shore health drives the whole mood — lerp every colour from neglected → thriving
+  const hp=Math.max(0,Math.min(1,(typeof G!=='undefined'?G.beachHealth:60)/100));
+  const tri=(lo,mid,hi)=> hp<0.5?lerpHex(lo,mid,hp*2):lerpHex(mid,hi,(hp-0.5)*2);
+  const C_sand=tri('#bdb4a3','#ddc78d','#f0dca6'), C_dune=tri('#aaa495','#cdb87d','#dcc486'),
+        C_wet=tri('#9ba197','#cdb583','#dcc187'), C_seaA=tri('#92a39b','#a6ccc6','#c3e6ec'),
+        C_seaB=tri('#5e7d71','#4f9fb0','#57b0dd'), C_foam=tri('#b7c2bc','#e2efec','#ffffff');
+  const sm=(a,b,v)=>{ const u=Math.max(0,Math.min(1,(v-a)/(b-a))); return u*u*(3-2*u); };
+  const hi=sm(0.6,0.9,hp);    // healthy-shore extras (crabs, gulls, sparkle, sun) fade in
+  const lo=sm(0.4,0.0,hp);    // neglected murk fades in as health drops
   // warm sand ground
-  ctx.fillStyle='#ecd6a4';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=C_sand;ctx.fillRect(0,0,W,H);
   // top grassy dune band
-  ctx.fillStyle='#d6c08a';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);ctx.lineTo(W,134);
+  ctx.fillStyle=C_dune;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);ctx.lineTo(W,134);
   for(let x=W;x>=0;x-=24)ctx.lineTo(x,134+Math.sin(x*0.05)*7);ctx.closePath();ctx.fill();
-  ctx.strokeStyle=MIN.greenD;ctx.lineWidth=2;ctx.lineCap='round';
+  ctx.strokeStyle=lerpHex('#7a8a5a',MIN.greenD,hp);ctx.lineWidth=2;ctx.lineCap='round';
   const rng=mulberry32(21);
   for(let i=0;i<24;i++){const gx=rng()*W, gy=44+rng()*84;
     for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(gx,gy);ctx.quadraticCurveTo(gx+b*4+Math.sin(t+i)*1.5,gy-12,gx+b*7,gy-18);ctx.stroke();}}
@@ -3751,22 +3779,36 @@ function drawBeach(){
   for(let i=0;i<9;i++){const sx=rng2()*W, sy=160+rng2()*380;
     ctx.fillStyle=['#e8d2c0','#d9b89a','#cbb6a0'][i%3];ctx.strokeStyle='rgba(120,90,40,.4)';ctx.lineWidth=1;
     ctx.beginPath();ctx.ellipse(sx,sy,3,2.2,rng2()*3,0,7);ctx.fill();ctx.stroke();}
+  // gliding gulls over a healthy shore
+  if(hi>0.02){ ctx.globalAlpha=hi*0.8;
+    for(let i=0;i<3;i++){ const gx=((t*26*(1+i*0.2)+i*340)%(W+80))-40, gy=40+i*22+Math.sin(t*1.1+i)*5;
+      drawGull(gx,gy,Math.sin(t*4+i)*0.5+0.5); }
+    ctx.globalAlpha=1; }
   // ---- sea at the bottom (the tide line) ----
   const seaTop=575;
-  ctx.fillStyle='#dcc187';ctx.fillRect(0,seaTop-14,W,14);                 // wet sand
-  ctx.fillStyle='#bfe0e6';ctx.fillRect(0,seaTop,W,H-seaTop);
-  ctx.fillStyle=MIN.blue;ctx.fillRect(0,seaTop+38,W,H-seaTop-38);
-  inked(ctx,MIN.white,2);
+  ctx.fillStyle=C_wet;ctx.fillRect(0,seaTop-14,W,14);                 // wet sand
+  ctx.fillStyle=C_seaA;ctx.fillRect(0,seaTop,W,H-seaTop);
+  ctx.fillStyle=C_seaB;ctx.fillRect(0,seaTop+38,W,H-seaTop-38);
+  inked(ctx,C_foam,2);
   ctx.beginPath();ctx.moveTo(0,seaTop);
   for(let x=0;x<=W;x+=14){const y=seaTop+Math.sin(x*.12+t*1.8)*3+2;ctx.lineTo(x,y);}
   ctx.lineTo(W,seaTop-6);ctx.lineTo(0,seaTop-6);ctx.closePath();ctx.fill();
   ctx.save();ctx.beginPath();ctx.rect(0,seaTop,W,H-seaTop);ctx.clip();
   const off=(t*8)%28;
-  for(let x=-30;x<W+30;x+=28){motifWave(ctx,x-off,seaTop+18+Math.sin(x*0.04+t)*2,1,MIN.blueL,MIN.white);}
+  for(let x=-30;x<W+30;x+=28){motifWave(ctx,x-off,seaTop+18+Math.sin(x*0.04+t)*2,1,C_seaA,C_foam);}
+  // sparkles glinting on a clear sea
+  if(hi>0.02){ const rs=mulberry32(7); ctx.fillStyle='#ffffff';
+    for(let i=0;i<14;i++){ const sx=rs()*W, sy=seaTop+6+rs()*(H-seaTop-6), tw=Math.sin(t*3+i*1.7);
+      if(tw>0.4){ ctx.globalAlpha=hi*(tw-0.4)*1.5; const r=0.8+rs()*1.2; ctx.fillRect(sx-r,sy,r*2,1); ctx.fillRect(sx,sy-r,1,r*2); } }
+    ctx.globalAlpha=1; }
   ctx.restore();
   // litter (depth-sorted so nearer items overlap correctly)
   const sorted=bLitter.slice().sort((a,b)=>a.y-b.y);
   for(const c of sorted) drawLitter(c,t);
+  // tiny crabs scuttle on a healthy shore (none on a neglected one)
+  if(hi>0.05){ ctx.globalAlpha=hi;
+    drawBeachCrab(200,360,t,0); drawBeachCrab(760,470,t,2.3);
+    ctx.globalAlpha=1; }
   // a creature tangled in a washed-up net (the rescue)
   drawBeachRescue(t);
   // dig / pickup particles
@@ -3774,6 +3816,17 @@ function drawBeach(){
   // the diver, walking the sand with her gathering sack
   drawBeachSack(P.x - P.face*15, P.y+5);
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
+  // ---- shore-health mood overlays ----
+  if(lo>0.01){ ctx.save(); ctx.globalCompositeOperation='source-over';   // neglected: cool overcast murk
+    ctx.fillStyle=`rgba(120,128,126,${(lo*0.26).toFixed(3)})`; ctx.fillRect(0,0,W,H); ctx.restore(); }
+  if(hi>0.01){ ctx.save(); ctx.globalCompositeOperation='screen';        // thriving: warm sun + soft light rays
+    const sg=ctx.createRadialGradient(W*0.5,-40,20,W*0.5,-40,420);
+    sg.addColorStop(0,`rgba(255,236,170,${(hi*0.30).toFixed(3)})`); sg.addColorStop(1,'rgba(255,236,170,0)');
+    ctx.fillStyle=sg; ctx.fillRect(0,0,W,H*0.7);
+    ctx.globalAlpha=hi*0.12; ctx.fillStyle='#fff7d8';
+    for(let i=0;i<4;i++){ const lx=W*0.2+i*W*0.2+Math.sin(t*0.2+i)*8; ctx.beginPath();
+      ctx.moveTo(lx,0);ctx.lineTo(lx+70,0);ctx.lineTo(lx+200,H*0.7);ctx.lineTo(lx+130,H*0.7);ctx.closePath();ctx.fill(); }
+    ctx.globalAlpha=1; ctx.restore(); }
   // flat day/night wash + weather
   applyDayLight();
   drawWeather();

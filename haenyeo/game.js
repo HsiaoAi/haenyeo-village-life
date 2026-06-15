@@ -1818,7 +1818,7 @@ function updateBeach(dt){
   $('tideFill').style.width=(bTime/bTimeMax*100)+'%';
   { const sf=$('shoreFill'); if(sf){ const h=Math.round(G.beachHealth);
       sf.style.width=h+'%'; sf.style.background = h<35?'linear-gradient(90deg,#c9512c,#e8714a)':(h<70?'linear-gradient(90deg,#e0a836,#f0d27a)':'linear-gradient(90deg,#6aa647,#acd684)');
-      const sp=$('shorePct'); if(sp)sp.textContent=h+'%'; } }
+      const sp=$('shorePct'); if(sp)sp.textContent=h+'% · '+(h<34?'Neglected':h<67?'Recovering':'Thriving'); } }
 }
 /* sorting session state */
 let sortQueue=[], sortIdx=0, sortTally={won:0, eco:0, correct:0, total:0, treasure:0};
