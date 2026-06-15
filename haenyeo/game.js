@@ -912,15 +912,23 @@ $('sellClose').onclick=()=>{ $('pSell').classList.add('hidden'); scene='market';
 
 /* ---------------- HOME INTERIOR (walkable room) ---------------- */
 const HOME={x0:40,y0:150,x1:920,y1:586};
-const homeIsland={x:96,y:214,w:188,h:66};    // stacked-basalt kitchen island — solid
-const stoveStation={x:150,y:300};            // stand in front of the island burner
-const homeTable={x:430,y:330,w:124,h:62};    // wooden dining table + chairs — solid
-const bedStation={x:792,y:300};              // floor sleeping mat (walkable)
-const tableStation={x:492,y:452};            // eat a plated meal at the dining table
-const wardrobeStation={x:300,y:474};         // changing room — switch wetsuits
-const gramoStation={x:96,y:474};             // gramophone — play music
-const homeExit={x:452,y:548,w:84,h:36};
-let homeCur=null;
+/* authentic Jeju 초가집 — solid furniture against the basalt back wall (no-walk);
+   you approach each piece from the open wooden floor in front. */
+const hearthBlk={x:66,  y:300, w:182, h:60};   // 정지 — clay stove + iron cauldron
+const gopangBlk={x:300, y:306, w:92,  h:54};   // 고팡 — onggi storage stack
+const homeTable={x:430, y:322, w:118, h:48};   // low dining table (center)
+const gudeulBlk={x:628, y:300, w:282, h:62};   // 구들방 — raised sleeping platform
+const stoveStation   ={x:157, y:374};          // cook at the hearth
+const gopangStation  ={x:346, y:372};          // store catch in the 고팡
+const tableStation   ={x:489, y:392};          // eat a plated meal
+const bedStation     ={x:704, y:374};          // sleep on the folded bedding
+const maskStation    ={x:842, y:374};          // grandmother's 왕눈 mask on the low table
+const photoStation   ={x:560, y:316};          // family photo on the wall
+const wardrobeStation={x:118, y:486};          // change wetsuit (armoire)
+const gramoStation   ={x:250, y:500};          // gramophone — music
+const jangStation    ={x:864, y:500};          // 항아리 crocks — ferment
+const homeExit={x:452, y:548, w:84, h:36};
+let homeCur=null, homeMaskIdx=0, homePhotoIdx=0, homeJangIdx=0;
 
 /* ---- gramophone: opens the Village Radio music player (see music.js) ---- */
 let musicOn=false, musicTimer=null;
@@ -949,8 +957,9 @@ function enterHome(){ scene='home'; panelBg='home'; P.x=494; P.y=556; P.face=1; 
 function leaveHome(){ stopGramo(); scene='village'; const hb=buildings.find(b=>b.name==='home'); P.x=hb.x+hb.w/2; P.y=hb.y+hb.h+18; P.face=1; $('prompt').classList.remove('show'); }
 
 function homeHit(x,y){
-  if(x>homeIsland.x-2&&x<homeIsland.x+homeIsland.w+2&&y>homeIsland.y-2&&y<homeIsland.y+homeIsland.h+6)return true;
-  if(x>homeTable.x-2&&x<homeTable.x+homeTable.w+2&&y>homeTable.y-2&&y<homeTable.y+homeTable.h)return true;
+  for(const b of [hearthBlk,gopangBlk,homeTable,gudeulBlk]){
+    if(x>b.x-2 && x<b.x+b.w+2 && y>b.y-2 && y<b.y+b.h+6) return true;
+  }
   return false;
 }
 function updateHome(dt){
@@ -967,35 +976,72 @@ function updateHome(dt){
   refreshHomePrompt();
 }
 function homeNearest(){
-  let best=null,bd=46;
-  const ds=Math.hypot(P.x-stoveStation.x,P.y-stoveStation.y); if(ds<bd){bd=ds;best={type:'stove'};}
-  const dq=Math.hypot(P.x-bedStation.x,P.y-bedStation.y); if(dq<54&&dq<bd){bd=dq;best={type:'bed'};}
-  if(G.preparedMeal){ const dt=Math.hypot(P.x-tableStation.x,P.y-tableStation.y); if(dt<56&&dt<bd){bd=dt;best={type:'table'};} }
-  const dwr=Math.hypot(P.x-wardrobeStation.x,P.y-wardrobeStation.y); if(dwr<50&&dwr<bd){bd=dwr;best={type:'wardrobe'};}
-  const dgr=Math.hypot(P.x-gramoStation.x,P.y-gramoStation.y); if(dgr<54&&dgr<bd){bd=dgr;best={type:'gramo'};}
+  let best=null,bd=1e9;
+  const cand=[['stove',stoveStation,46],['gopang',gopangStation,48],['bed',bedStation,54],
+              ['mask',maskStation,48],['wardrobe',wardrobeStation,52],['gramo',gramoStation,54],
+              ['jang',jangStation,48],['photo',photoStation,50]];
+  if(G.preparedMeal) cand.push(['table',tableStation,56]);
+  for(const [type,st,r] of cand){ const d=Math.hypot(P.x-st.x,P.y-st.y); if(d<r&&d<bd){bd=d;best={type};} }
   if(P.x>homeExit.x-10&&P.x<homeExit.x+homeExit.w+10&&P.y>homeExit.y-24) best={type:'exit'};
   return best;
 }
 function refreshHomePrompt(){
   homeCur=homeNearest(); const el=$('prompt');
   if(!homeCur){el.classList.remove('show');return;}
-  let txt='';
-  if(homeCur.type==='stove') txt='Cook ramyeon';
-  else if(homeCur.type==='table') txt='Eat';
-  else if(homeCur.type==='bed') txt='Sleep';
-  else if(homeCur.type==='wardrobe') txt='Change suit';
-  else if(homeCur.type==='gramo') txt=(window.HaenyeoMusic&&window.HaenyeoMusic.playing)?'Music player':'Play music';
-  else if(homeCur.type==='exit') txt='Step outside';
+  const T={ stove:'Cook', gopang:'Store the catch · 고팡', table:'Eat', bed:'Sleep',
+            mask:'Grandmother’s mask', wardrobe:'Change suit', jang:'The crocks · 항아리',
+            photo:'Family photo', exit:'Step outside' };
+  let txt = T[homeCur.type] || '';
+  if(homeCur.type==='gramo') txt=(window.HaenyeoMusic&&window.HaenyeoMusic.playing)?'Music player':'Play music';
   el.textContent=txt; el.classList.add('show');
 }
 function doHomeInteract(){
   if(!homeCur)return;
-  if(homeCur.type==='exit') leaveHome();
-  else if(homeCur.type==='bed') askSleep();
-  else if(homeCur.type==='stove') openCook();
-  else if(homeCur.type==='table') startEat();
-  else if(homeCur.type==='wardrobe') openChange();
-  else if(homeCur.type==='gramo') playGramo();
+  switch(homeCur.type){
+    case 'exit': leaveHome(); break;
+    case 'bed': askSleep(); break;
+    case 'stove': openCook(); break;
+    case 'table': startEat(); break;
+    case 'wardrobe': openChange(); break;
+    case 'gramo': playGramo(); break;
+    case 'mask': homeMaskLine(); break;
+    case 'gopang': homeGopang(); break;
+    case 'jang': homeJangLine(); break;
+    case 'photo': homePhotoLine(); break;
+  }
+}
+/* ---- home story & culture interactions (calm, narrative; reuse showFact) ---- */
+const HOME_MASK_LINES=[
+  '“This 왕눈 was your grandmother’s. Sixty winters in cold water, and the glass is still clear.”',
+  '“She pressed it into your hands the morning her own could no longer hold it. ‘The sea will teach you the rest.’”',
+  '“Some mornings you hold it to your face before the mirror — and you are eight years old again, learning to breathe.”',
+];
+function homeMaskLine(){ showFact(HOME_MASK_LINES[homeMaskIdx%HOME_MASK_LINES.length], 9, '할머니의 유산 · A grandmother’s keepsake'); homeMaskIdx++; if(typeof tone==='function') tone(392,.12,'sine',.04); }
+const HOME_PHOTO_LINES=[
+  '“Three generations on the rocks at Seongsan — your grandmother in front, already a sanggun; your mother a shy junggun behind.”',
+  '“No one is smiling; the wind was bitter that day. But everyone came home, and that was enough.”',
+  '“There is an empty space at the edge of the frame. They always left room for the next diver.”',
+];
+function homePhotoLine(){ showFact(HOME_PHOTO_LINES[homePhotoIdx%HOME_PHOTO_LINES.length], 9, '가족 · The family'); homePhotoIdx++; if(typeof tone==='function') tone(523,.1,'sine',.04); }
+const HOME_JANG_LINES=[
+  '“Soybean paste, salted anchovy, a winter’s worth of kimchi — the crocks breathe slowly in the dark.”',
+  '“Lift a lid and the whole yard smells of the sea, slowly turning to gold.”',
+];
+function homeJangLine(){ showFact(HOME_JANG_LINES[homeJangIdx%HOME_JANG_LINES.length], 7, '항아리 · The crocks'); homeJangIdx++; if(typeof tone==='function') tone(300,.1,'sine',.035); }
+function homeGopang(){
+  // the 고팡 storeroom — the family elder's domain. Set a catch by for the lean months.
+  const id=(typeof bestCatchId==='function')?bestCatchId():null;
+  if(id && typeof removeOneCatch==='function'){
+    const s=SPECIES.find(x=>x.id===id); removeOneCatch(id);
+    const won=Math.max(4, Math.round((s?s.value:10)*0.6));
+    G.money+=won; const mv=$('moneyV'); if(mv) mv.textContent=G.money;
+    showFact('You salt the '+(s?s.name:'catch')+' and set it on the 고팡 shelf — provision for the lean months. The eldest always kept this room. (+'+won+' won)', 8, '고팡 · The storeroom');
+    if(typeof toast==='function') toast('Put by for winter · +'+won+' won');
+    if(typeof tone==='function') tone(440,.12,'sine',.04);
+  } else {
+    showFact('The 고팡 — the family storeroom, always the eldest’s to keep. Empty-handed today; bring a catch home and set some by.', 8, '고팡 · The storeroom');
+    if(typeof tone==='function') tone(300,.1,'sine',.03);
+  }
 }
 /* ---- changing room: switch between owned wetsuits ---- */
 function openChange(){

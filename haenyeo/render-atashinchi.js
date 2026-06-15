@@ -3512,59 +3512,127 @@ function drawEngawaCabinet(g,x,y){
   inked(g,MIN.gold,1);g.beginPath();g.ellipse(lx+cw*0.66,ly+ch-7,5,2.6,0.1,0,7);fillStroke(g);
 }
 /* ---- warm Korean home: tatami living room, kitchen counter, round table ---- */
+/* a single onggi (Jeju clay pot): rounded belly, dark rim, a sheen highlight */
+function drawOnggi(g,cx,by,s,col){
+  s=s||1; col=col||'#80573a';
+  g.save(); g.translate(cx,by); g.scale(s,s); g.lineJoin='round';
+  g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(0,2,18,5,0,0,7); g.fill();
+  inked(g,col,2.4); g.beginPath(); g.moveTo(-16,-2); g.bezierCurveTo(-20,-26,-12,-40,0,-40); g.bezierCurveTo(12,-40,20,-26,16,-2); g.closePath(); fillStroke(g);
+  inked(g,shade(col,-16),2.2); g.beginPath(); g.ellipse(0,-40,11,4,0,0,7); fillStroke(g);   // mouth rim
+  g.fillStyle='rgba(255,240,210,.18)'; g.beginPath(); g.ellipse(-7,-22,3.5,11,-0.2,0,7); g.fill();
+  g.restore();
+}
 function buildHomeBG(){
   const {el,g}=makeCanvas(W,H);
-  // ---- back wall ----
-  drawScreen(g);
-  // ---- floor: woven tatami living room, wood entrance step, genkan below ----
-  const FT=WALLH, ENGY=518, GENY=566;
-  drawTatami(g,0,FT,W,ENGY-FT);
-  drawEngawa(g,0,ENGY,W,GENY-ENGY);
-  drawGenkan(g,GENY);
-  // ---- right-side shoji sliding door (glowing paper grid on the right wall) ----
-  drawRightShojiDoor(g,852,FT+2,96,206);
-  // ---- freestanding bookshelf + retro TV (center-back, between counter & table) ----
-  drawConsoleTV(g,590,176,150);
-  // ---- canopy / curtain rail above the futon (sits between shoji bottom and futon) ----
-  drawFutonCanopy(g,bedStation.x,bedStation.y-84);
-  // ---- decorative wooden cabinet on the right side of the engawa ----
-  drawEngawaCabinet(g,724,ENGY+34);
-  // ---- kitchen counter: wood cabinet + stainless top w/ stove & sink ----
-  const is=homeIsland;
-  g.fillStyle='rgba(20,12,8,.2)';g.beginPath();g.ellipse(is.x+is.w/2,is.y+is.h+6,is.w*0.55,11,0,0,7);g.fill();
-  inked(g,'#a06a38',2.6);rr(g,is.x,is.y+14,is.w,is.h-14,5);fillStroke(g);
-  g.strokeStyle='rgba(50,30,14,.5)';g.lineWidth=1.6;
-  for(let i=1;i<3;i++){g.beginPath();g.moveTo(is.x+i*is.w/3,is.y+16);g.lineTo(is.x+i*is.w/3,is.y+is.h-3);g.stroke();}
-  g.fillStyle=MIN.gold;g.strokeStyle=MIN.ink;g.lineWidth=1.4;
-  for(let i=0;i<3;i++){g.beginPath();g.arc(is.x+is.w/6+i*is.w/3,is.y+is.h*0.55,2.4,0,7);fillStroke(g);}
-  // stainless counter top
-  inked(g,'#c9ced3',2.4);rr(g,is.x-6,is.y,is.w+12,18,4);fillStroke(g);
-  g.fillStyle='rgba(255,255,255,.4)';g.fillRect(is.x-2,is.y+3,is.w+4,3);
-  // sink basin (right) + faucet
-  inked(g,'#aeb4ba',2);rr(g,is.x+is.w*0.62,is.y+3,is.w*0.30,12,3);fillStroke(g);
-  g.strokeStyle='#8f969c';g.lineWidth=3;g.lineCap='round';
-  g.beginPath();g.moveTo(is.x+is.w*0.9,is.y+4);g.lineTo(is.x+is.w*0.9,is.y-7);g.quadraticCurveTo(is.x+is.w*0.9,is.y-10,is.x+is.w*0.82,is.y-10);g.stroke();
-  // stove burner (kettle is drawn live on top in drawHome)
-  inked(g,'#3a352f',2);g.beginPath();g.arc(stoveStation.x,is.y+9,9,0,7);fillStroke(g);
-  // ---- round dining table + stool ----
-  const tb=homeTable, tcx=tb.x+tb.w/2, tcy=tb.y+tb.h/2, trx=tb.w/2+4, tryd=tb.h/2+4;
-  g.fillStyle='rgba(20,12,8,.16)';g.beginPath();g.ellipse(tcx,tcy+tryd+6,trx*0.92,9,0,0,7);g.fill();
-  g.strokeStyle='#6e4a28';g.lineWidth=5;g.lineCap='round';
-  g.beginPath();g.moveTo(tcx-trx*0.5,tcy+4);g.lineTo(tcx-trx*0.5,tcy+tryd+8);g.moveTo(tcx+trx*0.5,tcy+4);g.lineTo(tcx+trx*0.5,tcy+tryd+8);g.stroke();
-  inked(g,'#b5803f',2.8);g.beginPath();g.ellipse(tcx,tcy,trx,tryd,0,0,7);fillStroke(g);
-  g.fillStyle='#a8743a';g.beginPath();g.ellipse(tcx,tcy,trx-5,tryd-4,0,0,7);g.fill();
-  g.strokeStyle='rgba(58,32,15,.32)';g.lineWidth=1.2;
-  for(let i=-2;i<=2;i++){const px=tcx+i*(trx/3);g.beginPath();g.moveTo(px,tcy-tryd+5);g.lineTo(px,tcy+tryd-5);g.stroke();}
-  g.fillStyle='rgba(58,32,15,.4)';for(let i=-2;i<=2;i++){g.beginPath();g.arc(tcx+i*(trx/3),tcy-tryd+8,1.1,0,7);g.arc(tcx+i*(trx/3),tcy+tryd-8,1.1,0,7);g.fill();}
-  // teapot + two cups
-  inked(g,MIN.jade,2);rr(g,tcx-10,tcy-7,20,14,6);fillStroke(g);
-  g.strokeStyle=MIN.ink;g.lineWidth=2;g.lineCap='round';g.beginPath();g.moveTo(tcx+10,tcy-3);g.lineTo(tcx+16,tcy-6);g.stroke();
-  inked(g,MIN.white,1.4);g.beginPath();g.arc(tcx-15,tcy+5,4,0,7);fillStroke(g);g.beginPath();g.arc(tcx+15,tcy+6,4,0,7);fillStroke(g);
-  // small round stool
-  inked(g,'#9c6a38',2.2);g.beginPath();g.ellipse(tcx,tcy+tryd+17,12,6,0,0,7);fillStroke(g);
-  // ---- gramophone on a nightstand (foreground left) ----
+  g.lineJoin='round'; g.lineCap='round';
+  const WALLB=282;
+  // ===== basalt back wall (dark volcanic stone) =====
+  g.fillStyle='#34313c'; g.fillRect(0,0,W,WALLB);
+  const scol=['#403c48','#383440','#454150','#322f3a']; let ci=0;
+  for(let ry=20; ry<WALLB-4; ry+=30){ const off=(((ry/30)|0)%2)?28:0;
+    for(let rx=-32+off; rx<W+32; rx+=64){ g.fillStyle=scol[(ci++)%scol.length];
+      g.strokeStyle='rgba(18,14,22,.55)'; g.lineWidth=2; rr(g,rx,ry,58,26,9); g.fill(); g.stroke(); } }
+  // thatch fringe + tie-beam along the top
+  g.fillStyle='#caa15a'; g.fillRect(0,0,W,15);
+  g.strokeStyle='rgba(120,86,40,.55)'; g.lineWidth=1.3; for(let x=5;x<W;x+=13){ g.beginPath(); g.moveTo(x,0); g.lineTo(x-3,15); g.stroke(); }
+  inked(g,'#6e4a2a',3); rr(g,-4,13,W+8,12,2); fillStroke(g);
+  // ===== wooden plank floor =====
+  g.fillStyle='#b5854a'; g.fillRect(0,WALLB,W,H-WALLB);
+  g.strokeStyle='rgba(70,45,22,.28)'; g.lineWidth=1.4;
+  for(let y=WALLB+24;y<H;y+=26){ g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+  for(let row=0;row<14;row++){ const y=WALLB+row*26; for(let x=(row%2?60:0);x<W;x+=120){ g.beginPath(); g.moveTo(x,y); g.lineTo(x,y+26); g.stroke(); } }
+  // ===== back-wall items =====
+  // window: Jeju sea at sunset (center)
+  (function(){ const wx=412,wy=120,ww=126,wh=92; inked(g,'#6e4a2a',3); rr(g,wx-7,wy-7,ww+14,wh+14,5); fillStroke(g);
+    g.save(); rr(g,wx,wy,ww,wh,3); g.clip();
+    g.fillStyle='#f6b27a'; g.fillRect(wx,wy,ww,wh); g.fillStyle='#f2c75a'; g.fillRect(wx,wy,ww,wh*0.42);
+    g.fillStyle='#5fa8d6'; g.fillRect(wx,wy+wh*0.62,ww,wh*0.38);
+    g.fillStyle='#fff1c4'; g.beginPath(); g.arc(wx+ww*0.5,wy+wh*0.60,13,0,7); g.fill();
+    g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1.4; for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(wx,wy+wh*0.66+i*5); g.lineTo(wx+ww,wy+wh*0.66+i*5); g.stroke(); }
+    g.restore();
+    g.strokeStyle='#6e4a2a'; g.lineWidth=3; g.beginPath(); g.moveTo(wx+ww/2,wy); g.lineTo(wx+ww/2,wy+wh); g.moveTo(wx,wy+wh/2); g.lineTo(wx+ww,wy+wh/2); g.stroke(); })();
+  // 고팡 wooden door (above the onggi stack, left-center)
+  (function(){ const dx=300,dy=150,dw=92,dh=140; inked(g,'#6e4a2a',2.8); rr(g,dx,dy,dw,dh,3); fillStroke(g);
+    g.strokeStyle='rgba(40,26,12,.5)'; g.lineWidth=1.6; for(let i=1;i<3;i++){ g.beginPath(); g.moveTo(dx+i*dw/3,dy+4); g.lineTo(dx+i*dw/3,dy+dh-4); g.stroke(); }
+    inked(g,MIN.gold,1.6); g.beginPath(); g.arc(dx+dw-14,dy+dh*0.5,3.2,0,7); fillStroke(g);
+    g.fillStyle='#3a2716'; g.font='700 12px "Gowun Batang",serif'; g.textAlign='center'; g.fillText('고팡',dx+dw/2,dy+22); })();
+  // family photo on the wall (right of the window)
+  (function(){ const px=566,py=150,pw=70,ph=56; inked(g,'#6e4a2a',2.6); rr(g,px-4,py-4,pw+8,ph+8,3); fillStroke(g);
+    g.fillStyle='#cdb89a'; rr(g,px,py,pw,ph,2); g.fill(); g.fillStyle='#b89e7e'; g.fillRect(px,py+ph*0.66,pw,ph*0.34);
+    g.fillStyle='#5e4a38'; for(let i=0;i<3;i++){ const fx=px+18+i*16; g.beginPath(); g.arc(fx,py+24,4,0,7); g.fill(); g.fillRect(fx-3,py+27,6,16); } })();
+  // hanging fishing net + 왕눈 mask + an orange taewak (far-left wall, above the hearth)
+  (function(){ const nx=120,ny=120; g.strokeStyle='rgba(225,210,180,.8)'; g.lineWidth=1;
+    for(let i=-3;i<=3;i++){ g.beginPath(); g.moveTo(nx+i*9,ny); g.lineTo(nx+i*6,ny+46); g.stroke(); }
+    for(let j=0;j<5;j++){ g.beginPath(); g.moveTo(nx-26+j*2,ny+8+j*9); g.lineTo(nx+26-j*2,ny+8+j*9); g.stroke(); }
+    // taewak (orange buoy in green net)
+    inked(g,'#e8714a',2.2); g.beginPath(); g.arc(nx+44,ny+30,15,0,7); fillStroke(g);
+    g.strokeStyle='rgba(60,120,70,.8)'; g.lineWidth=1.3; for(let a=0;a<6;a++){ g.beginPath(); g.arc(nx+44,ny+30,15,a*1.05,a*1.05+0.5); g.stroke(); }
+    g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(nx+39,ny+25,3.5,0,7); g.fill(); })();
+  // ===== 정지 (kitchen): stone hearth + iron cauldron + water jar + firewood =====
+  (function(){ const b=hearthBlk;
+    g.fillStyle='rgba(20,12,8,.2)'; g.beginPath(); g.ellipse(b.x+b.w/2,b.y+b.h+6,b.w*0.55,11,0,0,7); g.fill();
+    inked(g,'#8a8079',2.6); rr(g,b.x,b.y+14,b.w,b.h-14,5); fillStroke(g);   // stone hearth body
+    g.strokeStyle='rgba(40,36,32,.5)'; g.lineWidth=1.4; for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(b.x+i*b.w/4,b.y+16); g.lineTo(b.x+i*b.w/4,b.y+b.h-3); g.stroke(); }
+    // fire mouth
+    inked(g,'#2a211c',2); rr(g,b.x+b.w*0.30,b.y+b.h-20,34,16,3); fillStroke(g);
+    g.fillStyle='#e8714a'; g.beginPath(); g.moveTo(b.x+b.w*0.34,b.y+b.h-6); g.quadraticCurveTo(b.x+b.w*0.40,b.y+b.h-22,b.x+b.w*0.46,b.y+b.h-6); g.fill();
+    // big black iron cauldron (가마솥) on top
+    const cx=b.x+b.w*0.42, cy=b.y+8;
+    inked(g,'#2a2730',2.8); g.beginPath(); g.ellipse(cx,cy,34,20,0,0,Math.PI); g.lineTo(cx-34,cy); fillStroke(g);
+    inked(g,'#3f3b46',2.4); g.beginPath(); g.ellipse(cx,cy-2,34,8,0,0,7); fillStroke(g);
+    inked(g,'#8a5e3c',2.2); g.beginPath(); g.ellipse(cx,cy-3,22,5,0,0,7); fillStroke(g);   // wooden lid hint
+    // water jar (onggi) to the right
+    drawOnggi(g,b.x+b.w-22,b.y+b.h+2,0.8,'#6f4a30');
+    // firewood stacked at the base-left
+    inked(g,'#9c6a38',2); for(let i=0;i<3;i++){ g.beginPath(); g.ellipse(b.x+12,b.y+b.h+10+i*5,9,3.4,0,0,7); fillStroke(g); } })();
+  // ===== 고팡 onggi storage stack (in front of the door) =====
+  (function(){ const b=gopangBlk;
+    drawOnggi(g,b.x+24,b.y+b.h+4,1.0,'#7a5236');
+    drawOnggi(g,b.x+62,b.y+b.h+6,0.9,'#86603c');
+    drawOnggi(g,b.x+42,b.y+b.h-22,0.78,'#6e4a2c'); })();
+  // ===== low dining table + floor cushions + teapot =====
+  (function(){ const tb=homeTable, tcx=tb.x+tb.w/2;
+    g.fillStyle='rgba(20,12,8,.16)'; g.beginPath(); g.ellipse(tcx,tb.y+tb.h+4,tb.w*0.55,9,0,0,7); g.fill();
+    // cushions front
+    inked(g,MIN.verm,2); rr(g,tb.x+10,tb.y+tb.h-2,30,16,5); fillStroke(g);
+    inked(g,MIN.teal,2); rr(g,tb.x+tb.w-40,tb.y+tb.h-2,30,16,5); fillStroke(g);
+    // table legs + top
+    g.strokeStyle='#6e4a28'; g.lineWidth=5; g.beginPath(); g.moveTo(tb.x+14,tb.y+tb.h-2); g.lineTo(tb.x+14,tb.y+tb.h+10); g.moveTo(tb.x+tb.w-14,tb.y+tb.h-2); g.lineTo(tb.x+tb.w-14,tb.y+tb.h+10); g.stroke();
+    inked(g,'#b5803f',2.8); rr(g,tb.x,tb.y+tb.h-16,tb.w,16,5); fillStroke(g);
+    inked(g,'#a8743a',2.4); rr(g,tb.x+4,tb.y+tb.h-26,tb.w-8,14,5); fillStroke(g);
+    g.strokeStyle='rgba(58,32,15,.3)'; g.lineWidth=1.2; for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(tb.x+4+i*(tb.w-8)/4,tb.y+tb.h-25); g.lineTo(tb.x+4+i*(tb.w-8)/4,tb.y+tb.h-13); g.stroke(); }
+    // celadon teapot + cups
+    inked(g,MIN.jade,2); rr(g,tcx-10,tb.y+tb.h-34,20,12,6); fillStroke(g);
+    g.strokeStyle=MIN.ink; g.lineWidth=2; g.beginPath(); g.moveTo(tcx+10,tb.y+tb.h-30); g.lineTo(tcx+16,tb.y+tb.h-33); g.stroke();
+    inked(g,MIN.white,1.4); g.beginPath(); g.arc(tcx-16,tb.y+tb.h-20,3.4,0,7); fillStroke(g); g.beginPath(); g.arc(tcx+16,tb.y+tb.h-20,3.4,0,7); fillStroke(g); })();
+  // ===== 구들방 raised sleeping platform: folded bedding + low table w/ grandmother's 왕눈 mask =====
+  (function(){ const b=gudeulBlk;
+    g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(b.x+b.w/2,b.y+b.h+6,b.w*0.52,10,0,0,7); g.fill();
+    inked(g,'#c08a4e',2.8); rr(g,b.x,b.y,b.w,b.h,5); fillStroke(g);                 // raised wood floor
+    inked(g,'#9c6a38',2.6); rr(g,b.x,b.y+b.h-12,b.w,12,3); fillStroke(g);           // front lip
+    g.strokeStyle='rgba(70,45,22,.3)'; g.lineWidth=1.2; for(let x=b.x+18;x<b.x+b.w;x+=26){ g.beginPath(); g.moveTo(x,b.y+4); g.lineTo(x,b.y+b.h-12); g.stroke(); }
+    // folded quilts (left)
+    const qx=b.x+30, qy=b.y+8;
+    inked(g,MIN.gold,2); rr(g,qx,qy+24,84,16,3); fillStroke(g);
+    inked(g,MIN.verm,2); rr(g,qx+6,qy+12,72,14,3); fillStroke(g);
+    inked(g,MIN.white,2); rr(g,qx+12,qy+2,60,12,3); fillStroke(g);
+    // a small floor cushion
+    inked(g,MIN.teal,2); g.beginPath(); g.ellipse(qx+40,qy+50,16,7,0,0,7); fillStroke(g);
+    // low table (right) with grandmother's 왕눈 mask + a tiny frame
+    const lx=b.x+b.w-70, ly=b.y+18;
+    inked(g,'#9c6a38',2.4); rr(g,lx-26,ly+10,52,8,2); fillStroke(g);               // table top
+    g.strokeStyle='#6e4a28'; g.lineWidth=3; g.beginPath(); g.moveTo(lx-20,ly+18); g.lineTo(lx-20,ly+26); g.moveTo(lx+20,ly+18); g.lineTo(lx+20,ly+26); g.stroke();
+    // the 왕눈 mask: a single wide oval glass lens in a black rubber frame + strap
+    inked(g,'#26242c',2.4); g.beginPath(); g.ellipse(lx,ly+2,20,12,0,0,7); fillStroke(g);
+    inked(g,'#a7dcec',1.8); g.beginPath(); g.ellipse(lx,ly+2,13,7.5,0,0,7); fillStroke(g);
+    g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.ellipse(lx-4,ly-1,3,4,-0.4,0,7); g.fill();
+    g.strokeStyle='#26242c'; g.lineWidth=2.4; g.beginPath(); g.moveTo(lx-19,ly); g.quadraticCurveTo(lx-30,ly-2,lx-30,ly+6); g.moveTo(lx+19,ly); g.quadraticCurveTo(lx+30,ly-2,lx+30,ly+6); g.stroke(); })();
+  // ===== 항아리 crocks (foreground right — ferment) =====
+  drawOnggi(g,jangStation.x-14,jangStation.y+14,1.05,'#7a5236');
+  drawOnggi(g,jangStation.x+20,jangStation.y+16,0.92,'#86603c');
+  // ===== gramophone (foreground left) =====
   drawGramophone(g,gramoStation.x,gramoStation.y+20);
-  // ---- woven striped doormat at the exit ----
+  // ===== woven striped doormat at the exit =====
   const em=homeExit;
   inked(g,'#caa257',2);rr(g,em.x,em.y,em.w,em.h,5);fillStroke(g);
   g.save();g.beginPath();rr(g,em.x,em.y,em.w,em.h,5);g.clip();
@@ -3572,26 +3640,22 @@ function buildHomeBG(){
   for(let i=0,sx=em.x;sx<em.x+em.w;i++,sx+=9){g.fillStyle=stripes[i%stripes.length];g.fillRect(sx,em.y,9,em.h);}
   g.restore();
   g.strokeStyle=MIN.ink;g.lineWidth=2;g.strokeRect(em.x,em.y,em.w,em.h);
-  g.strokeStyle='#caa257';g.lineWidth=1.4;
-  for(let sx=em.x+3;sx<em.x+em.w;sx+=6){g.beginPath();g.moveTo(sx,em.y+em.h);g.lineTo(sx,em.y+em.h+4);g.stroke();}
   homeBG=el;
 }
 function drawHome(){
   if(!homeBG) buildHomeBG();
   ctx.drawImage(homeBG,0,0,W,H);
   const t=performance.now()*0.001;
-  // kettle + steam + burner glow
-  drawKettle(ctx,stoveStation.x,homeIsland.y+2);
+  // cauldron steam + hearth-fire glow (정지)
+  const hx=hearthBlk.x+hearthBlk.w*0.42, htop=hearthBlk.y+6;
   ctx.save();ctx.globalCompositeOperation='screen';
-  for(let i=0;i<3;i++){const ph=t*1.3+i*2.1; const sy=homeIsland.y-10-((ph*9)%28);
-    const sx=stoveStation.x+8+Math.sin(ph*1.6)*5; const a=0.16*(1-((ph*9)%28)/28);
+  for(let i=0;i<3;i++){const ph=t*1.3+i*2.1; const sy=htop-10-((ph*9)%30);
+    const sx=hx+Math.sin(ph*1.6)*6; const a=0.18*(1-((ph*9)%30)/30);
     ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`;ctx.beginPath();ctx.arc(sx,sy,4+i,0,7);ctx.fill();}
-  const fg=ctx.createRadialGradient(stoveStation.x,homeIsland.y+6,1,stoveStation.x,homeIsland.y+6,20);
+  const fg=ctx.createRadialGradient(hx,hearthBlk.y+hearthBlk.h-8,1,hx,hearthBlk.y+hearthBlk.h-8,22);
   fg.addColorStop(0,'rgba(255,140,60,.4)');fg.addColorStop(1,'rgba(255,140,60,0)');
-  ctx.fillStyle=fg;ctx.beginPath();ctx.arc(stoveStation.x,homeIsland.y+6,20,0,7);ctx.fill();
+  ctx.fillStyle=fg;ctx.beginPath();ctx.arc(hx,hearthBlk.y+hearthBlk.h-8,22,0,7);ctx.fill();
   ctx.restore();
-  // sleeping mat
-  drawBedMat(ctx,bedStation.x,bedStation.y);
   // wardrobe / changing armoire
   (function(wx,wy){
     ctx.save();
