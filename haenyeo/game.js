@@ -1239,11 +1239,13 @@ function leaveShop(){ scene='village'; P.x=176; P.y=400; P.face=1; $('prompt').c
 
 /* ---------------- HAENYEO MUSEUM (walkable view) ---------------- */
 const MUSEUMF={x0:46,y0:H-150,x1:W-46,y1:H-26};   // (legacy) bounding box
-// walkable tiled-floor polygon (canvas coords) — bounded above by the stone
-// enclosures, with the right-hand wall cutting in diagonally
+// One open, connected walkable floor (canvas coords): the whole foreground plus
+// a wide corridor up EACH side of the sunken net-mending pit, which is carved out
+// as a top-centre notch. The hanok corner (bottom-right) is excluded. No more
+// squeezing through a single left-hand gap — you can circle the pit freely.
 const MUSEUM_POLY=[
-  [14,486],[250,476],[430,492],[610,498],[690,488],
-  [800,520],[905,575],[945,600],[14,600]
+  [58,316],[300,316],[300,408],[668,408],[668,316],[904,316],
+  [904,452],[806,468],[806,586],[58,586]
 ];
 function pointInPoly(x,y,poly){
   let inside=false;
@@ -1253,17 +1255,7 @@ function pointInPoly(x,y,poly){
   }
   return inside;
 }
-function inMuseumFloor(x,y){ return pointInPoly(x,y,MUSEUM_POLY) || pointInPoly(x,y,MUSEUM_BACK_POLY); }
-/* back-gallery loop the player can also roam — the folk-table yard behind the
-   left batdam wall, the narrow ledge along the top rim of the sunken net-mending
-   exhibit, and the hanok front yard on the right; it joins the tiled floor at
-   the far-left low wall (by the prayer flags). The sunken exhibit itself, the
-   jar table and the big onggi jars stay blocked. */
-const MUSEUM_BACK_POLY=[
-  [14,360],[290,360],[310,310],[640,305],[700,300],[880,298],
-  [888,430],[700,438],[668,440],[660,340],[405,340],[370,360],
-  [330,400],[150,405],[75,408],[70,500],[14,502]
-];
+function inMuseumFloor(x,y){ return pointInPoly(x,y,MUSEUM_POLY); }
 const museumExit={x:W/2-44,y:H-46,w:88,h:34};
 let museumCur=null, museumT=0, museumMemIdx=0;
 
@@ -1307,7 +1299,7 @@ const MUSEUM_GRANDMA={ x:492, y:382,
 };
 /* idea 3 — a tangled net you help the grandmothers mend (proximity-hold, like the
    beach ghost-net rescue). Repeatable each visit; the eco reward is once per day. */
-const MUSEUM_NET={x:372, y:356, r:42, max:2.0};
+const MUSEUM_NET={x:372, y:412, r:42, max:2.0};
 let museumNetCut=0, museumNetDone=false;
 function updateMuseumNet(dt){
   if(museumNetDone) return;
@@ -1341,7 +1333,7 @@ function museumExhibitAt(){
   let best=null, bestScore=1e9;
   for(const e of MUSEUM_EXHIBITS){
     if(Math.abs(P.x-e.x)>58) continue;
-    if(P.y < e.y-30 || P.y > e.y+260) continue;
+    if(P.y < e.y+8 || P.y > 582) continue;          // stand anywhere in its column, on the floor below it
     const s=Math.abs(P.x-e.x) + 0.3*Math.abs(P.y-e.y);
     if(s<bestScore){ bestScore=s; best=e; }
   }
@@ -1362,8 +1354,25 @@ function playSumbiSori(){
   if(typeof tone!=='function') return;       // the breath on surfacing: a soft, falling whistle
   tone(1180,.5,'sine',.045); setTimeout(()=>tone(880,.6,'sine',.04),180); setTimeout(()=>tone(660,.7,'sine',.03),460);
 }
-function enterMuseum(){ scene='museum'; P.x=W/2; P.y=H-80; P.face=1; museumNetCut=0; museumNetDone=false; $('prompt').classList.remove('show'); }
-function leaveMuseum(){ scene='village'; const b=buildings.find(x=>x.name==='museum'); if(b){P.x=b.x+b.w/2;P.y=b.y+b.h+18;} P.face=1; $('prompt').classList.remove('show'); }
+let museumPrevMusic=null;
+/* the museum plays "Song of the Sea Women" — slow & contemplative — while you're
+   inside, then restores whatever the radio was doing when you leave */
+function startMuseumMusic(){
+  const M=window.HaenyeoMusic; if(!M) return;
+  museumPrevMusic={ playing:M.playing, idx:M.current };
+  try{ M.unlock(); }catch(e){}
+  const i=M.tracks.findIndex(t=>t.id==='haenyeo');
+  if(i>=0) M.playIndex(i);
+}
+function stopMuseumMusic(){
+  const M=window.HaenyeoMusic; if(!M){ museumPrevMusic=null; return; }
+  if(museumPrevMusic && museumPrevMusic.playing){
+    if(museumPrevMusic.idx>=0 && museumPrevMusic.idx!==M.current) M.playIndex(museumPrevMusic.idx);
+  } else { M.pause(); }
+  museumPrevMusic=null;
+}
+function enterMuseum(){ scene='museum'; P.x=W/2; P.y=H-80; P.face=1; museumNetCut=0; museumNetDone=false; $('prompt').classList.remove('show'); startMuseumMusic(); }
+function leaveMuseum(){ stopMuseumMusic(); scene='village'; const b=buildings.find(x=>x.name==='museum'); if(b){P.x=b.x+b.w/2;P.y=b.y+b.h+18;} P.face=1; $('prompt').classList.remove('show'); }
 function updateMuseum(dt){
   museumT+=dt;
   let mx=0,my=0;
@@ -1387,10 +1396,10 @@ function refreshMuseumPrompt(){
   const dLed=Math.hypot(P.x-MUSEUM_LEDGER.x,P.y-MUSEUM_LEDGER.y);
   const ex=museumExhibitAt();
   if(dNet<MUSEUM_NET.r){ museumCur={type:'net'}; el.textContent=museumNetDone?'The net is mended — thank you':'Mending the net… (stay close)'; el.classList.add('show'); }
-  else if(dGran<78){ museumCur={type:'grandma'}; el.textContent='Sit with the grandmothers'; el.classList.add('show'); }
+  else if(dGran<62){ museumCur={type:'grandma'}; el.textContent='Sit with the grandmothers'; el.classList.add('show'); }
   else if(dLed<MUSEUM_LEDGER.r){ museumCur={type:'ledger'}; el.textContent='Read the visitor ledger'; el.classList.add('show'); }
-  else if(ex){ museumCur={type:'exhibit', ex}; el.textContent=(G.cultureLog[ex.id]?'Revisit':'Examine')+': '+ex.name; el.classList.add('show'); }
   else if(dExit<56){ museumCur={type:'exit'}; el.textContent='Leave museum'; el.classList.add('show'); }
+  else if(ex){ museumCur={type:'exhibit', ex}; el.textContent=(G.cultureLog[ex.id]?'Revisit':'Examine')+': '+ex.name; el.classList.add('show'); }
   else { museumCur=null; el.classList.remove('show'); }
 }
 function doMuseumInteract(){
