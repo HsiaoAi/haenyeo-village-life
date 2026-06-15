@@ -2850,21 +2850,22 @@ function drawMarket(){
     ctx.restore();
     ctx.fillStyle=MIN.gold;for(let i=0;i<14;i++){const x=18+i*32, y=sy+Math.sin(x*0.05)*sag+3;ctx.beginPath();ctx.arc(x,y,1.5,0,7);ctx.fill();}
   }
-  const c=sellCounter;
-  for(let i=0;i<6;i++){const fx=c.x+24+i*((c.w-48)/5), fy=c.y+18;
-    inked(ctx,i%2?'#9c6b3a':'#b5563a',1.4);ctx.beginPath();ctx.ellipse(fx,fy,9,4.4,(i%2?0.3:-0.3),0,7);fillStroke(ctx);
-    ctx.fillStyle=MIN.ink;ctx.beginPath();ctx.arc(fx-6,fy-1,1,0,7);ctx.fill();}
-  // red octopus centrepiece
-  inked(ctx,MIN.verm,1.8);ctx.beginPath();ctx.arc(c.x+c.w/2,c.y+16,7,Math.PI,0);ctx.lineTo(c.x+c.w/2+7,c.y+20);ctx.quadraticCurveTo(c.x+c.w/2,c.y+24,c.x+c.w/2-7,c.y+20);ctx.closePath();fillStroke(ctx);
+  // hand-drawn seafood on the counter — only for the procedural bg; the illustration already shows goods
+  if(!usingImg){
+    const c=sellCounter;
+    for(let i=0;i<6;i++){const fx=c.x+24+i*((c.w-48)/5), fy=c.y+18;
+      inked(ctx,i%2?'#9c6b3a':'#b5563a',1.4);ctx.beginPath();ctx.ellipse(fx,fy,9,4.4,(i%2?0.3:-0.3),0,7);fillStroke(ctx);
+      ctx.fillStyle=MIN.ink;ctx.beginPath();ctx.arc(fx-6,fy-1,1,0,7);ctx.fill();}
+    inked(ctx,MIN.verm,1.8);ctx.beginPath();ctx.arc(c.x+c.w/2,c.y+16,7,Math.PI,0);ctx.lineTo(c.x+c.w/2+7,c.y+20);ctx.quadraticCurveTo(c.x+c.w/2,c.y+24,c.x+c.w/2-7,c.y+20);ctx.closePath();fillStroke(ctx);
+  }
   drawPerson(vendor.x,vendor.y,{skin:vendor.skin,scarf:vendor.scarf,look:vendor.look,face:1,idle:0.6});
   // more vendors tending the side & back stalls — a lively market
   drawPerson(120,410,{skin:'#e3c4a0',scarf:MIN.gold,look:{hairStyle:'bun',hair:'#3a2c22',top:'#c0506e',bottom:'#4a4a52',apron:'#ece2c8',elder:true,skin:'#e3c4a0'},face:1,idle:0.4});
   drawPerson(864,412,{skin:'#eccaa2',scarf:MIN.teal,look:{hairStyle:'ponytail',hair:'#241f1b',top:'#3a6e8c',bottom:'#37343d',skin:'#eccaa2'},face:-1,idle:1.1});
   drawPerson(MARKET.x0+200,196,{skin:'#e7c9a0',scarf:MIN.verm,look:{hairStyle:'bob',hair:'#2a2220',top:'#6aa647',bottom:'#4a4a52',skin:'#e7c9a0'},face:1,idle:0.8});
-  // shoppers browsing the aisle — make it feel busy (no collision, lane stays clear)
-  drawPerson(214,418,{skin:'#e9c9a2',scarf:MIN.blue,look:{hairStyle:'bun',hair:'#2a2220',top:'#c9803a',bottom:'#4a4a52',basket:true,skin:'#e9c9a2'},face:-1,idle:0.3});
-  drawPerson(704,420,{skin:'#e3bd96',scarf:MIN.gold,look:{hairStyle:'short',hair:'#2a221e',top:'#3a6e5a',bottom:'#37343d',skin:'#e3bd96'},face:1,idle:1.4});
-  drawPerson(556,512,{skin:'#eccaa2',scarf:MIN.plum,look:{hairStyle:'ponytail',hair:'#241f1b',top:'#b85a48',bottom:'#4a4a52',basket:true,skin:'#eccaa2'},face:-1,idle:0.9});
+  // shoppers strolling & browsing the aisle (walking NPCs, distinct from the diver)
+  if(typeof marketShoppers!=='undefined') for(const s of marketShoppers)
+    drawPerson(s.x,s.y,{skin:s.look.skin,look:s.look,face:s.face,moving:s.moving,phase:s.anim,idle:0.5});
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   ctx.save();ctx.globalCompositeOperation='screen';
   const sun=ctx.createLinearGradient(0,86,0,420);sun.addColorStop(0,'rgba(210,235,245,.1)');sun.addColorStop(1,'rgba(210,235,245,0)');

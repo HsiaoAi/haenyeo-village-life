@@ -1434,8 +1434,38 @@ const VENDOR_LINES=[
   "The conch are fetching a good price this week.",
   "Careful with those urchins — worth more than you'd think.",
 ];
+// ---- Jeju specialty stalls — walk up to one to introduce the product (educational) ----
+const MARKET_STALLS=[
+  {x:230,y:272,kr:'전복',name:'Abalone',          fact:"전복 (abalone) — the haenyeo's prize shellfish, grazing on kelp for years. Jeju's cold currents make it especially prized; eaten raw, as porridge (전복죽), or grilled."},
+  {x:390,y:272,kr:'성게',name:'Sea urchin',       fact:"성게 (sea urchin) — its golden roe (uni) is a delicacy the haenyeo crack open fresh. 성게미역국, urchin-seaweed soup, is a Jeju favourite."},
+  {x:590,y:272,kr:'김·미역',name:'Gim & seaweed',  fact:"김·미역 — laver and brown seaweed gathered off the rocks. 미역국 (seaweed soup) is eaten on birthdays and by new mothers, for strength."},
+  {x:720,y:272,kr:'갈치',name:'Hairtail',         fact:"갈치 (cutlassfish) — a long silver ribbon-fish, a Jeju icon caught at night. Best grilled (갈치구이) or simmered (갈치조림)."},
+  {x:175,y:400,kr:'건어물',name:'Dried fish',      fact:"건어물 — fish and squid cured in Jeju's salty sea-wind. Drying deepens the umami and keeps the catch through the winter."},
+  {x:765,y:400,kr:'문어',name:'Octopus',          fact:"문어 (octopus) — a haenyeo catch blanched tender into 숙회. Said to restore your strength after a hard dive."},
+  {x:300,y:415,kr:'표고버섯',name:'Pyogo mushroom', fact:"표고버섯 (shiitake) — grown on oak logs in Jeju's misty forests; thick, meaty caps for soups and namul."},
+  {x:660,y:415,kr:'한라봉',name:'Hallabong',       fact:"한라봉 — a premium Jeju citrus with a bump on top like Hallasan's peak; bigger and sweeter than ordinary tangerines."},
+  {x:300,y:545,kr:'흑돼지',name:'Black pork',      fact:"흑돼지 (Jeju black pork) — the island's heritage pig, rich and chewy. A must-eat Jeju barbecue."},
+  {x:480,y:545,kr:'우도 땅콩',name:'Udo peanuts',  fact:"우도 땅콩 — tiny sweet peanuts from Udo islet off Jeju, roasted as a snack or churned into peanut ice cream."},
+  {x:660,y:545,kr:'녹차',name:'Green tea',         fact:"녹차 — Jeju's volcanic soil and sea-mist grow fine green tea; the island is one of Korea's great matcha regions."},
+];
+const MARKET_LANE={x0:200,x1:760,y0:300,y1:560};   // where shoppers roam (the open aisle)
+let marketShoppers=[];
+function marketPickTarget(s){ for(let i=0;i<14;i++){ const tx=MARKET_LANE.x0+Math.random()*(MARKET_LANE.x1-MARKET_LANE.x0), ty=MARKET_LANE.y0+Math.random()*(MARKET_LANE.y1-MARKET_LANE.y0); if(!marketHit(tx,ty)){ s.tx=tx; s.ty=ty; return; } } s.tx=s.x; s.ty=s.y; }
+function initMarketShoppers(){
+  // shoppers — deliberately unlike the diver: varied skin/hair/clothes, baskets, an elder
+  const defs=[
+    {look:{hairStyle:'bun',hair:'#1c140e',top:'#3a6e8c',bottom:'#37343d',basket:true,skin:'#c98a5a'}, speed:1.1},
+    {look:{hairStyle:'short',hair:'#5a4636',top:'#b85a48',bottom:'#4a4a52',skin:'#f0d2a8'}, speed:1.25},
+    {look:{hairStyle:'ponytail',hair:'#241f1b',top:'#5cbfb0',bottom:'#37343d',basket:true,skin:'#e0b088'}, speed:1.0},
+    {look:{hairStyle:'bun',hair:'#9a948a',top:'#a23c5a',bottom:'#4a4a52',apron:'#ece2c8',elder:true,skin:'#e3c4a0'}, speed:0.8},
+    {look:{hairStyle:'bob',hair:'#2a2220',top:'#6aa647',bottom:'#4a4a52',skin:'#d6a070'}, speed:1.15},
+  ];
+  const spots=[[410,370],[560,370],[440,560],[600,560],[480,540]];   // clear aisle spots (avoid stall/clutter no-walk zones)
+  marketShoppers=defs.map((d,i)=>{ const sp=spots[i]||[480,400]; return { x:sp[0], y:sp[1], tx:sp[0], ty:sp[1], face:1, moving:false, anim:Math.random()*6, wait:Math.random()*1.5, speed:d.speed, look:d.look }; });
+  for(const s of marketShoppers) marketPickTarget(s);
+}
 let marketCur=null;
-function enterMarket(){ scene='market'; P.x=480; P.y=552; P.face=1; $('prompt').classList.remove('show'); }
+function enterMarket(){ scene='market'; P.x=480; P.y=552; P.face=1; initMarketShoppers(); $('prompt').classList.remove('show'); }
 function leaveMarket(){ scene='village'; const b=buildings.find(x=>x.name==='coop'); if(b){P.x=b.x+b.w/2; P.y=b.y+b.h+18;} P.face=1; $('prompt').classList.remove('show'); }
 function marketHit(x,y){
   if(x>sellCounter.x-2&&x<sellCounter.x+sellCounter.w+2&&y>sellCounter.y-2&&y<sellCounter.y+sellCounter.h+8)return true;
@@ -1456,12 +1486,24 @@ function updateMarket(dt){
     if(!marketHit(nx,P.y))P.x=nx; if(!marketHit(P.x,ny))P.y=ny; P.anim+=dt*9;}
   P.x=Math.max(MARKET.x0+P.r,Math.min(MARKET.x1-P.r,P.x));
   P.y=Math.max(MARKET.y0+P.r,Math.min(MARKET.y1-P.r,P.y));
+  // shoppers stroll the aisle, pausing to browse the stalls
+  for(const s of marketShoppers){
+    if(s.wait>0){ s.wait-=dt; s.moving=false; continue; }
+    const dx=s.tx-s.x, dy=s.ty-s.y, m=Math.hypot(dx,dy);
+    if(m<5){ s.wait=1+Math.random()*3.2; marketPickTarget(s); s.moving=false; continue; }   // pause = browsing
+    const nx=s.x+dx/m*s.speed, ny=s.y+dy/m*s.speed;
+    if(!marketHit(nx,s.y)) s.x=nx; else marketPickTarget(s);
+    if(!marketHit(s.x,ny)) s.y=ny; else marketPickTarget(s);
+    if(Math.abs(dx)>0.4) s.face=dx>0?1:-1;
+    s.moving=true; s.anim+=dt*8;
+  }
   refreshMarketPrompt();
 }
 function marketNearest(){
-  let best=null,bd=52;
-  const ds=Math.hypot(P.x-sellStation.x,P.y-sellStation.y); if(ds<bd){bd=ds;best={type:'sell'};}
-  if(P.x>marketExit.x-10&&P.x<marketExit.x+marketExit.w+10&&P.y>marketExit.y-24) best={type:'exit'};
+  let best=null,bd=1e9;
+  for(const s of MARKET_STALLS){ const d=Math.hypot(P.x-s.x,P.y-s.y); if(d<70 && d<bd){ bd=d; best={type:'stall',stall:s}; } }
+  const ds=Math.hypot(P.x-sellStation.x,P.y-sellStation.y); if(ds<52 && ds<bd){ bd=ds; best={type:'sell'}; }
+  if(P.x>marketExit.x-10&&P.x<marketExit.x+marketExit.w+10&&P.y>marketExit.y-24) best={type:'exit'};   // exit mat overrides
   return best;
 }
 function refreshMarketPrompt(){
@@ -1470,12 +1512,14 @@ function refreshMarketPrompt(){
   let txt='';
   if(marketCur.type==='sell') txt='Sell catch';
   else if(marketCur.type==='exit') txt='Leave market';
+  else if(marketCur.type==='stall') txt=marketCur.stall.kr+' '+marketCur.stall.name+' · 알아보기';
   el.textContent=txt; el.classList.add('show');
 }
 function doMarketInteract(){
   if(!marketCur)return;
   if(marketCur.type==='exit') leaveMarket();
   else if(marketCur.type==='sell') openSell();
+  else if(marketCur.type==='stall'){ showFact(marketCur.stall.fact); if(typeof tone==='function') tone(560,.08,'sine',.05); }
 }
 
 /* ---------------- DIVE ---------------- */
