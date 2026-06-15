@@ -1718,6 +1718,7 @@ function updateDive(dt){
   }
   for(const b of dBubbles){b.y-=b.v;b.x+=Math.sin(b.y*.05)*.3;}dBubbles=dBubbles.filter(b=>b.y>SURF-4);
   for(const p of dParts){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=dt*1.6;}dParts=dParts.filter(p=>p.life>0);
+  if(dParts.length>160) dParts.splice(0,dParts.length-160);   // bound the dive particle pool
   dTime-=dt; if(dTime<=0){endDive();return;}
   const bp=dBreath/maxBreath();
   $('breathFill').style.width=(bp*100)+'%';
@@ -1933,6 +1934,10 @@ function updateBeach(dt){
   for(const p of bParts){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=dt*1.6;} bParts=bParts.filter(p=>p.life>0);
   for(const f of bFloats){ f.y-=dt*22; f.life-=dt; } bFloats=bFloats.filter(f=>f.life>0);
   for(const r of bRings){ r.life-=dt*1.8; } bRings=bRings.filter(r=>r.life>0);
+  // cap the effect pools so a combo/rescue burst can never churn memory unbounded
+  if(bParts.length>140) bParts.splice(0,bParts.length-140);
+  if(bFloats.length>30) bFloats.splice(0,bFloats.length-30);
+  if(bRings.length>30) bRings.splice(0,bRings.length-30);
   bComboT-=dt; if(bComboT<=0) bCombo=0; bSpotlessCd-=dt;   // combo lapses after a pause
   bTime-=dt; if(bTime<=0){ endBeach(); return; }
   $('bagFill').style.width=(bBagCount/BEACH_BAG*100)+'%';

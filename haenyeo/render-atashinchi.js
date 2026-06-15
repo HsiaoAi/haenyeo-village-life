@@ -32,12 +32,13 @@ const MIN = {
 
 /* ---------------- retina ---------------- */
 let DPR=Math.max(1,Math.min(3,window.devicePixelRatio||1));
+let _beachDeco=null;   // cached static beach decorations (sand speckle + shells), rebuilt on DPR change
 function setupRetina(){
   DPR=Math.max(1,Math.min(3,window.devicePixelRatio||1));
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.imageSmoothingEnabled=true;
-  villageBG=null; shopBG=null; homeBG=null; marketBG=null;
+  villageBG=null; shopBG=null; homeBG=null; marketBG=null; _beachDeco=null;
 }
 addEventListener('resize',()=>{ clearTimeout(window.__rt); window.__rt=setTimeout(setupRetina,150); });
 
@@ -3797,6 +3798,19 @@ function drawGull(x,y,flap){
   ctx.beginPath();ctx.moveTo(x-w,y);ctx.quadraticCurveTo(x-w*0.4,y-d,x,y);ctx.quadraticCurveTo(x+w*0.4,y-d,x+w,y);ctx.stroke();
   ctx.restore();
 }
+/* build the static sand-speckle + shells once into an offscreen canvas (cheap blit per frame) */
+function beachDeco(){
+  if(_beachDeco) return _beachDeco;
+  const c=document.createElement('canvas'); c.width=Math.round(W*DPR); c.height=Math.round(H*DPR);
+  const g=c.getContext('2d'); g.setTransform(DPR,0,0,DPR,0,0);
+  const rng2=mulberry32(55);
+  g.fillStyle='rgba(150,116,64,.15)';
+  for(let i=0;i<150;i++){g.beginPath();g.arc(rng2()*W,140+rng2()*(H-140),0.8+rng2()*1.3,0,7);g.fill();}
+  for(let i=0;i<9;i++){const sx=rng2()*W, sy=160+rng2()*380;
+    g.fillStyle=['#e8d2c0','#d9b89a','#cbb6a0'][i%3];g.strokeStyle='rgba(120,90,40,.4)';g.lineWidth=1;
+    g.beginPath();g.ellipse(sx,sy,3,2.2,rng2()*3,0,7);g.fill();g.stroke();}
+  _beachDeco=c; return c;
+}
 function drawBeach(){
   const t=performance.now()*0.001;
   // shore health drives the whole mood — lerp every colour from neglected → thriving
@@ -3817,13 +3831,8 @@ function drawBeach(){
   const rng=mulberry32(21);
   for(let i=0;i<24;i++){const gx=rng()*W, gy=44+rng()*84;
     for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(gx,gy);ctx.quadraticCurveTo(gx+b*4+Math.sin(t+i)*1.5,gy-12,gx+b*7,gy-18);ctx.stroke();}}
-  // sand speckle + idle shells (decor)
-  const rng2=mulberry32(55);
-  ctx.fillStyle='rgba(150,116,64,.15)';
-  for(let i=0;i<150;i++){ctx.beginPath();ctx.arc(rng2()*W,140+rng2()*(H-140),0.8+rng2()*1.3,0,7);ctx.fill();}
-  for(let i=0;i<9;i++){const sx=rng2()*W, sy=160+rng2()*380;
-    ctx.fillStyle=['#e8d2c0','#d9b89a','#cbb6a0'][i%3];ctx.strokeStyle='rgba(120,90,40,.4)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.ellipse(sx,sy,3,2.2,rng2()*3,0,7);ctx.fill();ctx.stroke();}
+  // sand speckle + idle shells (static decor) — drawn once to an offscreen cache, then blitted
+  ctx.drawImage(beachDeco(),0,0,W,H);
   // gliding gulls over a healthy shore
   if(hi>0.02){ ctx.globalAlpha=hi*0.8;
     for(let i=0;i<3;i++){ const gx=((t*26*(1+i*0.2)+i*340)%(W+80))-40, gy=40+i*22+Math.sin(t*1.1+i)*5;
