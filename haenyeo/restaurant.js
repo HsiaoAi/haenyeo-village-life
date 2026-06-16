@@ -1,5 +1,5 @@
 /* ============================================================================
-   해녀의 부엌 — Haenyeo's Kitchen  (the evening half of the Dave-the-Diver loop)
+   Haenyeo Kitchen — Haenyeo's Kitchen  (the evening half of the Dave-the-Diver loop)
    ----------------------------------------------------------------------------
    Loaded after game.js + the renderer, so it shares their globals:
      cv, ctx, W, H, G, scene, SPECIES, P, joy, keys, tone, toast, $,
@@ -16,20 +16,20 @@
 
 /* ---- dishes: each made from today's catch; freshest catch → finest plates ---- */
 const DISHES=[
-  {id:'sora',   kr:'소라무침',   name:'Spiced conch',          ing:{conch:1},             price:60,  col:'#9c6b3a', icon:'🐚'},
-  {id:'haemul', kr:'해물라면',   name:'Seafood ramyeon',       ing:{seaweed:1,conch:1},   price:78,  col:'#e0723a', icon:'🍜'},
-  {id:'haesam', kr:'해삼초무침', name:'Sea-cucumber salad',    ing:{cucumber:1},          price:88,  col:'#6f8154', icon:'🥗'},
-  {id:'seong',  kr:'성게미역국', name:'Urchin & seaweed soup', ing:{urchin:1,seaweed:1},  price:96,  col:'#caa24a', icon:'🍲'},
-  {id:'jeonbok',kr:'전복죽',     name:'Abalone porridge',      ing:{abalone:1},           price:132, col:'#6f9ab2', icon:'🍚'},
-  {id:'muneo',  kr:'문어숙회',   name:'Boiled octopus',        ing:{octopus:1},           price:152, col:'#e0533a', icon:'🐙'},
+  {id:'sora',   kr:'',   name:'Spiced conch',          ing:{conch:1},             price:60,  col:'#9c6b3a', icon:'🐚'},
+  {id:'haemul', kr:'',   name:'Seafood ramyeon',       ing:{seaweed:1,conch:1},   price:78,  col:'#e0723a', icon:'🍜'},
+  {id:'haesam', kr:'', name:'Sea-cucumber salad',    ing:{cucumber:1},          price:88,  col:'#6f8154', icon:'🥗'},
+  {id:'seong',  kr:'', name:'Urchin & seaweed soup', ing:{urchin:1,seaweed:1},  price:96,  col:'#caa24a', icon:'🍲'},
+  {id:'jeonbok',kr:'',     name:'Abalone porridge',      ing:{abalone:1},           price:132, col:'#6f9ab2', icon:'🍚'},
+  {id:'muneo',  kr:'',   name:'Boiled octopus',        ing:{octopus:1},           price:152, col:'#e0533a', icon:'🐙'},
 ];
 function dishById(id){ return DISHES.find(d=>d.id===id); }
 
 /* ---- drinks: poured to order in a little tap-at-the-line minigame. Soju pours
    quick into a small glass; matcha is whisked higher and frothy. ---- */
 const DRINKS={
-  soju:  {id:'soju',  kr:'소주', name:'Soju',   price:30, col:'#dff0ec', rise:1.05, target:0.70, glass:52, label:'소주 한 잔 · Pour the soju'},
-  matcha:{id:'matcha',kr:'말차', name:'Matcha', price:38, col:'#8fbf5a', rise:0.78, target:0.85, glass:74, label:'말차 따르기 · Whisk the matcha'},
+  soju:  {id:'soju',  kr:'', name:'Soju',   price:30, col:'#dff0ec', rise:1.05, target:0.70, glass:52, label:'Pour the soju'},
+  matcha:{id:'matcha',kr:'', name:'Matcha', price:38, col:'#8fbf5a', rise:0.78, target:0.85, glass:74, label:'Whisk the matcha'},
 };
 
 /* ---- guests are drawn with the village NPC sprite (drawPerson), so they match
@@ -53,22 +53,22 @@ function makeGuestLook(){
 
 /* ---- renown → rank: gates how many guests come and how much they tip ---- */
 const RANKS=[
-  {name:'Shore Stall',      need:0,    guests:5,  rep:'소문 없음'},
-  {name:'Village Favorite', need:350,  guests:7,  rep:'동네 단골'},
-  {name:'Famed 부엌',        need:1100, guests:9,  rep:'소문난 집'},
-  {name:'Island Legend',    need:2600, guests:12, rep:'제주 명소'},
+  {name:'Shore Stall',      need:0,    guests:5,  rep:''},
+  {name:'Village Favorite', need:350,  guests:7,  rep:''},
+  {name:'Famed Eatery',     need:1100, guests:9,  rep:''},
+  {name:'Island Legend',    need:2600, guests:12, rep:''},
 ];
 function rankIdx(){ let i=0; for(let k=0;k<RANKS.length;k++) if((G.renown||0)>=RANKS[k].need) i=k; return i; }
 function rankName(){ return RANKS[rankIdx()].name; }
 function guestQuota(){ return RANKS[rankIdx()].guests; }
 
-/* ---- kitchen geometry, aligned to the kitchen_bg.png 포장마차 art ----
+/* ---- kitchen geometry, aligned to the kitchen_bg.png Pojangmacha art ----
    The counter (the pass) runs across the upper-middle of the tent; the open
    wooden floor below it is where the diver walks and guests are seated. */
 const FLOOR={x0:60,y0:415,x1:905,y1:580};          // walkable wooden floor in front of the bar
 const rCounter={x:405, y:360, w:560};              // the pass — walk up to it to take a plate
-const rBanchan={x:108, y:452};                     // 반찬 crock by the fish tank (bottom-left)
-// two dining sets (table + 3 stools each), 포장마차 style
+const rBanchan={x:108, y:452};                     // Banchan crock by the fish tank (bottom-left)
+// two dining sets (table + 3 stools each), Pojangmacha style
 const DINING_TABLES=[{x:312,y:520},{x:648,y:520}];
 const rTables=[                                    // the 6 stool seats around the two tables
   {x:240,y:506},{x:312,y:558},{x:384,y:506},
@@ -87,7 +87,7 @@ let rCarry=null;       // the plate in hand, or null
 let rToSpawn=0, rSpawnT=0;
 let rDemand=[];        // dish ids the seated guests will order — drawn from tonight's plates so every order is fillable
 let rEarned=0, rServed=0, rLeft=0, rTips=0;
-let rBan=1;            // 반찬 supply level 0..1
+let rBan=1;            // Banchan supply level 0..1
 let rPour=null;        // active tea-pour minigame, or null
 let rParts=[];         // little particles (hearts, sparkles)
 let rEndedToast=false;
@@ -109,7 +109,7 @@ function dishMakeable(d){
   return n===Infinity?0:n;
 }
 function buildMenuPanel(){
-  $('menuRank').textContent=rankName()+' · '+(RANKS[rankIdx()].rep);
+  $('menuRank').textContent=rankName();
   const list=$('menuList'); list.innerHTML='';
   let anyMakeable=false;
   for(const d of DISHES){
@@ -121,7 +121,7 @@ function buildMenuPanel(){
     const sel=!!rMenuSel[d.id];
     row.innerHTML=
       `<div class="sicon" style="background:${d.col}22"><span style="font-size:20px">${d.icon||'🍲'}</span></div>`+
-      `<div class="meta"><div class="t">${d.kr} · ${d.name}</div>`+
+      `<div class="meta"><div class="t">${d.name}</div>`+
       `<div class="d">${ingTxt} · ${d.price} won · up to ${can}</div></div>`+
       `<button class="btn ${sel?'coral':'ghost'}" data-d="${d.id}" ${can<=0?'disabled':''}>${sel?'On menu':'Add'}</button>`;
     const btn=row.querySelector('button');
@@ -173,7 +173,7 @@ function startService(){
   $('kitchenHud').classList.add('show');
   $('kitchenDoneBtn').classList.add('show');
   $('prompt').classList.remove('show');
-  toast('Open! Serve the plates — pour 소주/말차 for guests who order a drink 🍶🍵');
+  toast('Open! Serve the plates — pour soju / matcha for guests who order a drink');
 }
 
 function freeSeats(){ const used=new Set(rGuests.map(g=>g.seat)); const f=[]; for(let i=0;i<rTables.length;i++) if(!used.has(i)) f.push(i); return f; }
@@ -215,9 +215,9 @@ function passAction(){
    empty-handed to pour the drink. One item delivered at a time. */
 function serveDish(g){
   if(!rCarry) return;
-  if(rBan<=0.001){ if(toastCd<=0){toast('반찬 ran out — refill at the side station!');toastCd=2;} return; }
+  if(rBan<=0.001){ if(toastCd<=0){toast('Banchan ran out — refill at the side station!');toastCd=2;} return; }
   const plate=rCarry; rCarry=null;
-  rBan=Math.max(0, rBan-0.16);                          // each dish spends some 반찬
+  rBan=Math.max(0, rBan-0.16);                          // each dish spends some Banchan
   const pay=Math.round(plate.dish.price*starMult(plate.stars));
   rEarned+=pay; rServed++; g.dishDone=true; g.plate=plate;
   G.renown=(G.renown||0)+Math.round(6*starMult(plate.stars));
@@ -284,12 +284,12 @@ function updateRestaurant(dt){
   rP.x=Math.max(FLOOR.x0+rP.r,Math.min(FLOOR.x1-rP.r,rP.x));
   rP.y=Math.max(FLOOR.y0+rP.r,Math.min(FLOOR.y1-rP.r,rP.y));
 
-  // ---- proximity actions: pass / 반찬 / serving ----
+  // ---- proximity actions: pass / Banchan / serving ----
   // walk up to the bar (top edge of the floor, within the counter span) to take / set down a plate
   const atPass = Math.abs(rP.x-rCounter.x)<rCounter.w/2 && rP.y<FLOOR.y0+40;
   if(atPass && !rP._atPass){ rP._atPass=true; passAction(); }
   if(!atPass) rP._atPass=false;
-  if(Math.hypot(rP.x-rBanchan.x,rP.y-rBanchan.y)<48){ rBan=Math.min(1, rBan+dt*0.9); }   // refill 반찬
+  if(Math.hypot(rP.x-rBanchan.x,rP.y-rBanchan.y)<48){ rBan=Math.min(1, rBan+dt*0.9); }   // refill Banchan
   // carrying a plate: serve it to the nearby guest who ordered that dish (and hasn't got it yet)
   if(rCarry){
     let best=null,bd=46;
@@ -333,7 +333,7 @@ function updateHud(){
   $('kBanchan').textContent=Math.round(rBan*100)+'%';
   $('kBanchanFill').style.width=(rBan*100)+'%';
   $('kBanchanFill').style.background = rBan<0.2 ? 'linear-gradient(90deg,#c9512c,#e8714a)' : 'linear-gradient(90deg,#6aa647,#acd684)';
-  $('kCarry').textContent = rCarry ? (rCarry.dish.kr+' '+starStr(rCarry.stars)) : (rPlates.length?('pass: '+rPlates.length):'—');
+  $('kCarry').textContent = rCarry ? (rCarry.dish.name+' '+starStr(rCarry.stars)) : (rPlates.length?('pass: '+rPlates.length):'—');
 }
 
 function endRestaurant(){
@@ -347,7 +347,7 @@ function endRestaurant(){
   const t=document.createElement('div'); t.className='line tot'; t.innerHTML=`<span>Earned tonight</span><span>${rEarned} won</span>`; list.appendChild(t);
   const before=rankName();
   $('kitchenNote').textContent = rServed
-    ? ('Word spreads — 해녀의 부엌 is now “'+rankName()+'”. Rest, then dive again tomorrow.')
+    ? ('Word spreads — the Kitchen is now “'+rankName()+'”. Rest, then dive again tomorrow.')
     : 'A quiet night. Better catch tomorrow brings better plates.';
   // any unserved plates are discarded (the catch was already spent making them)
   rPlates=[]; rCarry=null; rPour=null;
@@ -362,12 +362,12 @@ $('kitchenClose').onclick=()=>{ $('pKitchen').classList.add('hidden'); scene='vi
 
 /* ================================ DRAW =================================== */
 function drawRestaurant(){
-  // the 포장마차 backdrop art (falls back to a warm wash until the image loads)
+  // the Pojangmacha backdrop art (falls back to a warm wash until the image loads)
   if(kitchenImg){ ctx.drawImage(kitchenImg,0,0,W,H); }
   else { const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#5a3a24'); g.addColorStop(1,'#7a5230'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
 
   drawPass();                                  // plates waiting on the bar + a "take a plate" hint
-  drawBanchanCrock();                          // the 반찬 refill spot by the fish tank
+  drawBanchanCrock();                          // the Banchan refill spot by the fish tank
 
   // two dining sets, then empty stools, then seated guests (each draws its own stool)
   for(const dt of DINING_TABLES) drawDiningTable(dt.x,dt.y);
@@ -409,16 +409,16 @@ function drawPlateIcon(x,y,plate){
 function drawBanchanCrock(){
   const x=rBanchan.x,y=rBanchan.y;
   ctx.fillStyle='rgba(10,8,6,.28)'; ctx.beginPath(); ctx.ellipse(x,y+14,20,6,0,0,7); ctx.fill();
-  // a celadon crock that empties as 반찬 runs low
+  // a celadon crock that empties as Banchan runs low
   ctx.fillStyle='#7c9e84'; ctx.strokeStyle='rgba(30,40,30,.6)'; ctx.lineWidth=2.4;
   ctx.beginPath(); rr(ctx,x-17,y-12,34,26,6); ctx.fill(); ctx.stroke();
   ctx.fillStyle='#3a2414'; ctx.globalAlpha=0.35; ctx.beginPath(); rr(ctx,x-13,y-8,26,18,4); ctx.fill(); ctx.globalAlpha=1;
   ctx.fillStyle=rBan<0.2?'#caa24a':'#cfe0b0'; ctx.beginPath(); rr(ctx,x-13,y+10-18*rBan,26,18*rBan,4); ctx.fill();
   ctx.font='700 12px "Gowun Batang", serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillStyle='#fff7e6'; ctx.strokeStyle='rgba(30,18,8,.7)'; ctx.lineWidth=3;
-  ctx.strokeText('반찬',x,y-24); ctx.fillText('반찬',x,y-24);
+  ctx.strokeText('Banchan',x,y-24); ctx.fillText('Banchan',x,y-24);
 }
-/* ---- 포장마차 furniture, drawn in the game's inked cartoon-wood style ---- */
+/* ---- Pojangmacha furniture, drawn in the game's inked cartoon-wood style ---- */
 const WOOD='#9c6b3a', WOOD_L='#b98a52', WOOD_D='#6e4a2c', STEEL='#c3c7cc', STEEL_D='#8a8e94';
 function drawStoolBase(x,y){   // legs + stretcher (drawn behind a seated guest)
   ctx.fillStyle='rgba(10,8,6,.22)'; ctx.beginPath(); ctx.ellipse(x,y+19,20,6,0,0,7); ctx.fill();
@@ -507,7 +507,7 @@ function drawWaitress(){
   if(rCarry){ drawPlateIcon(x+rP.face*15, y-2, rCarry);
     ctx.font='600 10px "Space Mono", monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.strokeStyle='rgba(30,18,8,.6)'; ctx.lineWidth=2.6; ctx.fillStyle='#fff7e6';
-    ctx.strokeText(rCarry.dish.kr, x, y-40); ctx.fillText(rCarry.dish.kr, x, y-40); }
+    ctx.strokeText(rCarry.dish.name, x, y-40); ctx.fillText(rCarry.dish.name, x, y-40); }
 }
 function drawPour(){
   const dr=rPour.drink||DRINKS.soju;
@@ -530,7 +530,7 @@ function drawPour(){
   ctx.fillText('aim here', cx+bw/2+16, ty);
   if(rPour.locked){ const ok=Math.abs(rPour.level-dr.target)<0.12;
     ctx.font='700 20px "Gowun Batang", serif'; ctx.textAlign='center';
-    ctx.fillStyle=ok?'#7bd0c0':'#e8a07c'; ctx.fillText(ok?'좋아! Perfect pour':'A bit off…', cx, by+bh+30); }
+    ctx.fillStyle=ok?'#7bd0c0':'#e8a07c'; ctx.fillText(ok?'Perfect pour!':'A bit off…', cx, by+bh+30); }
 }
 window.updateRestaurant=updateRestaurant;
 window.drawRestaurant=drawRestaurant;

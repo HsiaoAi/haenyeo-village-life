@@ -32,13 +32,13 @@ const buildings=[
   {x:70, y:120, w:130, h:96,  name:'home',  label:'Home',  en:'Your home',  roof:'#c9512c'},
   {x:690,y:120, w:122, h:96,  name:'coop',  label:'Co-op', en:'Co-op',      roof:'#3a6e8c'},
   {x:420,y:482, w:96,  h:78,  name:'bulteok',label:'Bulteok', en:'Bulteok',    roof:null},
-  {x:268,y:474, w:128, h:96,  name:'pojangmacha', label:'Pojangmacha', en:'해녀의 부엌', roof:null},   // position is state-driven — see pojangRect()
+  {x:268,y:474, w:128, h:96,  name:'pojangmacha', label:'Pojangmacha', en:'Haenyeo Kitchen', roof:null},   // position is state-driven — see pojangRect()
   {x:120,y:300, w:112, h:84,  name:'store', label:'Gear', en:'Gear shop', roof:'#5a8c7a'},
   {x:720,y:300, w:112, h:82,  name:'museum',label:'Museum', en:'Haenyeo Museum', roof:'#6a6f8c'},
 ];
 /* the kitchen trades through the night: 17:00 → 03:00 (the clock wraps past midnight) */
 function kitchenOpen(){ return G.time>=17*60 || G.time<3*60; }
-/* the 포장마차 lives in two spots: folded away under the bulteok by day, and
+/* the Pojangmacha lives in two spots: folded away under the bulteok by day, and
    raised next to it (on the left) once it opens for the evening. */
 function pojangRect(){
   return kitchenOpen()
@@ -202,11 +202,11 @@ PETS.forEach((p,i)=>{ p.ax=p.x; p.ay=p.y; p.tx=p.x; p.ty=p.y; p.anim=0; p.face=1
 const G={ day:1, money:0, time:6*60, wetsuitIdx:0, netIdx:0, toolIdx:0, maskIdx:0, tewakIdx:0, bagIdx:0, cutIdx:0,
   friendship:{}, talkedToday:{}, catch:{}, catchQ:{}, trash:{}, season:0, meal:null, preparedMeal:null,
   suit:'traditional', owned:{traditional:true, modern:false}, weather:'sunny',
-  renown:0,        // 해녀의 부엌 word-of-mouth — drives the kitchen rank (see restaurant.js)
+  renown:0,        // Haenyeo Kitchen word-of-mouth — drives the kitchen rank (see restaurant.js)
   beachHealth:60,  // 0–100 shore cleanliness; litter accrues daily, cleaning restores it; feeds the dive
-  eco:0,           // eco-points earned by correct 분리수거 sorting & wildlife rescues
+  eco:0,           // eco-points earned by correct sorting sorting & wildlife rescues
   factsSeen:{},    // debris ids whose fact card has been shown (show once)
-  cultureLog:{}, cultureMem:0, cultureKeeper:false,   // 해녀 문화 도감: exhibits examined, grandmother memories heard, "Keeper of Tradition" earned
+  cultureLog:{}, cultureMem:0, cultureKeeper:false,   // Culture Log: exhibits examined, grandmother memories heard, "Keeper of Tradition" earned
   energy:100 };    // 0–100 stamina; diving/cleaning/cooking spend it, a night's sleep restores it
 function clampHealth(){ G.beachHealth=Math.max(0,Math.min(100,G.beachHealth)); }
 /* ---- energy / stamina: the day is paced by how tired you are, not the clock ---- */
@@ -316,38 +316,38 @@ function catchAvgStars(id){
 const DIVE_MAX_M=20;                                  // BED sits ~20 m down
 function diveZone(m){ return m<5?'Hagun':(m<10?'Junggun':'Sanggun'); }
 /* ---- beach litter & lost treasures, gathered when you clean the shore ---- */
-/* Real Jeju shore debris. Litter carries a 분리수거 `category` (sorted at the end of a
+/* Real Jeju shore debris. Litter carries a sorting `category` (sorted at the end of a
    clean-up) and a one-line real `fact` shown once on first pickup. Treasures bypass
    sorting — they're rare salvage finds, cashed straight to won. */
 const BEACH_ITEMS=[
   // ---- litter (sorted into recycling bins) ----
-  {id:'styro', name:'Styrofoam buoy', kr:'양식 스티로폼 부표', color:'#eef0ef', value:3, r:12, buried:false, treasure:false,
+  {id:'styro', name:'Styrofoam buoy', kr:'', color:'#eef0ef', value:3, r:12, buried:false, treasure:false,
     category:'styrofoam', fact:"Styrofoam buoys from sea farms are Jeju's most common shore debris — they crumble into microplastics."},
-  {id:'bag',   name:'Plastic bag',    kr:'비닐봉지',          color:'#cfe0e6', value:1, r:12, buried:false, treasure:false,
+  {id:'bag',   name:'Plastic bag',    kr:'',          color:'#cfe0e6', value:1, r:12, buried:false, treasure:false,
     category:'plastic',   fact:"Sea turtles mistake drifting plastic bags for jellyfish and swallow them."},
-  {id:'bottle',name:'PET bottle',     kr:'페트병',            color:'#9fd4cf', value:2, r:11, buried:false, treasure:false,
+  {id:'bottle',name:'PET bottle',     kr:'',            color:'#9fd4cf', value:2, r:11, buried:false, treasure:false,
     category:'plastic',   fact:"A plastic bottle takes about 450 years to break down at sea; many here drift in on the currents."},
-  {id:'can',   name:'Drink can',      kr:'음료 캔',           color:'#c9ccd2', value:3, r:10, buried:false, treasure:false,
+  {id:'can',   name:'Drink can',      kr:'',           color:'#c9ccd2', value:3, r:10, buried:false, treasure:false,
     category:'metal',     fact:"Aluminium cans are endlessly recyclable — yet take ~200 years to corrode in the ocean."},
-  {id:'net',   name:'Ghost-net scrap',kr:'폐어망 조각',       color:'#6aa647', value:2, r:13, buried:false, treasure:false,
+  {id:'net',   name:'Ghost-net scrap',kr:'',       color:'#6aa647', value:2, r:13, buried:false, treasure:false,
     category:'general',   fact:"Lost 'ghost nets' keep trapping fish and animals for decades after they're dumped."},
-  {id:'glass', name:'Soju bottle',    kr:'소주병',            color:'#7fae6a', value:4, r:11, buried:false, treasure:false,
+  {id:'glass', name:'Soju bottle',    kr:'',            color:'#7fae6a', value:4, r:11, buried:false, treasure:false,
     category:'glass',     fact:"Glass never fully decomposes at sea — but it can be recycled again and again."},
   // ---- treasures (rare; salvaged straight to won, no sorting) ----
-  {id:'seaglass',name:'Sea glass',    kr:'바다 유리', color:'#5cbfb0', value:18, r:9,  buried:true,  treasure:true,
+  {id:'seaglass',name:'Sea glass',    kr:'', color:'#5cbfb0', value:18, r:9,  buried:true,  treasure:true,
     fact:"Sea glass is litter the ocean spent decades polishing into a gem — beautiful, but it began as broken glass."},
-  {id:'scrap', name:'Brass weight',   kr:'놋쇠 추',   color:'#d59f2e', value:24, r:10, buried:true,  treasure:true},
-  {id:'coin',  name:'Old coin',       kr:'옛 동전',   color:'#e0a836', value:40, r:9,  buried:true,  treasure:true},
-  {id:'float', name:'Lost taewak',    kr:'잃어버린 태왁', color:'#f47a1f', value:60, r:14, buried:false, treasure:true},
+  {id:'scrap', name:'Brass weight',   kr:'',   color:'#d59f2e', value:24, r:10, buried:true,  treasure:true},
+  {id:'coin',  name:'Old coin',       kr:'',   color:'#e0a836', value:40, r:9,  buried:true,  treasure:true},
+  {id:'float', name:'Lost taewak',    kr:'', color:'#f47a1f', value:60, r:14, buried:false, treasure:true},
 ];
 function beachItem(id){ return BEACH_ITEMS.find(b=>b.id===id); }
-/* 분리수거 recycling bins (Korea's real categories) — used by the end-of-session sorting screen */
+/* sorting recycling bins (Korea's real categories) — used by the end-of-session sorting screen */
 const RECYCLE_BINS=[
-  {id:'plastic',   kr:'플라스틱',   label:'Plastic', color:'#3a8fc0'},
-  {id:'metal',     kr:'캔·고철',    label:'Metal',   color:'#9aa0a8'},
-  {id:'glass',     kr:'유리',       label:'Glass',   color:'#4f9e6a'},
-  {id:'styrofoam', kr:'스티로폼',   label:'Styrofoam',color:'#e0d7c4'},
-  {id:'general',   kr:'일반쓰레기', label:'General', color:'#8a7a5a'},
+  {id:'plastic',   kr:'',   label:'Plastic', color:'#3a8fc0'},
+  {id:'metal',     kr:'',    label:'Metal',   color:'#9aa0a8'},
+  {id:'glass',     kr:'',       label:'Glass',   color:'#4f9e6a'},
+  {id:'styrofoam', kr:'',   label:'Styrofoam',color:'#e0d7c4'},
+  {id:'general',   kr:'', label:'General', color:'#8a7a5a'},
 ];
 function recycleBin(id){ return RECYCLE_BINS.find(b=>b.id===id); }
 /* does the active renderer + page support the beach minigame? (other art styles don't) */
@@ -411,7 +411,7 @@ let toastT=0;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');toastT=1.6;}
 /* a non-blocking marine-debris fact banner (slides up, fades on its own) */
 let factT=0;
-const FACT_TAG_DEFAULT='알고 계셨나요? · Did you know?';
+const FACT_TAG_DEFAULT='Did you know?';
 function showFact(text, dur, tag){ const el=$('factCard'); if(!el||!text) return; const tx=$('factText'); if(tx)tx.textContent=text; const tg=el.querySelector('.factTag'); if(tg) tg.textContent=tag||FACT_TAG_DEFAULT; el.classList.add('show'); factT=dur||5.5; }
 /* show a debris fact the first time that item is ever picked up */
 function maybeShowFact(item){ if(!item||!item.fact) return; if(G.factsSeen[item.id]) return; G.factsSeen[item.id]=true; showFact(item.fact); }
@@ -714,7 +714,7 @@ function refreshPrompt(){
   else if(current.type==='pet') txt='Pet the '+current.pet.label;
   else if(current.type==='statue') txt='Examine · Dol Hareubang';
   else if(current.type==='bulteok') txt='Examine · Bulteok';
-  else if(current.type==='pojangmacha') txt=kitchenOpen()?'Open 해녀의 부엌 · the Kitchen':'해녀의 부엌 · opens 17:00–03:00';
+  else if(current.type==='pojangmacha') txt=kitchenOpen()?'Open the Kitchen':'The Kitchen — opens 17:00–03:00';
   else if(current.type==='lounger') txt=P.sitting?'Stand up':'Rest on the lounger';
   else if(current.type==='door') txt = current.b.name==='home'?'Go inside':(current.b.name==='coop'?'Enter market':(current.b.name==='museum'?'Enter the museum':'Enter shop'));
   else if(current.type==='joinact') txt='Join the '+current.act.label;
@@ -731,7 +731,7 @@ function doInteract(){
   else if(current.type==='statue') openStatueInfo();
   else if(current.type==='bulteok') openBulteokInfo();
   else if(current.type==='pojangmacha'){
-    if(!kitchenOpen()) toast('해녀의 부엌 is open 17:00–03:00.');
+    if(!kitchenOpen()) toast('The Kitchen is open 17:00–03:00.');
     else if(haveEnergy('kitchen') && typeof enterRestaurant==='function') enterRestaurant();
   }
   else if(current.type==='lounger'){ if(P.sitting) standFromLounger(); else sitOnLounger(); }
@@ -892,13 +892,13 @@ function openSell(){
   for(const s of SPECIES){ const n=G.catch[s.id]||0; if(n>0){any=true;const sub=catchSaleValue(s.id);total+=sub;
     const row=document.createElement('div');row.className='line pick sel';
     row.dataset.kind='sp'; row.dataset.id=s.id; row.dataset.sub=sub;
-    row.innerHTML=`<span><span class="chk"></span><span class="dot" style="background:${s.color}"></span>${s.kr} ${s.name} <span style="color:#d59f2e">${starStr(catchAvgStars(s.id))}</span> ×${n}</span><span class="right">${sub}</span>`;
+    row.innerHTML=`<span><span class="chk"></span><span class="dot" style="background:${s.color}"></span>${s.name} <span style="color:#d59f2e">${starStr(catchAvgStars(s.id))}</span> ×${n}</span><span class="right">${sub}</span>`;
     row.onclick=()=>{ row.classList.toggle('sel'); recomputeSell(); };
     list.appendChild(row);} }
   for(const b of BEACH_ITEMS){ const n=G.trash[b.id]||0; if(n>0){any=true;const sub=n*b.value;total+=sub;
     const row=document.createElement('div');row.className='line pick sel';
     row.dataset.kind='tr'; row.dataset.id=b.id; row.dataset.sub=sub;
-    row.innerHTML=`<span><span class="chk"></span><span class="dot" style="background:${b.color}"></span>${b.kr} ${b.name} ×${n}</span><span class="right">${sub}</span>`;
+    row.innerHTML=`<span><span class="chk"></span><span class="dot" style="background:${b.color}"></span>${b.name} ×${n}</span><span class="right">${sub}</span>`;
     row.onclick=()=>{ row.classList.toggle('sel'); recomputeSell(); };
     list.appendChild(row);} }
   if(any){const t=document.createElement('div');t.className='line tot';
@@ -933,19 +933,19 @@ $('sellClose').onclick=()=>{ $('pSell').classList.add('hidden'); scene='market';
 const HOME={x0:40,y0:150,x1:920,y1:586};
 /* hotspots tuned to home-bg.png (Dave-the-Diver art) — each well separated so
    it's easy to walk up to. Solid furniture blocks keep the player off the props. */
-const hearthBlk={x:150, y:250, w:182, h:96};   // 정지 — stone hearth + iron cauldron (left)
-const gopangBlk={x:414, y:252, w:106, h:96};   // 고팡 — onggi jar stack
+const hearthBlk={x:150, y:250, w:182, h:96};   // hearth — stone hearth + iron cauldron (left)
+const gopangBlk={x:414, y:252, w:106, h:96};   // Store — onggi jar stack
 const homeTable={x:428, y:398, w:112, h:46};   // low dining table (center foreground)
-const gudeulBlk={x:626, y:252, w:236, h:98};   // 구들방 — raised sleeping platform (right)
+const gudeulBlk={x:626, y:252, w:236, h:98};   // ondol room — raised sleeping platform (right)
 const stoveStation   ={x:212, y:384};          // cook at the hearth
-const gopangStation  ={x:458, y:372};          // store catch in the 고팡
+const gopangStation  ={x:458, y:372};          // store catch in the Store
 const tableStation   ={x:484, y:472};          // eat a plated meal (below the table block, so you're never stuck)
 const photoStation   ={x:632, y:360};          // family photo on the wall
 const bedStation     ={x:748, y:362};          // sleep on the folded bedding
-const maskStation    ={x:892, y:392};          // grandmother's 왕눈 mask on the low table
+const maskStation    ={x:892, y:392};          // grandmother's goggles mask on the low table
 const wardrobeStation={x:108, y:512};          // change wetsuit (armoire, foreground left)
 const gramoStation   ={x:288, y:512};          // gramophone — music
-const jangStation    ={x:772, y:520};          // 항아리 crocks — ferment (foreground right)
+const jangStation    ={x:772, y:520};          // crock crocks — ferment (foreground right)
 const homeExit={x:438, y:540, w:84, h:38};
 let homeCur=null, homeMaskIdx=0, homePhotoIdx=0, homeJangIdx=0;
 
@@ -976,7 +976,7 @@ function enterHome(){ scene='home'; panelBg='home'; P.x=494; P.y=556; P.face=1; 
 function leaveHome(){ stopGramo(); scene='village'; const hb=buildings.find(b=>b.name==='home'); P.x=hb.x+hb.w/2; P.y=hb.y+hb.h+18; P.face=1; $('prompt').classList.remove('show'); }
 
 /* the wooden plank floor — the ONLY walkable region (the stone walls, the back
-   wall row and the raised 구들방 platform are all off-limits). */
+   wall row and the raised ondol room platform are all off-limits). */
 const HOME_FLOOR=[
   [120,422],[150,356],[862,356],[905,388],[905,582],[60,582]
 ];
@@ -1013,8 +1013,8 @@ function homeNearest(){
 function refreshHomePrompt(){
   homeCur=homeNearest(); const el=$('prompt');
   if(!homeCur){el.classList.remove('show');return;}
-  const T={ stove:'Cook', gopang:'Store the catch · 고팡', table:'Eat', bed:'Sleep',
-            mask:'Grandmother’s mask', wardrobe:'Change suit', jang:'The crocks · 항아리',
+  const T={ stove:'Cook', gopang:'Store the catch', table:'Eat', bed:'Sleep',
+            mask:'Grandmother’s mask', wardrobe:'Change suit', jang:'The crocks',
             photo:'Family photo', exit:'Step outside' };
   let txt = T[homeCur.type] || '';
   if(homeCur.type==='gramo') txt=(window.HaenyeoMusic&&window.HaenyeoMusic.playing)?'Music player':'Play music';
@@ -1037,34 +1037,34 @@ function doHomeInteract(){
 }
 /* ---- home story & culture interactions (calm, narrative; reuse showFact) ---- */
 const HOME_MASK_LINES=[
-  '“This 왕눈 was your grandmother’s. Sixty winters in cold water, and the glass is still clear.”',
+  '“This old diving mask was your grandmother’s. Sixty winters in cold water, and the glass is still clear.”',
   '“She pressed it into your hands the morning her own could no longer hold it. ‘The sea will teach you the rest.’”',
   '“Some mornings you hold it to your face before the mirror — and you are eight years old again, learning to breathe.”',
 ];
-function homeMaskLine(){ showFact(HOME_MASK_LINES[homeMaskIdx%HOME_MASK_LINES.length], 9, '할머니의 유산 · A grandmother’s keepsake'); homeMaskIdx++; if(typeof tone==='function') tone(392,.12,'sine',.04); }
+function homeMaskLine(){ showFact(HOME_MASK_LINES[homeMaskIdx%HOME_MASK_LINES.length], 9, 'A grandmother’s keepsake'); homeMaskIdx++; if(typeof tone==='function') tone(392,.12,'sine',.04); }
 const HOME_PHOTO_LINES=[
   '“Three generations on the rocks at Seongsan — your grandmother in front, already a sanggun; your mother a shy junggun behind.”',
   '“No one is smiling; the wind was bitter that day. But everyone came home, and that was enough.”',
   '“There is an empty space at the edge of the frame. They always left room for the next diver.”',
 ];
-function homePhotoLine(){ showFact(HOME_PHOTO_LINES[homePhotoIdx%HOME_PHOTO_LINES.length], 9, '가족 · The family'); homePhotoIdx++; if(typeof tone==='function') tone(523,.1,'sine',.04); }
+function homePhotoLine(){ showFact(HOME_PHOTO_LINES[homePhotoIdx%HOME_PHOTO_LINES.length], 9, 'The family'); homePhotoIdx++; if(typeof tone==='function') tone(523,.1,'sine',.04); }
 const HOME_JANG_LINES=[
   '“Soybean paste, salted anchovy, a winter’s worth of kimchi — the crocks breathe slowly in the dark.”',
   '“Lift a lid and the whole yard smells of the sea, slowly turning to gold.”',
 ];
-function homeJangLine(){ showFact(HOME_JANG_LINES[homeJangIdx%HOME_JANG_LINES.length], 7, '항아리 · The crocks'); homeJangIdx++; if(typeof tone==='function') tone(300,.1,'sine',.035); }
+function homeJangLine(){ showFact(HOME_JANG_LINES[homeJangIdx%HOME_JANG_LINES.length], 7, 'The crocks'); homeJangIdx++; if(typeof tone==='function') tone(300,.1,'sine',.035); }
 function homeGopang(){
-  // the 고팡 storeroom — the family elder's domain. Set a catch by for the lean months.
+  // the Store storeroom — the family elder's domain. Set a catch by for the lean months.
   const id=(typeof bestCatchId==='function')?bestCatchId():null;
   if(id && typeof removeOneCatch==='function'){
     const s=SPECIES.find(x=>x.id===id); removeOneCatch(id);
     const won=Math.max(4, Math.round((s?s.value:10)*0.6));
     G.money+=won; const mv=$('moneyV'); if(mv) mv.textContent=G.money;
-    showFact('You salt the '+(s?s.name:'catch')+' and set it on the 고팡 shelf — provision for the lean months. The eldest always kept this room. (+'+won+' won)', 8, '고팡 · The storeroom');
+    showFact('You salt the '+(s?s.name:'catch')+' and set it on the storeroom shelf — provision for the lean months. The eldest always kept this room. (+'+won+' won)', 8, 'The storeroom');
     if(typeof toast==='function') toast('Put by for winter · +'+won+' won');
     if(typeof tone==='function') tone(440,.12,'sine',.04);
   } else {
-    showFact('The 고팡 — the family storeroom, always the eldest’s to keep. Empty-handed today; bring a catch home and set some by.', 8, '고팡 · The storeroom');
+    showFact('The storeroom — always the eldest’s to keep. Empty-handed today; bring a catch home and set some by.', 8, 'The storeroom');
     if(typeof tone==='function') tone(300,.1,'sine',.03);
   }
 }
@@ -1082,7 +1082,7 @@ function buildChange(){
     const c=document.createElement('button');
     c.className='suitcard'+(on?' on':'')+(owned?'':' locked');
     c.innerHTML='<div class="sw '+id+'"></div>'+
-      '<div class="si"><div class="sn">'+s.name+' · '+s.kr+'</div>'+
+      '<div class="si"><div class="sn">'+s.name+'</div>'+
       '<div class="sd">Breath '+s.breath+(owned?'':' · buy at the gear shop ('+s.cost+' won)')+'</div></div>'+
       '<div class="stag">'+(on?'WORN':(owned?'WEAR':'LOCKED'))+'</div>';
     if(owned && !on) c.onclick=()=>{ G.suit=id; tone(440,.12,'sine',.05); toast('Now wearing: '+s.name); buildChange(); };
@@ -1141,7 +1141,7 @@ function mealFor(sel){
   // plain ramyeon is a steady +8s; adding a catch scales bonus with its value
   if(!sel) return {time:8, label:'Plain ramyeon', slow:0};
   const s=SPECIES.find(x=>x.id===sel);
-  return {time:Math.round(10+s.value/3), label:s.kr+' ramyeon', slow:0.18, sp:s};
+  return {time:Math.round(10+s.value/3), label:s.name+' ramyeon', slow:0.18, sp:s};
 }
 function openCook(){
   scene='panel'; panelBg='home'; cookSel=null;
@@ -1158,7 +1158,7 @@ function buildCook(){
   plain.onclick=()=>{cookSel=null;buildCook();}; list.appendChild(plain);
   for(const s of have){
     const c=document.createElement('button'); c.className='chip'+(cookSel===s.id?' sel':'');
-    c.innerHTML='<span class="dot" style="background:'+s.color+'"></span>'+s.kr+' ×'+(G.catch[s.id]||0);
+    c.innerHTML='<span class="dot" style="background:'+s.color+'"></span>'+s.name+' ×'+(G.catch[s.id]||0);
     c.onclick=()=>{cookSel=s.id;buildCook();}; list.appendChild(c);
   }
   const meal=mealFor(cookSel);
@@ -1338,22 +1338,22 @@ let museumCur=null, museumT=0, museumMemIdx=0;
    Positions map onto museum.png (cover-fit); an exhibit is "active" when the
    player stands roughly in its column inside the gallery. */
 const MUSEUM_EXHIBITS=[
-  {id:'flags', x:46, y:132, name:'Jamsugut', ko:'잠수굿 · 영등굿',
+  {id:'flags', x:46, y:132, name:'Jamsugut', ko:'',
    fact:'Each spring the village holds the Jamsugut — a shaman rite to Yeongdeung, goddess of wind and sea — praying for calm water and every diver’s safe return.',
    quote:'“We pray not to conquer the sea, but to come home from it.”'},
-  {id:'nets', x:300, y:256, name:'Nets & Ranks', ko:'망사리 · 계급',
+  {id:'nets', x:300, y:256, name:'Nets & Ranks', ko:'',
    fact:'By skill and breath a diver is ranked hagun, junggun, or sanggun. The sanggun go deepest and longest — yet the catch is shared, so the youngest and the oldest are never left behind.',
    quote:'“The deepest diver eats the same as the youngest.”'},
-  {id:'statue', x:434, y:236, name:'Keeper of Tradition', ko:'해녀상',
+  {id:'statue', x:434, y:236, name:'Keeper of Tradition', ko:'',
    fact:'Jeju’s haenyeo free-dive for shellfish on a single breath — a craft over a thousand years old. ~23,000 dived in the 1960s; today only ~2,700 remain, most over seventy.',
    quote:'“We do not take what the sea cannot spare.”'},
-  {id:'sunset', x:589, y:112, name:'Sumbi-sori', ko:'숨비소리 · 노을', sound:true,
+  {id:'sunset', x:589, y:112, name:'Sumbi-sori', ko:'', sound:true,
    fact:'Surfacing, a haenyeo lets her held breath go in a long whistle — the sumbi-sori. It is the sound of the sea-women: a body saying, I am still here.',
    quote:'“I am still here.”'},
-  {id:'gear', x:709, y:184, name:'Goggles & Taewak', ko:'물안경 · 태왁',
+  {id:'gear', x:709, y:184, name:'Goggles & Taewak', ko:'',
    fact:'No tanks — only goggles, lead weights, a net bag, and the taewak: a buoyant float she rests on between dives and clings to when the water turns rough.',
    quote:'“The taewak is the only thing that waits for you up there.”'},
-  {id:'pottery', x:846, y:316, name:'Onggi Jars', ko:'항아리',
+  {id:'pottery', x:846, y:316, name:'Onggi Jars', ko:'',
    fact:'When the sea closes in winter and storm season, the haenyeo turn to the volcanic fields — farming, and fermenting the harvest in onggi jars. A life split between water and earth.',
    quote:'“Winter belongs to the soil.”'},
 ];
@@ -1385,7 +1385,7 @@ function updateMuseumNet(dt){
       if(typeof tone==='function'){ tone(523,.12,'sine',.04); setTimeout(()=>tone(659,.16,'sine',.04),120); }
       showFact(first ? '“Aigo — quick hands. The net thanks you, and so do I. Sit with us a while.”'
                      : '“Always a help, this one. The sea raised you well.”',
-               7, '할머니 · A grandmother');
+               7, 'A grandmother');
       if(first){ G.eco=(G.eco||0)+8; if(typeof toast==='function') toast('🧶 Helped mend the net · +8 eco'); }
     }
   } else { museumNetCut=Math.max(0, museumNetCut-dt); }
@@ -1418,7 +1418,7 @@ function checkKeeper(){
   if(c.ex>=c.total && c.mem>=3){
     G.cultureKeeper=true; G.eco=(G.eco||0)+30;
     if(typeof tone==='function'){ tone(523,.5,'sine',.05); setTimeout(()=>tone(784,.7,'sine',.05),260); }
-    setTimeout(()=>showFact('You have listened to every voice in this hall. The sea-women’s story now travels with you. (+30 eco · 해녀 문화 지킴이)', 10, '🏛 해녀 문화 지킴이 · Keeper of Tradition'), 400);
+    setTimeout(()=>showFact('You have listened to every voice in this hall. The sea-women’s story now travels with you. (+30 eco)', 10, '🏛 Keeper of Tradition'), 400);
     setTimeout(()=>{ if(typeof toast==='function') toast('🏛 Keeper of Tradition'); }, 900);
   }
 }
@@ -1478,11 +1478,11 @@ function doMuseumInteract(){
   if(!museumCur) return;
   if(museumCur.type==='exit'){ leaveMuseum(); return; }
   if(museumCur.type==='net'){ return; }   // mended just by staying close (handled in updateMuseumNet)
-  if(museumCur.type==='ledger'){ showFact(museumMetaText(), 11, '기록 · 당신의 발자취 · Your impact'); if(typeof tone==='function') tone(440,.1,'sine',.04); return; }
+  if(museumCur.type==='ledger'){ showFact(museumMetaText(), 11, 'Your impact'); if(typeof tone==='function') tone(440,.1,'sine',.04); return; }
   if(museumCur.type==='exhibit'){
     const e=museumCur.ex;
-    const card=e.name+' ('+e.ko+')\n'+e.fact+'\n— '+e.quote;
-    showFact(card, 10, '해녀 문화 · Haenyeo Culture');
+    const card=e.name+'\n'+e.fact+'\n— '+e.quote;
+    showFact(card, 10, 'Haenyeo Culture');
     if(e.sound) playSumbiSori(); else if(typeof tone==='function') tone(560,.1,'sine',.04);
     if(!G.cultureLog[e.id]){ G.cultureLog[e.id]=true; checkKeeper(); }
     return;
@@ -1492,7 +1492,7 @@ function doMuseumInteract(){
     const all = (G.cultureMem>=base.length) ? base.concat(deep) : base;
     const line = all[museumMemIdx % all.length];
     museumMemIdx++;
-    showFact(line, 9, '할머니의 기억 · A grandmother remembers');
+    showFact(line, 9, 'A grandmother remembers');
     if(typeof tone==='function') tone(330,.12,'sine',.035);
     G.cultureMem = Math.min(base.length+deep.length, G.cultureMem+1);
     checkKeeper();
@@ -1653,20 +1653,20 @@ const VENDOR_LINES=[
 // ---- Jeju specialty stalls — walk up to one to introduce the product (educational) ----
 const MARKET_STALLS=[
   // BACK ROW seafood (now reachable; central dried-fish stall is the Sell counter, so skipped)
-  {x:176,y:200,kr:'전복',cn:'鮑魚',      fact:"鮑魚(전복)——海女最珍貴的漁獲,以海帶為食、需數年才能採收。濟州冰冷的洋流讓牠格外鮮美,可生食、煮成鮑魚粥(전복죽)或炭烤。"},
-  {x:344,y:200,kr:'성게·문어',cn:'海膽·章魚', fact:"海膽(성게)與章魚(문어)都是海女的漁獲。海膽金黃的卵是珍味;章魚則汆燙成軟嫩的「숙회」。"},
-  {x:644,y:200,kr:'김·미역',cn:'海苔·海帶', fact:"海苔與海帶(김·미역)採自礁岩。海帶湯(미역국)是生日與產後必喝,象徵滋補與感謝。"},
-  {x:758,y:200,kr:'갈치',cn:'白帶魚',    fact:"白帶魚(갈치)——細長銀亮的濟州名魚,夜裡延繩釣起。最適合炭烤(갈치구이)或燉煮(갈치조림)。"},
+  {x:176,y:200,en:'Abalone',        fact:"Abalone — the haenyeo's most prized catch. It grazes on seaweed and takes years to grow. Jeju's cold currents make it especially sweet: eaten raw, simmered into abalone porridge, or charcoal-grilled."},
+  {x:344,y:200,en:'Urchin & Octopus', fact:"Sea urchin and octopus, both gathered by the haenyeo. The urchin's golden roe is a delicacy; the octopus is briefly blanched until soft and tender."},
+  {x:644,y:200,en:'Gim & Miyeok (Seaweed)', fact:"Laver and kelp, harvested off the reefs. Seaweed soup (miyeok-guk) is eaten on birthdays and after childbirth — a wish for health and a sign of gratitude."},
+  {x:758,y:200,en:'Hairtail',       fact:"Hairtail — a long, silver Jeju fish caught by longline at night. Best charcoal-grilled or braised."},
   // FRONT ROW (land specialties)
-  {x:220,y:400,kr:'흑돼지',cn:'黑豬肉',  fact:"濟州黑豬(흑돼지)——島上著名的傳統黑毛豬,油脂濃郁、肉質有嚼勁,是濟州烤肉的代表。"},
-  {x:344,y:400,kr:'한라봉',cn:'漢拏峰',   fact:"漢拏峰(한라봉)——濟州高級柑橘,頂部有個像肚臍的凸起(名字取自漢拏山)。比一般蜜柑更大更甜,是濟州的招牌名產。"},
-  {x:483,y:400,kr:'표고버섯',cn:'香菇',  fact:"香菇(표고버섯)——在濟州潮濕的森林裡以橡木段栽培,菇傘厚實多肉,用於煮湯與涼拌。"},
-  {x:608,y:400,kr:'녹차',cn:'綠茶',      fact:"綠茶(녹차)——濟州火山土壤與海霧孕育出優質綠茶,是韓國主要的抹茶產區之一。"},
-  {x:740,y:400,kr:'오메기떡',cn:'오메기年糕', fact:"오메기年糕(오메기떡)——濟州的糯小米年糕,外裹紅豆或艾草,口感Q彈,是島上人人喜愛的點心。"},
-  // SIDE stalls (left/right) — per layout: 右上 peanuts, 右下 tangerine, 左下 citrus souvenirs
-  {x:808,y:268,kr:'우도 땅콩',cn:'牛島花生', fact:"牛島花生(우도 땅콩)——濟州外海牛島(우도)的特產小花生,香氣濃、顆粒小,可烤來當零嘴或做成花生冰淇淋。"},
-  {x:808,y:446,kr:'감귤',cn:'柑橘',       fact:"柑橘(감귤)——濟州最日常的蜜柑,冬天整片橘園金黃。香甜好剝,是島上家家戶戶的零嘴(比漢拏峰小巧親民)。"},
-  {x:152,y:446,kr:'감귤 선물',cn:'柑橘伴手禮', fact:"柑橘伴手禮——濟州熱門的伴手禮:漢拏峰巧克力、柑橘果醬與軟糖,裝進小盒帶回家分送親友。"},
+  {x:220,y:400,en:'Black Pork',     fact:"Jeju black pork — the island's famous heritage breed: richly marbled, fatty, with a satisfying chew. The star of Jeju barbecue."},
+  {x:344,y:400,en:'Hallabong',      fact:"Hallabong — a premium Jeju citrus with a little navel-like bump on top (named after Mt. Hallasan). Bigger and sweeter than a common tangerine; a signature island product."},
+  {x:483,y:400,en:'Shiitake',       fact:"Shiitake mushrooms — grown on oak logs in Jeju's humid forests. Thick and meaty, used in soups and cold salads."},
+  {x:608,y:400,en:'Green Tea',      fact:"Green tea — Jeju's volcanic soil and sea mist grow fine leaves; it is one of Korea's main matcha-producing regions."},
+  {x:740,y:400,en:'Omegi-tteok',    fact:"Omegi-tteok — Jeju's chewy millet rice cake, coated in red bean or mugwort. A beloved island sweet."},
+  // SIDE stalls (left/right)
+  {x:808,y:268,en:'Udo Peanuts',    fact:"Udo peanuts — small, fragrant peanuts from Udo islet off Jeju. Roasted as a snack or churned into peanut ice cream."},
+  {x:808,y:446,en:'Tangerine',      fact:"Tangerines — Jeju's everyday mandarin; whole orchards turn gold in winter. Sweet and easy to peel — smaller and friendlier than the hallabong."},
+  {x:152,y:446,en:'Citrus Gifts',   fact:"Citrus gifts — Jeju's favourite souvenirs: hallabong chocolate, tangerine jam and gummies, boxed up to bring home for family and friends."},
 ];
 const MARKET_LANE={x0:200,x1:760,y0:300,y1:560};   // where shoppers roam (the open aisle)
 let marketShoppers=[];
@@ -1731,7 +1731,7 @@ function refreshMarketPrompt(){
   let txt='';
   if(marketCur.type==='sell') txt='Sell catch';
   else if(marketCur.type==='exit') txt='Leave market';
-  else if(marketCur.type==='stall') txt=marketCur.stall.cn+' · 介紹';
+  else if(marketCur.type==='stall') txt=marketCur.stall.en+' · learn more';
   el.textContent=txt; el.classList.add('show');
 }
 function doMarketInteract(){
@@ -2100,9 +2100,9 @@ let bGoal=null, bMod=null, bModEco=0, bHealthStart=0, bRescuedThis=false;   // d
 /* ghost-net wildlife rescue — a creature tangled in washed-up net; hold to cut it free */
 let bRescue=null;
 const RESCUE_KINDS=[
-  {kind:'turtle',  name:'sea turtle', kr:'바다거북', reward:70, fact:"Six of the seven sea-turtle species are endangered — lost nets and lines are a leading cause of death."},
-  {kind:'dolphin', name:'dolphin',    kr:'돌고래',   reward:90, fact:"Dolphins drown when they can't surface, tangled in discarded fishing gear. Freeing one is a rare gift."},
-  {kind:'seabird', name:'seabird',    kr:'가마우지', reward:55, fact:"Seabirds get snared in fishing line and plastic loops; a few quick cuts can save a life."},
+  {kind:'turtle',  name:'sea turtle', kr:'', reward:70, fact:"Six of the seven sea-turtle species are endangered — lost nets and lines are a leading cause of death."},
+  {kind:'dolphin', name:'dolphin',    kr:'',   reward:90, fact:"Dolphins drown when they can't surface, tangled in discarded fishing gear. Freeing one is a rare gift."},
+  {kind:'seabird', name:'seabird',    kr:'', reward:55, fact:"Seabirds get snared in fishing line and plastic loops; a few quick cuts can save a life."},
 ];
 function makeRescue(){
   const k=RESCUE_KINDS[Math.floor(Math.random()*RESCUE_KINDS.length)];
@@ -2307,13 +2307,13 @@ function endBeach(){
 function renderSortItem(){
   const e=sortQueue[sortIdx]; const b=e.item;
   $('sortProg').textContent=(sortIdx+1)+' / '+sortQueue.length;
-  $('sortItem').innerHTML=`<span class="dot" style="background:${b.color};width:16px;height:16px;border-radius:4px"></span> <b>${b.kr}</b> ${b.name} \u00d7${e.n}<br><span style="font-size:12px;color:var(--ink-soft)">Which bin does this go in?</span>`;
+  $('sortItem').innerHTML=`<span class="dot" style="background:${b.color};width:16px;height:16px;border-radius:4px"></span> <b>${b.name}</b> \u00d7${e.n}<br><span style="font-size:12px;color:var(--ink-soft)">Which bin does this go in?</span>`;
   $('sortFeedback').textContent='';
   $('sortNext').classList.add('hidden');
   const bins=$('sortBins'); bins.innerHTML='';
   for(const bin of RECYCLE_BINS){
     const btn=document.createElement('button'); btn.className='chip'; btn.dataset.bin=bin.id;
-    btn.innerHTML=`<span class="dot" style="background:${bin.color}"></span>${bin.kr} \u00b7 ${bin.label}`;
+    btn.innerHTML=`<span class="dot" style="background:${bin.color}"></span>${bin.label}`;
     btn.onclick=()=>pickBin(bin.id);
     bins.appendChild(btn);
   }
@@ -2339,7 +2339,7 @@ function pickBin(binId){
     sortTally.won+=got;
     const correct=recycleBin(b.category);
     if(chosen){ chosen.classList.add('buzz'); }     // soft buzz on the wrong bin
-    $('sortFeedback').innerHTML=`\u2717 Not quite \u2014 ${b.kr} goes in <b>${correct?correct.kr:b.category}</b>. (+${got} won)`;
+    $('sortFeedback').innerHTML=`\u2717 Not quite \u2014 ${b.name} goes in <b>${correct?correct.label:b.category}</b>. (+${got} won)`;
     tone(196,.18,'sine',.045);                    // gentle low buzz, not harsh
   }
   $('sortNext').textContent = (sortIdx>=sortQueue.length-1) ? '\ub9c8\uce68 Finish' : '\ub2e4\uc74c Next \u25b6';

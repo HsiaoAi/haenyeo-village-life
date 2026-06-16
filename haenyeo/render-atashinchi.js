@@ -171,7 +171,7 @@ function motifWave(g,x,y,s,fill,crest){
 }
 
 /* dol hareubang — simple cartoon stone grandfather */
-/* dol hareubang (돌하르방) — Jeju's basalt grandfather: mushroom hat, bulging
+/* dol hareubang (dol hareubang) — Jeju's basalt grandfather: mushroom hat, bulging
    eyes, big garlic nose, closed mouth, both hands on the belly, porous black rock */
 function drawHareubang(g,x,y,s){
   g.save();g.translate(x,y);g.scale(s,s);
@@ -204,7 +204,7 @@ function drawHareubang(g,x,y,s){
   g.fillStyle=base;g.strokeStyle=SINK;g.lineWidth=3;
   g.beginPath();g.arc(0,-41,12.5,0,7);fillStroke(g);
   pits(0,-40,10,10,18,99);
-  // ---- rounded helmet hat (벙거지) — dome cap + slightly flared brim ----
+  // ---- rounded helmet hat (hat) — dome cap + slightly flared brim ----
   g.fillStyle=baseL;g.strokeStyle=SINK;g.lineWidth=3;
   g.beginPath();
   g.moveTo(-13,-49);
@@ -330,7 +330,7 @@ let villageBG=null, shopBG=null, homeBG=null, marketBG=null;
 function bWindow(b){return {x:b.x+b.w*0.15,y:b.y+b.h*0.40+8};}
 function bDoor(b){return {x:b.x+b.w/2,y:b.y+b.h};}
 
-/* batdam (밭담) — Jeju dry-stacked dark basalt field wall: irregular stones,
+/* batdam (batdam) — Jeju dry-stacked dark basalt field wall: irregular stones,
    visible gaps & holes, no mortar */
 function drawWall(g,x,y,w,h){
   const rng=mulberry32(((x*13+y*7)|0)+5);
@@ -715,7 +715,7 @@ function drawModernStoneHouse(g,b){
     g.fillStyle=MIN.gold;g.beginPath();g.arc(bx,by,1.5,0,7);g.fill();}
   g.restore();
 }
-/* a Korean pojangmacha (포장마차) — raised & open for business after 17:00, folded
+/* a Korean pojangmacha (Pojangmacha) — raised & open for business after 17:00, folded
    down into a tarp bundle during the day (just like the real street stalls). */
 function drawPojangmacha(g,b){
   const raised = (typeof kitchenOpen==='function') ? kitchenOpen()
@@ -802,13 +802,13 @@ function drawPojangmachaUp(g,b){
   g.restore();
   g.strokeStyle=woodD; g.lineWidth=2.4; rr(g,wx,wy,ww,wh,4); g.stroke();
   g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1.4; g.beginPath(); g.moveTo(wx+4,wy+4); g.lineTo(wx+ww*0.4,wy+4); g.stroke();
-  // ---- navy noren (제주 해녀마을) on the right, with haenyeo + shell ----
+  // ---- navy noren (Jeju Haenyeo Village) on the right, with haenyeo + shell ----
   const nx=x+w-25, ny=topY+13, nw=21, nh=h*0.42;
   g.fillStyle=navy; g.strokeStyle=ink; g.lineWidth=1.6; rr(g,nx,ny,nw,nh,2); fillStroke(g);
   g.strokeStyle='rgba(255,255,255,.16)'; g.lineWidth=1; for(let s=1;s<3;s++){ g.beginPath(); g.moveTo(nx+s*nw/3,ny+nh*0.5); g.lineTo(nx+s*nw/3,ny+nh); g.stroke(); }
   g.fillStyle='rgba(238,244,255,.92)'; g.beginPath(); g.arc(nx+6,ny+9,3,Math.PI*0.9,Math.PI*0.1,true); g.lineTo(nx+9,ny+12); g.lineTo(nx+3,ny+12); g.closePath(); g.fill();   // haenyeo
   g.strokeStyle='rgba(238,244,255,.85)'; g.lineWidth=1.1; g.beginPath(); g.arc(nx+15,ny+10,3,Math.PI,0); g.stroke(); for(let r=0;r<3;r++){ g.beginPath(); g.moveTo(nx+15,ny+10); g.lineTo(nx+13+r*2,ny+7.4); g.stroke(); }   // shell
-  // ---- rooftop signboard: 포장마차 + wave + waving haenyeo mascot ----
+  // ---- rooftop signboard: Pojangmacha + wave + waving haenyeo mascot ----
   const sgw=Math.min(86,fw-4), sgx=cx-sgw/2, sgy=y-8, sgh=15;
   g.strokeStyle=woodD; g.lineWidth=2.2; g.beginPath(); g.moveTo(sgx+10,sgy+sgh); g.lineTo(sgx+10,topY+1); g.moveTo(sgx+sgw-10,sgy+sgh); g.lineTo(sgx+sgw-10,topY+1); g.stroke();
   inked(g,cream,2); rr(g,sgx,sgy,sgw,sgh,3); fillStroke(g);
@@ -818,8 +818,8 @@ function drawPojangmachaUp(g,b){
   g.fillStyle='#cfe0ee'; g.beginPath(); g.arc(mhx-0.5,mhy-0.4,2,0,7); g.fill();
   g.strokeStyle='#3a4658'; g.lineWidth=1.4; g.beginPath(); g.moveTo(mhx+3,mhy-2); g.lineTo(mhx+6,mhy-5+Math.sin(tnow*4)*1); g.stroke();   // waving
   g.fillStyle='#c2461f'; g.font='700 10px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='middle';
-  g.fillText('포장마차', cx-4, sgy+sgh/2+0.5);
-  // ---- red paper lantern (맛있수다) swaying at the left pole ----
+  g.fillText('Pojangmacha', cx-4, sgy+sgh/2+0.5);
+  // ---- red paper lantern (tasty) swaying at the left pole ----
   const lny=topY+9, sway=Math.sin(tnow*1.4)*1.3, lnx=fx0-2+sway;
   g.strokeStyle=woodD; g.lineWidth=1.3; g.beginPath(); g.moveTo(fx0+1,topY-3); g.lineTo(lnx,lny-7); g.stroke();
   g.save(); g.translate(lnx,lny);
@@ -828,22 +828,22 @@ function drawPojangmachaUp(g,b){
   g.strokeStyle='rgba(0,0,0,.22)'; g.lineWidth=0.8; for(let s=-1;s<=1;s++){ g.beginPath(); g.moveTo(s*3,-7.5); g.lineTo(s*3,7.5); g.stroke(); }
   g.strokeStyle='#f0c23a'; g.lineWidth=1.3; g.beginPath(); g.moveTo(-2,8.5); g.lineTo(-2,11.5); g.moveTo(2,8.5); g.lineTo(2,11.5); g.stroke();
   g.restore();
-  // ---- 영업중 plaque between window and noren ----
+  // ---- open plaque between window and noren ----
   const ogx=wx+ww+3, ogy=topY+15;
   g.strokeStyle=woodD; g.lineWidth=1.2; g.beginPath(); g.moveTo(ogx+6,topY+10); g.lineTo(ogx+6,ogy); g.stroke();
   inked(g,'#3a4658',1.6); rr(g,ogx,ogy,13,17,2); fillStroke(g);
   g.fillStyle='#ffd23a'; g.font='700 6px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='middle';
-  g.fillText('영업', ogx+6.5, ogy+6); g.fillText('중♡', ogx+6.5, ogy+12);
+  g.fillText('OPEN', ogx+6.5, ogy+6); g.fillText('♡', ogx+6.5, ogy+12);
   // ---- steam wisps from the top ----
   g.strokeStyle='rgba(245,240,225,.5)'; g.lineWidth=2;
   for(let i=0;i<2;i++){ const sxp=fx0+16+i*10; g.beginPath(); g.moveTo(sxp,topY-1); g.quadraticCurveTo(sxp-5+Math.sin(tnow+i)*3,topY-11,sxp+Math.sin(tnow*1.3+i)*2,topY-20); g.stroke(); }
-  // ---- A-frame chalkboard (오늘의 메뉴) on the sand, left of the tent ----
+  // ---- A-frame chalkboard (today's menu) on the sand, left of the tent ----
   const cbx=x-24, cby=baseY-28, cbw=22, cbh=29;
   g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(cbx+cbw/2,baseY+1,15,4,0,0,7); g.fill();
   g.strokeStyle=woodD; g.lineWidth=2.2; g.beginPath(); g.moveTo(cbx+3,cby+cbh-2); g.lineTo(cbx,baseY); g.moveTo(cbx+cbw-3,cby+cbh-2); g.lineTo(cbx+cbw,baseY); g.stroke();
   inked(g,'#33291f',2); rr(g,cbx,cby,cbw,cbh,2); fillStroke(g);
   g.fillStyle='#dfeaae'; g.font='700 5px "Gowun Batang", serif'; g.textAlign='center'; g.textBaseline='top';
-  g.fillText('오늘의', cbx+cbw/2, cby+3); g.fillText('메뉴', cbx+cbw/2, cby+9);
+  g.fillText('TODAY', cbx+cbw/2, cby+3); g.fillText('MENU', cbx+cbw/2, cby+9);
   g.fillStyle='#e0884a'; for(let mi=0;mi<3;mi++){ g.beginPath(); g.arc(cbx+5,cby+17+mi*4,1.3,0,7); g.fill(); }
   g.strokeStyle='#4f8fb0'; g.lineWidth=1; g.beginPath(); g.moveTo(cbx+2,cby+cbh-3); g.quadraticCurveTo(cbx+cbw/2,cby+cbh-6,cbx+cbw-2,cby+cbh-3); g.stroke();
   // ---- soju crate + orange tewak float, front-right ----
@@ -1071,14 +1071,14 @@ function drawMuseumMarkers(){
     ctx.strokeStyle=MIN.ink; ctx.lineWidth=1; for(let yy=-10;yy<=2;yy+=4){ ctx.beginPath();ctx.moveTo(-10,yy);ctx.lineTo(10,yy);ctx.stroke(); }
     ctx.globalAlpha=0.35+0.5*glow; ctx.fillStyle=MIN.gold; ctx.beginPath(); ctx.arc(0,-4,2.6,0,7); ctx.fill(); ctx.globalAlpha=1;
     ctx.restore();
-    tag('기록 Ledger', L.x, L.y-28, 9, MIN.gold);
+    tag('Ledger', L.x, L.y-28, 9, MIN.gold);
   }
 }
-/* a quiet 도감 counter, top-left */
+/* a quiet log counter, top-left */
 function drawCultureLog(){
   if(typeof cultureCounts!=='function') return;
   const c=cultureCounts();
-  const txt='해녀 문화 도감  '+c.ex+'/'+c.total+'  ·  기억 '+Math.min(c.mem,6);
+  const txt='Culture Log  '+c.ex+'/'+c.total+'  ·  memories '+Math.min(c.mem,6);
   ctx.font='600 12px "Gowun Batang",serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
   const w=ctx.measureText(txt).width+ (G.cultureKeeper?54:18);
   inked(ctx,'rgba(20,40,48,.82)',2); rr(ctx,14,46,w,26,9); fillStroke(ctx);
@@ -1430,7 +1430,7 @@ function buildVillageBG(){
     // ---- a cosy beach corner: parasol + towel + a wooden bench ----
     // (parasol · towel · bench and the robot & dog are drawn live in drawVillage,
     //  so the evening movie night can clear the beach corner)
-    // the bulteok fire-shelter on the sand (the 포장마차 is drawn live in drawVillage,
+    // the bulteok fire-shelter on the sand (the Pojangmacha is drawn live in drawVillage,
     //  since it folds/raises with the clock and can't be baked into the static BG)
     const bt=buildings.find(b=>b.name==='bulteok'); if(bt) drawBuilding(g,bt);
   })();
@@ -1474,7 +1474,7 @@ function drawBeachCompanions(t){
     ctx.strokeStyle=MIN.ink;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(hx1,hy1);ctx.lineTo(hx2,hy2);ctx.stroke();
     ctx.strokeStyle='#9c6a3e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(hx1,hy1);ctx.lineTo(hx2,hy2);ctx.stroke();
   } else if(tm>=1020||tm<180){        // 17:00 → 3:00 — drive-in beach movie, on late into the night
-    // ---- screen on two posts, shifted left so it doesn't overlap the 포장마차 on the right ----
+    // ---- screen on two posts, shifted left so it doesn't overlap the Pojangmacha on the right ----
     ctx.save(); ctx.translate(-52,0);
     inked(ctx,'#5a3a22',2.4);rr(ctx,96,498,8,60,2);fillStroke(ctx);rr(ctx,236,498,8,60,2);fillStroke(ctx);
     inked(ctx,'#11161f',3);rr(ctx,84,452,168,92,4);fillStroke(ctx);
@@ -1908,7 +1908,7 @@ function drawVillage(){
   ctx.restore();
   drawSea();
   drawBeachCompanions(tc);   // robot + dog on the sand; they head home at dusk
-  // the 포장마차 on the sand — folded under the bulteok by day, raised beside it after 17:00
+  // the Pojangmacha on the sand — folded under the bulteok by day, raised beside it after 17:00
   { if(typeof pojangRect==='function') drawPojangmacha(ctx, pojangRect()); }
   // village pets — cat & Jeju dog wandering the lanes
   if(typeof PETS!=='undefined'){ for(const p of PETS){
@@ -1959,7 +1959,7 @@ function drawVillage(){
     inked(ctx,i%2?MIN.gold:MIN.verm,1.4);ctx.beginPath();
     ctx.moveTo(fx-3,fy+2);ctx.quadraticCurveTo(fx,fy-fh,fx+3,fy+2);ctx.closePath();fillStroke(ctx);}
   ctx.fillStyle='#fff4d0';ctx.beginPath();ctx.arc(fc.x,fc.y-1,2.5,0,7);ctx.fill();
-  // the 포장마차 window glows warm from inside in the evening
+  // the Pojangmacha window glows warm from inside in the evening
   { const pm=(typeof pojangRect==='function')?pojangRect():null;
     if(pm && (typeof kitchenOpen==='function'?kitchenOpen():G.time>=17*60) && nt>0.05){ const gx=pm.x+pm.w*0.62, gy=pm.y+pm.h*0.36;
       ctx.save(); ctx.globalCompositeOperation='screen';
@@ -2511,7 +2511,7 @@ function drawCrate(g,x,y,w,h,col,kind){
   } else if(kind==='chili'){
     for(let i=0;i<Math.max(5,(w*h)/70);i++){const fx=x+3+((i*9)%(w-6)),fy=y+3+((i*13)%(h-6));
       inked(g,i%2?MIN.red:MIN.verm,1.1);g.beginPath();g.ellipse(fx,fy,2,4,(i%4)*0.5,0,7);fillStroke(g);}
-  } else {   // tangerines (귤) — neat double row
+  } else {   // tangerines (tangerine) — neat double row
     const r=h*0.26, n1=Math.max(4,Math.round(w/13));
     for(let i=0;i<n1;i++) tangerine(x+w*0.13+i*(w*0.74/(n1-1)), y+h*0.40, r*0.9);        // back row
     for(let i=0;i<n1-1;i++) tangerine(x+w*0.22+i*(w*0.74/(n1-1)), y+h*0.74, r);          // front row
@@ -2661,7 +2661,7 @@ function iceBase(g,x,y,w,h){
   g.fillStyle='#cad9e1'; const rng=mulberry32((x*5+y)|0);
   for(let i=0;i<w*h/30;i++){ g.beginPath(); g.arc(x+4+rng()*(w-8),y+4+rng()*(h-8),1+rng()*1.3,0,7); g.fill(); }
 }
-function drawAbaloneTray(g,x,y,w,h){            // 전복 abalone on ice — ridged golden shells
+function drawAbaloneTray(g,x,y,w,h){            // Abalone abalone on ice — ridged golden shells
   iceBase(g,x,y,w,h);
   const shell=(cx,cy,s,rot)=>{
     g.save(); g.translate(cx,cy); g.rotate(rot); g.scale(s,s); g.lineJoin='round';
@@ -2678,7 +2678,7 @@ function drawAbaloneTray(g,x,y,w,h){            // 전복 abalone on ice — rid
   shell(x+18,cy-3,1.0,-0.16); shell(x+38,cy-4,1.06,0.10); shell(x+58,cy-3,1.0,-0.10); shell(x+76,cy-2,0.94,0.22);
   shell(x+28,cy+5,1.05,0.14); shell(x+50,cy+5,1.0,-0.18); shell(x+70,cy+5,0.98,0.16);
 }
-function drawUrchinTray(g,x,y,w,h){             // 성게 sea urchin
+function drawUrchinTray(g,x,y,w,h){             // Urchin sea urchin
   iceBase(g,x,y,w,h); const n=Math.max(3,Math.floor(w/26));
   for(let i=0;i<n;i++){ const ux=x+14+i*((w-22)/n), uy=y+h*0.5;
     g.strokeStyle='#2c2230'; g.lineWidth=1.3; g.lineCap='round';
@@ -2686,7 +2686,7 @@ function drawUrchinTray(g,x,y,w,h){             // 성게 sea urchin
     inked(g,'#3a2c38',1.4); g.beginPath(); g.ellipse(ux,uy,5,4,0,0,7); fillStroke(g);
     g.fillStyle='#e8924a'; g.beginPath(); g.arc(ux,uy,2,0,7); g.fill(); }
 }
-function drawOctopusTray(g,x,y,w,h){            // 문어 coiled red octopus with suckered arms
+function drawOctopusTray(g,x,y,w,h){            // Octopus coiled red octopus with suckered arms
   iceBase(g,x,y,w,h);
   const octo=(cx,cy,s,col)=>{
     g.save(); g.translate(cx,cy); g.scale(s,s); g.lineJoin='round'; g.lineCap='round';
@@ -2708,7 +2708,7 @@ function drawOctopusTray(g,x,y,w,h){            // 문어 coiled red octopus wit
   octo(x+w*0.33, y+h*0.46, 1.16, '#d9583a');
   octo(x+w*0.67, y+h*0.46, 1.0, '#e26a4d');
 }
-function drawHairtailTray(g,x,y,w,h){           // 갈치 long slender silver hairtail
+function drawHairtailTray(g,x,y,w,h){           // Hairtail long slender silver hairtail
   iceBase(g,x,y,w,h);
   const fish=(fy,len,curve)=>{
     const x0=x+6, x1=x+6+len, mx=(x0+x1)/2;
@@ -2730,7 +2730,7 @@ function drawHairtailTray(g,x,y,w,h){           // 갈치 long slender silver ha
   fish(y+h*0.55, w-12, 0.7);
   fish(y+h*0.78, w-16, -0.4);
 }
-function drawMushroomBasket(g,x,y,w){           // 표고버섯 pyogo shiitake
+function drawMushroomBasket(g,x,y,w){           // Shiitake pyogo shiitake
   inked(g,'#b0843e',2.2); g.beginPath(); g.moveTo(x,y); g.lineTo(x+w,y); g.lineTo(x+w-5,y+16); g.lineTo(x+5,y+16); g.closePath(); fillStroke(g);
   g.strokeStyle='rgba(80,54,20,.5)'; g.lineWidth=1; for(let i=x+5;i<x+w;i+=6){ g.beginPath(); g.moveTo(i,y+2); g.lineTo(i-2,y+14); g.stroke(); }
   for(const[fx,dy] of [[0.24,-2],[0.5,-3],[0.76,-2],[0.37,-10],[0.63,-11]]){ const mx=x+w*fx, my=y+dy;
@@ -2738,7 +2738,7 @@ function drawMushroomBasket(g,x,y,w){           // 표고버섯 pyogo shiitake
     g.fillStyle='rgba(255,240,210,.22)'; g.beginPath(); g.ellipse(mx-1.5,my-1.5,2.6,1.8,0,0,7); g.fill();
     g.strokeStyle='#e9d8b5'; g.lineWidth=0.7; for(let k=-2;k<=2;k++){ g.beginPath(); g.moveTo(mx,my); g.lineTo(mx+k*2.2,my+3.4); g.stroke(); } }
 }
-function drawTeaDisplay(g,x,y){                 // 녹차 green tea
+function drawTeaDisplay(g,x,y){                 // Green Tea green tea
   inked(g,'#7a5230',2); rr(g,x-4,y+4,56,9,2); fillStroke(g);
   inked(g,'#6aa647',1.6); g.beginPath(); g.ellipse(x+12,y+4,13,8,0,Math.PI,0); fillStroke(g);
   g.fillStyle='#8cc163'; g.beginPath(); g.ellipse(x+12,y+3,9,5,0,Math.PI,0); g.fill();
@@ -2748,7 +2748,7 @@ function drawTeaDisplay(g,x,y){                 // 녹차 green tea
     g.fillStyle='#cfe8c4'; g.beginPath(); g.arc(tx+6.5,y-2,3,0,7); g.fill();
     g.fillStyle=MIN.greenD; g.beginPath(); g.arc(tx+6.5,y-2,1.3,0,7); g.fill(); }
 }
-function drawTteokTray(g,x,y,w){                // 오메기떡 rice cakes
+function drawTteokTray(g,x,y,w){                // Omegi-tteok rice cakes
   inked(g,'#9c6b3a',2); rr(g,x,y,w,8,2); fillStroke(g);
   const n=Math.max(3,Math.floor(w/14));
   for(let i=0;i<n;i++){ const cx=x+8+i*((w-12)/n);
@@ -2772,20 +2772,20 @@ function drawJars(g,x,y){                        // honey / citrus marmalade jar
     g.fillStyle='rgba(255,255,255,.4)'; g.fillRect(jx+2.5,y+3,2,8);
     inked(g,'#b85a48',1.6); rr(g,jx-1,y-5,14,4,1.5); fillStroke(g); }
 }
-function drawGimStack(g,x,y){                    // 김 / 미역 dried seaweed
+function drawGimStack(g,x,y){                    // Gim / Miyeok dried seaweed
   for(let i=0;i<4;i++){ inked(g,i%2?'#2a3a30':'#1f3328',1.6); rr(g,x-i*1.2,y-i*4,30,5,1.5); fillStroke(g);
     g.fillStyle='rgba(120,160,140,.18)'; g.fillRect(x-i*1.2+3,y-i*4+1,24,1.4); }
   g.strokeStyle='#2f5a3a'; g.lineWidth=3; g.lineCap='round';
   g.beginPath(); g.moveTo(x+34,y-4); g.quadraticCurveTo(x+44,y-12,x+40,y+2); g.quadraticCurveTo(x+50,y-6,x+44,y+4); g.stroke();
 }
-function drawPeanutSacks(g,x,y){                 // 우도 땅콩 Udo peanuts
+function drawPeanutSacks(g,x,y){                 // Udo Peanuts Udo peanuts
   drawSack(g,x,y,12,'#d9b483','peanut');
   drawSack(g,x+26,y+3,10,'#cfa874','peanut');
   for(let i=0;i<5;i++){ const px=x+6+i*5, py=y+20;
     inked(g,'#cda069',1); g.save(); g.translate(px,py); g.rotate(i*0.7);
     g.beginPath(); g.ellipse(0,0,3,1.6,0,0,7); fillStroke(g); g.restore(); }
 }
-function drawSyrupJars(g,x,y){                   // 청 citrus-syrup jars (green/orange)
+function drawSyrupJars(g,x,y){                   // Syrup citrus-syrup jars (green/orange)
   const cols=['#e6892a','#d8a72a','#7fae3a'];
   for(let i=0;i<3;i++){ const jx=x+i*15;
     inked(g,'#f2e3c0',1.8); rr(g,jx,y-4,12,20,3); fillStroke(g);
@@ -2838,62 +2838,62 @@ function buildMarketBG(){
     // warm striped awnings: orange/cream over the left, yellow/cream over the right
     drawAwning(g,bx-6,158,366,22,MIN.verm,'#f7efdc');
     drawAwning(g,bx+356,158,bw-350,22,MIN.gold,'#f7efdc');
-    // 1) 해조류 seaweed / gim stacks
+    // 1) Seaweed seaweed / gim stacks
     drawGimStack(g,bx+12,by+16);
-    drawStallSign(g,bx+34,by+44,'해조류',MIN.greenD);
-    // 2) SEAFOOD on ice — 전복 abalone + 문어 octopus
+    drawStallSign(g,bx+34,by+44,'Seaweed',MIN.greenD);
+    // 2) SEAFOOD on ice — Abalone abalone + Octopus octopus
     drawAbaloneTray(g,bx+84,by+8,90,28);
     drawOctopusTray(g,bx+182,by+8,90,30);
     drawStallSign(g,bx+178,182,'SEAFOOD',MIN.blue);
-    drawStallSign(g,bx+128,by+44,'전복',MIN.blue);
-    drawStallSign(g,bx+226,by+44,'문어',MIN.blue);
-    // 3) 건어물 dried fish hanging on a line — silvery fish + brown croaker
+    drawStallSign(g,bx+128,by+44,'Abalone',MIN.blue);
+    drawStallSign(g,bx+226,by+44,'Octopus',MIN.blue);
+    // 3) Dried Fish dried fish hanging on a line — silvery fish + brown croaker
     drawHangingDried(g,bx+288,178,46,'fish');
     drawHangingDried(g,bx+340,178,44,'croaker');
     // a small green garnish pile on the counter beneath the dried fish
     g.fillStyle=MIN.greenD; for(let i=0;i<8;i++){ const gx=bx+312+((i*7)%30), gy=by+10+((i*5)%6); g.beginPath(); g.ellipse(gx,gy,3,1.6,(i%3)*0.7,0,7); g.fill(); }
     g.fillStyle=MIN.green; for(let i=0;i<5;i++){ const gx=bx+318+((i*8)%22); g.beginPath(); g.ellipse(gx,by+9,2.4,1.3,(i%2)*0.8,0,7); g.fill(); }
-    drawStallSign(g,bx+334,by+44,'건어물',MIN.gold);
-    // 4) 갈치 hairtail on ice
+    drawStallSign(g,bx+334,by+44,'Dried Fish',MIN.gold);
+    // 4) Hairtail hairtail on ice
     drawHairtailTray(g,bx+396,by+8,104,30);
-    drawStallSign(g,bx+448,by+44,'갈치',MIN.teal);
-    // 5) 녹차 green tea
+    drawStallSign(g,bx+448,by+44,'Hairtail',MIN.teal);
+    // 5) Green Tea green tea
     drawTeaDisplay(g,bx+516,by+18);
-    drawStallSign(g,bx+532,by+44,'녹차',MIN.greenD);
-    // 6) 청 citrus-syrup jars
+    drawStallSign(g,bx+532,by+44,'Green Tea',MIN.greenD);
+    // 6) Syrup citrus-syrup jars
     drawSyrupJars(g,bx+588,by+12);
-    drawStallSign(g,bx+602,by+44,'청',MIN.verm);
+    drawStallSign(g,bx+602,by+44,'Syrup',MIN.verm);
   })();
-  // ===== LEFT COLUMN — 성게 urchin / 우도 땅콩 peanuts / 표고버섯 mushroom =====
+  // ===== LEFT COLUMN — Urchin urchin / Udo Peanuts peanuts / Shiitake mushroom =====
   (function(){
     const x0=MARKET.x0;
     inked(g,'#7a5230',2.4);g.beginPath();g.rect(x0,150,112,H-150);fillStroke(g);
     g.fillStyle='rgba(0,0,0,.10)';g.fillRect(x0+104,150,8,H-150);
     drawAwning(g,x0-4,168,124,24,MIN.blue,'#f7efdc');
-    drawUrchinTray(g,x0+10,224,94,28);         // 성게 sea urchin on ice
-    drawStallSign(g,x0+56,266,'성게',MIN.blue);
-    drawPeanutSacks(g,x0+24,338);              // 우도 땅콩 peanuts
-    drawStallSign(g,x0+56,388,'우도 땅콩',MIN.gold);
-    drawMushroomBasket(g,x0+22,456,68);        // 표고버섯 shiitake mushrooms
-    drawStallSign(g,x0+56,486,'표고버섯',MIN.greenD);
+    drawUrchinTray(g,x0+10,224,94,28);         // Urchin sea urchin on ice
+    drawStallSign(g,x0+56,266,'Urchin',MIN.blue);
+    drawPeanutSacks(g,x0+24,338);              // Udo Peanuts peanuts
+    drawStallSign(g,x0+56,388,'Udo Peanuts',MIN.gold);
+    drawMushroomBasket(g,x0+22,456,68);        // Shiitake shiitake mushrooms
+    drawStallSign(g,x0+56,486,'Shiitake',MIN.greenD);
   })();
-  // ===== RIGHT COLUMN — 흑돼지 pork / 감귤 초콜릿 / 꿀·잼 / 오메기떡 =====
+  // ===== RIGHT COLUMN — Black Pork pork / Citrus Choc / Honey·Jam / Omegi-tteok =====
   (function(){
     const x1=MARKET.x1-112;
     inked(g,'#7a5230',2.4);g.beginPath();g.rect(x1,150,112,H-150);fillStroke(g);
     g.fillStyle='rgba(0,0,0,.10)';g.fillRect(x1,150,8,H-150);
     drawAwning(g,x1-8,168,124,24,MIN.teal,'#f7efdc');
-    inked(g,'#5e3c22',2.2);rr(g,x1+8,228,96,30,3);fillStroke(g);   // 흑돼지 black pork
+    inked(g,'#5e3c22',2.2);rr(g,x1+8,228,96,30,3);fillStroke(g);   // Black Pork black pork
     drawPorkSlab(g,x1+14,232);drawPorkSlab(g,x1+40,234);drawPorkSlab(g,x1+66,232);
-    drawStallSign(g,x1+56,210,'흑돼지',MIN.red);
-    drawSnackBoxes(g,x1+18,312);               // 감귤 초콜릿 tangerine chocolate
-    drawStallSign(g,x1+56,360,'감귤 초콜릿',MIN.verm);
-    drawJars(g,x1+26,398);                     // 꿀 honey + 잼/청 jam
-    drawStallSign(g,x1+56,432,'꿀 · 잼',MIN.gold);
-    drawTteokTray(g,x1+22,488,64);             // 오메기떡 rice cakes
-    drawStallSign(g,x1+56,500,'오메기떡',MIN.plum);
+    drawStallSign(g,x1+56,210,'Black Pork',MIN.red);
+    drawSnackBoxes(g,x1+18,312);               // Citrus Choc tangerine chocolate
+    drawStallSign(g,x1+56,360,'Citrus Choc',MIN.verm);
+    drawJars(g,x1+26,398);                     // Honey honey + Jam/Syrup jam
+    drawStallSign(g,x1+56,432,'Honey · Jam',MIN.gold);
+    drawTteokTray(g,x1+22,488,64);             // Omegi-tteok rice cakes
+    drawStallSign(g,x1+56,500,'Omegi-tteok',MIN.plum);
   })();
-  // ===== CENTER — Migyeong's pink-awning stall: 한라봉 hallabong (also the sell counter) =====
+  // ===== CENTER — Migyeong's pink-awning stall: Hallabong hallabong (also the sell counter) =====
   const c=sellCounter;
   drawAwning(g,c.x-12,c.y-42,c.w+24,24,MIN.plum,'#f7efdc');   // pink/cream awning
   g.strokeStyle=MIN.ink;g.lineWidth=2;g.beginPath();g.moveTo(c.x+6,c.y-20);g.lineTo(c.x+6,c.y);g.moveTo(c.x+c.w-6,c.y-20);g.lineTo(c.x+c.w-6,c.y);g.stroke();
@@ -2902,14 +2902,14 @@ function buildMarketBG(){
   // slim ice strip at the back of the counter (Migyeong still weighs your catch here)
   g.fillStyle='#dfeaf0';rr(g,c.x+12,c.y+27,c.w-24,13,4);g.fill();
   g.fillStyle='#c7d6df';for(let i=0;i<34;i++){g.beginPath();g.arc(c.x+18+i*((c.w-34)/34),c.y+33+((i%3)-1)*2.2,1.3,0,7);g.fill();}
-  // 한라봉 piled along the front — bumpy-topped premium tangerines
+  // Hallabong piled along the front — bumpy-topped premium tangerines
   for(let i=0;i<6;i++){ const hx=c.x+36+i*((c.w-66)/5), hy=c.y+8;
     g.fillStyle='rgba(20,12,8,.14)';g.beginPath();g.ellipse(hx,hy+11,12,4,0,0,7);g.fill();
     inked(g,'#ef9f33',2.2);g.beginPath();g.arc(hx,hy,11,0,7);fillStroke(g);
     g.fillStyle='#f6b657';g.beginPath();g.arc(hx-3,hy-3,4.4,0,7);g.fill();
     inked(g,'#ef9f33',1.8);g.beginPath();g.arc(hx,hy-9,4.1,0,7);fillStroke(g);            // hallabong knob
     g.fillStyle=MIN.greenD;g.beginPath();g.ellipse(hx+3,hy-12,3.1,1.6,0.7,0,7);g.fill(); }
-  drawStallSign(g,c.x+c.w/2,c.y+c.h+3,'한라봉',MIN.plum);
+  drawStallSign(g,c.x+c.w/2,c.y+c.h+3,'Hallabong',MIN.plum);
   drawPriceSign(g,c.x+c.w-16,c.y-10,MIN.verm);
   // glass arcade ceiling — pale skylight mullions behind the stalls
   g.strokeStyle='rgba(120,142,154,.45)';g.lineWidth=1.1;
@@ -3552,16 +3552,16 @@ function buildHomeBG(){
     g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1.4; for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(wx,wy+wh*0.66+i*5); g.lineTo(wx+ww,wy+wh*0.66+i*5); g.stroke(); }
     g.restore();
     g.strokeStyle='#6e4a2a'; g.lineWidth=3; g.beginPath(); g.moveTo(wx+ww/2,wy); g.lineTo(wx+ww/2,wy+wh); g.moveTo(wx,wy+wh/2); g.lineTo(wx+ww,wy+wh/2); g.stroke(); })();
-  // 고팡 wooden door (above the onggi stack, left-center)
+  // Store wooden door (above the onggi stack, left-center)
   (function(){ const dx=300,dy=150,dw=92,dh=140; inked(g,'#6e4a2a',2.8); rr(g,dx,dy,dw,dh,3); fillStroke(g);
     g.strokeStyle='rgba(40,26,12,.5)'; g.lineWidth=1.6; for(let i=1;i<3;i++){ g.beginPath(); g.moveTo(dx+i*dw/3,dy+4); g.lineTo(dx+i*dw/3,dy+dh-4); g.stroke(); }
     inked(g,MIN.gold,1.6); g.beginPath(); g.arc(dx+dw-14,dy+dh*0.5,3.2,0,7); fillStroke(g);
-    g.fillStyle='#3a2716'; g.font='700 12px "Gowun Batang",serif'; g.textAlign='center'; g.fillText('고팡',dx+dw/2,dy+22); })();
+    g.fillStyle='#3a2716'; g.font='700 12px "Gowun Batang",serif'; g.textAlign='center'; g.fillText('Store',dx+dw/2,dy+22); })();
   // family photo on the wall (right of the window)
   (function(){ const px=566,py=150,pw=70,ph=56; inked(g,'#6e4a2a',2.6); rr(g,px-4,py-4,pw+8,ph+8,3); fillStroke(g);
     g.fillStyle='#cdb89a'; rr(g,px,py,pw,ph,2); g.fill(); g.fillStyle='#b89e7e'; g.fillRect(px,py+ph*0.66,pw,ph*0.34);
     g.fillStyle='#5e4a38'; for(let i=0;i<3;i++){ const fx=px+18+i*16; g.beginPath(); g.arc(fx,py+24,4,0,7); g.fill(); g.fillRect(fx-3,py+27,6,16); } })();
-  // hanging fishing net + 왕눈 mask + an orange taewak (far-left wall, above the hearth)
+  // hanging fishing net + goggles mask + an orange taewak (far-left wall, above the hearth)
   (function(){ const nx=120,ny=120; g.strokeStyle='rgba(225,210,180,.8)'; g.lineWidth=1;
     for(let i=-3;i<=3;i++){ g.beginPath(); g.moveTo(nx+i*9,ny); g.lineTo(nx+i*6,ny+46); g.stroke(); }
     for(let j=0;j<5;j++){ g.beginPath(); g.moveTo(nx-26+j*2,ny+8+j*9); g.lineTo(nx+26-j*2,ny+8+j*9); g.stroke(); }
@@ -3569,7 +3569,7 @@ function buildHomeBG(){
     inked(g,'#e8714a',2.2); g.beginPath(); g.arc(nx+44,ny+30,15,0,7); fillStroke(g);
     g.strokeStyle='rgba(60,120,70,.8)'; g.lineWidth=1.3; for(let a=0;a<6;a++){ g.beginPath(); g.arc(nx+44,ny+30,15,a*1.05,a*1.05+0.5); g.stroke(); }
     g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(nx+39,ny+25,3.5,0,7); g.fill(); })();
-  // ===== 정지 (kitchen): stone hearth + iron cauldron + water jar + firewood =====
+  // ===== hearth (kitchen): stone hearth + iron cauldron + water jar + firewood =====
   (function(){ const b=hearthBlk;
     g.fillStyle='rgba(20,12,8,.2)'; g.beginPath(); g.ellipse(b.x+b.w/2,b.y+b.h+6,b.w*0.55,11,0,0,7); g.fill();
     inked(g,'#8a8079',2.6); rr(g,b.x,b.y+14,b.w,b.h-14,5); fillStroke(g);   // stone hearth body
@@ -3577,7 +3577,7 @@ function buildHomeBG(){
     // fire mouth
     inked(g,'#2a211c',2); rr(g,b.x+b.w*0.30,b.y+b.h-20,34,16,3); fillStroke(g);
     g.fillStyle='#e8714a'; g.beginPath(); g.moveTo(b.x+b.w*0.34,b.y+b.h-6); g.quadraticCurveTo(b.x+b.w*0.40,b.y+b.h-22,b.x+b.w*0.46,b.y+b.h-6); g.fill();
-    // big black iron cauldron (가마솥) on top
+    // big black iron cauldron (cauldron) on top
     const cx=b.x+b.w*0.42, cy=b.y+8;
     inked(g,'#2a2730',2.8); g.beginPath(); g.ellipse(cx,cy,34,20,0,0,Math.PI); g.lineTo(cx-34,cy); fillStroke(g);
     inked(g,'#3f3b46',2.4); g.beginPath(); g.ellipse(cx,cy-2,34,8,0,0,7); fillStroke(g);
@@ -3586,7 +3586,7 @@ function buildHomeBG(){
     drawOnggi(g,b.x+b.w-22,b.y+b.h+2,0.8,'#6f4a30');
     // firewood stacked at the base-left
     inked(g,'#9c6a38',2); for(let i=0;i<3;i++){ g.beginPath(); g.ellipse(b.x+12,b.y+b.h+10+i*5,9,3.4,0,0,7); fillStroke(g); } })();
-  // ===== 고팡 onggi storage stack (in front of the door) =====
+  // ===== Store onggi storage stack (in front of the door) =====
   (function(){ const b=gopangBlk;
     drawOnggi(g,b.x+24,b.y+b.h+4,1.0,'#7a5236');
     drawOnggi(g,b.x+62,b.y+b.h+6,0.9,'#86603c');
@@ -3606,7 +3606,7 @@ function buildHomeBG(){
     inked(g,MIN.jade,2); rr(g,tcx-10,tb.y+tb.h-34,20,12,6); fillStroke(g);
     g.strokeStyle=MIN.ink; g.lineWidth=2; g.beginPath(); g.moveTo(tcx+10,tb.y+tb.h-30); g.lineTo(tcx+16,tb.y+tb.h-33); g.stroke();
     inked(g,MIN.white,1.4); g.beginPath(); g.arc(tcx-16,tb.y+tb.h-20,3.4,0,7); fillStroke(g); g.beginPath(); g.arc(tcx+16,tb.y+tb.h-20,3.4,0,7); fillStroke(g); })();
-  // ===== 구들방 raised sleeping platform: folded bedding + low table w/ grandmother's 왕눈 mask =====
+  // ===== ondol room raised sleeping platform: folded bedding + low table w/ grandmother's goggles mask =====
   (function(){ const b=gudeulBlk;
     g.fillStyle='rgba(20,12,8,.18)'; g.beginPath(); g.ellipse(b.x+b.w/2,b.y+b.h+6,b.w*0.52,10,0,0,7); g.fill();
     inked(g,'#c08a4e',2.8); rr(g,b.x,b.y,b.w,b.h,5); fillStroke(g);                 // raised wood floor
@@ -3619,16 +3619,16 @@ function buildHomeBG(){
     inked(g,MIN.white,2); rr(g,qx+12,qy+2,60,12,3); fillStroke(g);
     // a small floor cushion
     inked(g,MIN.teal,2); g.beginPath(); g.ellipse(qx+40,qy+50,16,7,0,0,7); fillStroke(g);
-    // low table (right) with grandmother's 왕눈 mask + a tiny frame
+    // low table (right) with grandmother's goggles mask + a tiny frame
     const lx=b.x+b.w-70, ly=b.y+18;
     inked(g,'#9c6a38',2.4); rr(g,lx-26,ly+10,52,8,2); fillStroke(g);               // table top
     g.strokeStyle='#6e4a28'; g.lineWidth=3; g.beginPath(); g.moveTo(lx-20,ly+18); g.lineTo(lx-20,ly+26); g.moveTo(lx+20,ly+18); g.lineTo(lx+20,ly+26); g.stroke();
-    // the 왕눈 mask: a single wide oval glass lens in a black rubber frame + strap
+    // the goggles mask: a single wide oval glass lens in a black rubber frame + strap
     inked(g,'#26242c',2.4); g.beginPath(); g.ellipse(lx,ly+2,20,12,0,0,7); fillStroke(g);
     inked(g,'#a7dcec',1.8); g.beginPath(); g.ellipse(lx,ly+2,13,7.5,0,0,7); fillStroke(g);
     g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.ellipse(lx-4,ly-1,3,4,-0.4,0,7); g.fill();
     g.strokeStyle='#26242c'; g.lineWidth=2.4; g.beginPath(); g.moveTo(lx-19,ly); g.quadraticCurveTo(lx-30,ly-2,lx-30,ly+6); g.moveTo(lx+19,ly); g.quadraticCurveTo(lx+30,ly-2,lx+30,ly+6); g.stroke(); })();
-  // ===== 항아리 crocks (foreground right — ferment) =====
+  // ===== crock crocks (foreground right — ferment) =====
   drawOnggi(g,jangStation.x-14,jangStation.y+14,1.05,'#7a5236');
   drawOnggi(g,jangStation.x+20,jangStation.y+16,0.92,'#86603c');
   // ===== gramophone (foreground left) =====
@@ -3650,7 +3650,7 @@ function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{homeImg=im;}); } else { homeImg=im; } };
   im.src='home-bg.png?v=2'; }
 // live-overlay anchors tuned to the home-bg.png art
-const HOME_CAULDRON={x:206, y:224};   // 정지 iron cauldron — steam rises here
+const HOME_CAULDRON={x:206, y:224};   // hearth iron cauldron — steam rises here
 const HOME_TABLETOP={x:480, y:388};   // dining table top — plated bowl sits here
 const HOME_GRAMO   ={x:300, y:492};   // gramophone — music notes drift up here
 function drawHome(){
@@ -3658,7 +3658,7 @@ function drawHome(){
   if(homeImg && homeImg.complete && homeImg.naturalWidth){ ctx.drawImage(homeImg,0,0,W,H); }
   else { if(!homeBG) buildHomeBG(); ctx.drawImage(homeBG,0,0,W,H); }   // procedural fallback while the art loads
   const t=performance.now()*0.001;
-  // hot steam curling up from the 정지 cauldron (the kitchen is always simmering)
+  // hot steam curling up from the hearth cauldron (the kitchen is always simmering)
   ctx.save(); ctx.globalCompositeOperation='screen';
   for(let i=0;i<5;i++){ const ph=t*1.2+i*1.5; const sy=HOME_CAULDRON.y-((ph*11)%46);
     const sx=HOME_CAULDRON.x+Math.sin(ph*1.5)*8; const a=0.32*(1-((ph*11)%46)/46);
@@ -3754,7 +3754,7 @@ function drawPlayerEating(g,x,y,face,t){
   g.strokeStyle='rgba(208,90,60,.45)'; g.lineWidth=1.3; g.beginPath(); g.arc(4.6,hy+3,1.2,0,7); g.stroke();
   g.restore();
 }
-/* the diver lying under a blanket on the 구들방 bedding for a short rest */
+/* the diver lying under a blanket on the ondol room bedding for a short rest */
 function drawPlayerLying(g,x,y,t){
   const br=Math.sin(t*2)*0.5;
   g.save(); g.translate(x,y);
