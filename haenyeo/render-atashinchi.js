@@ -3710,33 +3710,26 @@ function drawHomeDebug(){
 function drawEat(){
   drawHome();
   const t=performance.now()*0.001;
-  const bx=P.x+22, by=HOME_TABLETOP.y;   // the bowl on the table just above the seated diner
-  ctx.save();ctx.fillStyle='rgba(20,16,10,.28)';ctx.fillRect(0,0,W,H);ctx.restore();
+  const bx=P.x+22, by=HOME_TABLETOP.y;   // the bowl on the table in front of the seated diner
+  ctx.save();ctx.fillStyle='rgba(20,16,10,.10)';ctx.fillRect(0,0,W,H);ctx.restore();   // gentle dim — keep the face bright
   ctx.save();ctx.globalCompositeOperation='screen';
-  const sp=ctx.createRadialGradient(bx,by,8,bx,by,150);sp.addColorStop(0,'rgba(255,212,134,.28)');sp.addColorStop(1,'rgba(255,212,134,0)');
+  const sp=ctx.createRadialGradient(bx,by,8,bx,by,150);sp.addColorStop(0,'rgba(255,212,134,.22)');sp.addColorStop(1,'rgba(255,212,134,0)');
   ctx.fillStyle=sp;ctx.beginPath();ctx.arc(bx,by,150,0,7);ctx.fill();ctx.restore();
-  drawPlayerSittingByFire(P.x,P.y,t);                // clean cross-legged seated pose, facing the table
+  drawPlayerSittingByFire(P.x,P.y,t);                // clean cross-legged seated pose (face left clear)
   ctx.save();ctx.globalCompositeOperation='screen';
   for(let i=0;i<4;i++){const ph=t*1.3+i*1.6;const sy=by-14-((ph*9)%26);const sx=bx+Math.sin(ph*1.6)*5;const a=0.16*(1-((ph*9)%26)/26);
     ctx.fillStyle=`rgba(255,250,240,${Math.max(0,a)})`;ctx.beginPath();ctx.arc(sx,sy,4+i,0,7);ctx.fill();}
   ctx.restore();
   drawRamenBowl(ctx,bx,by);
-  const cyc=(Math.sin(eatT*5)*0.5+0.5);
-  const mouthX=P.x, mouthY=P.y-17;
-  const clumpX=bx+(mouthX-bx)*cyc, clumpY=(by-6)+(mouthY-(by-6))*cyc;
-  ctx.strokeStyle=MIN.gold;ctx.lineWidth=1.6;ctx.lineCap='round';
-  for(let s=-1;s<=1;s++){ctx.beginPath();ctx.moveTo(bx+s*3,by-4);ctx.quadraticCurveTo(clumpX+s*2,(by-4+clumpY)/2,clumpX+s*2,clumpY);ctx.stroke();}
-  ctx.strokeStyle='#9c6a3a';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(clumpX+10,clumpY-12);ctx.lineTo(clumpX-2,clumpY+2);ctx.moveTo(clumpX+13,clumpY-11);ctx.lineTo(clumpX+1,clumpY+3);ctx.stroke();
-  if(cyc>0.8){
-    glabel('yum!',mouthX+16,mouthY-4,13,'#fff');
-    ctx.fillStyle=MIN.verm;ctx.font='12px serif';ctx.textAlign='center';
-    const hy=mouthY-14-((eatT*30)%26);ctx.globalAlpha=Math.max(0,1-((eatT*30)%26)/26);
-    ctx.fillText('♥',mouthX-12,hy);ctx.globalAlpha=1;
-  }
+  // a happy "yum!" + a rising heart, floating ABOVE her head — never across the face
+  const cyc=(Math.sin(eatT*4)*0.5+0.5);
+  if(cyc>0.7) glabel('yum!', P.x+30, P.y-34, 12, '#fff');
+  ctx.fillStyle=MIN.verm; ctx.font='14px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const hp=(eatT*28)%30, hy=P.y-46-hp; ctx.globalAlpha=Math.max(0,0.9*(1-hp/30));
+  ctx.fillText('♥', P.x-14, hy); ctx.globalAlpha=1;
   const p=Math.min(1,eatT/EAT_DUR);
-  ctx.fillStyle='rgba(20,12,8,.3)';rr(ctx,bx-26,by+18,52,5,2.5);ctx.fill();
-  ctx.fillStyle=MIN.gold;rr(ctx,bx-26,by+18,52*p,5,2.5);ctx.fill();
+  ctx.fillStyle='rgba(20,12,8,.3)';rr(ctx,P.x-26,P.y+24,52,5,2.5);ctx.fill();
+  ctx.fillStyle=MIN.gold;rr(ctx,P.x-26,P.y+24,52*p,5,2.5);ctx.fill();
 }
 /* the diver seated cross-legged on a floor cushion, facing the table to eat */
 function drawPlayerEating(g,x,y,face,t){
