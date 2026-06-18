@@ -973,7 +973,7 @@ let museumImg=null, museumImgTried=false;
 function ensureMuseumImg(){ if(museumImgTried)return; museumImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{museumImg=im;}); } else { museumImg=im; } };
-  im.src='museum.png'; }
+  im.src='museum.webp'; }
 function drawMuseum(){
   ensureMuseumImg();
   ctx.fillStyle='#cdbfa6'; ctx.fillRect(0,0,W,H);                 // warm fallback ground
@@ -1397,7 +1397,7 @@ function drawBeachYogi(g,x,y,s){
 /* the village landscape backdrop — the uploaded illustration */
 let villageImg=null, villageImgTried=false;
 function ensureVillageImg(){ if(villageImgTried)return; villageImgTried=true;
-  const im=new Image(); im.onload=()=>{ villageImg=im; villageBG=null; }; im.src='village.png?v=3'; }
+  const im=new Image(); im.onload=()=>{ villageImg=im; villageBG=null; }; im.src='village.webp?v=4'; }
 function buildVillageBG(){
   const {el,g}=makeCanvas(W,H);
   // landscape backdrop — the uploaded illustration (cover-fit to the frame)
@@ -2430,7 +2430,7 @@ let shopImg=null, shopImgTried=false;
 function ensureShopImg(){ if(shopImgTried)return; shopImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{shopImg=im;}); } else { shopImg=im; } };
-  im.src='shop_bg.jpg'; }
+  im.src='shop_bg.webp'; }
 function drawShop(){
   ensureShopImg();
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
@@ -2969,7 +2969,7 @@ function buildMarketBG(){
 }
 let marketImg=null, marketImgTried=false;
 function ensureMarketImg(){ if(marketImgTried)return; marketImgTried=true;
-  const im=new Image(); im.onload=()=>{ marketImg=im; }; im.src='market.png?v=1'; }
+  const im=new Image(); im.onload=()=>{ marketImg=im; }; im.src='market.webp?v=1'; }
 /* Migyeong's buyer's counter — a wooden stall with a weighing scale + a basket of catch */
 function drawSellStall(){
   const c=sellCounter, cx=c.x+c.w/2, top=c.y, cl=c.x, cr=c.x+c.w, W2=c.w;
@@ -3648,7 +3648,7 @@ let homeImg=null, homeImgTried=false;
 function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{homeImg=im;}); } else { homeImg=im; } };
-  im.src='home-bg.png?v=2'; }
+  im.src='home-bg.webp?v=1'; }
 // live-overlay anchors tuned to the home-bg.png art
 const HOME_CAULDRON={x:206, y:224};   // hearth iron cauldron — steam rises here
 const HOME_TABLETOP={x:480, y:388};   // dining table top — plated bowl sits here
@@ -4091,7 +4091,7 @@ function beachDeco(){
 }
 let beachImg=null, beachImgTried=false;
 function ensureBeachImg(){ if(beachImgTried)return; beachImgTried=true;
-  const im=new Image(); im.onload=()=>{ beachImg=im; }; im.src='beach.png?v=1'; }
+  const im=new Image(); im.onload=()=>{ beachImg=im; }; im.src='beach.webp?v=1'; }
 function drawBeach(){
   const t=performance.now()*0.001;
   // shore health drives the whole mood — lerp every colour from neglected → thriving

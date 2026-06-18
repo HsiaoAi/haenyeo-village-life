@@ -76,7 +76,7 @@ const rTables=[                                    // the 6 stool seats around t
 ];
 /* the seaside-stall backdrop (generated art); drawn full-frame behind the sprites */
 let kitchenImg=null;
-(function(){ const im=new Image(); im.onload=()=>{ kitchenImg=im; }; im.src='kitchen_bg.png?v=1'; })();
+(function(){ const im=new Image(); im.onload=()=>{ kitchenImg=im; }; im.src='kitchen_bg.webp?v=1'; })();
 
 /* ---- service state ---- */
 let rP={x:W/2, y:380, r:13, face:1, kick:0};       // the diver, now waitress, on the floor
