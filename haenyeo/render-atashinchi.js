@@ -38,7 +38,7 @@ function setupRetina(){
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.imageSmoothingEnabled=true;
-  villageBG=null; shopBG=null; homeBG=null; marketBG=null; _beachDeco=null;
+  villageBG=null; shopBG=null; homeBG=null; marketBG=null; museumBG=null; _beachDeco=null;
 }
 addEventListener('resize',()=>{ clearTimeout(window.__rt); window.__rt=setTimeout(setupRetina,150); });
 
@@ -324,7 +324,7 @@ function drawWeather(){
 }
 
 /* ================= placeholder for caches (defined later use) ============ */
-let villageBG=null, shopBG=null, homeBG=null, marketBG=null;
+let villageBG=null, shopBG=null, homeBG=null, marketBG=null, museumBG=null;
 
 /* ================= LAND ELEMENTS ================= */
 function bWindow(b){return {x:b.x+b.w*0.15,y:b.y+b.h*0.40+8};}
@@ -968,21 +968,106 @@ function drawMuseumBuilding(g,b){
   gNameSign(g, cx, wallTop-12, 'Haenyeo Museum');
   g.restore();
 }
-/* the museum interior — the uploaded illustration, walked in front of */
-let museumImg=null, museumImgTried=false;
-function ensureMuseumImg(){ if(museumImgTried)return; museumImgTried=true;
-  const im=new Image();
-  im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{museumImg=im;}); } else { museumImg=im; } };
-  im.src='museum.webp'; }
+/* the museum interior — drawn in the flat-cartoon house style (matches village/market),
+   composed around the fixed gameplay anchors so the exhibit/grandma/net/ledger markers line up.
+   FLOOR=316 matches the top edge of MUSEUM_POLY; the back-centre raised platform fills the
+   non-walkable notch (x300–668, y316–408) where the grandmothers sit and mend. */
+const MUS_FLOOR=316;
+function museumGran(g,x,y,top,bot){
+  g.save(); g.translate(x,y); g.lineJoin='round';
+  g.fillStyle='rgba(20,12,8,.14)'; g.beginPath(); g.ellipse(0,9,17,5,0,0,7); g.fill();
+  inked(g,bot,2.4); g.beginPath(); rr(g,-15,-5,30,15,7); fillStroke(g);                 // folded lap
+  inked(g,top,2.4); g.beginPath(); g.moveTo(-12,-3); g.quadraticCurveTo(0,-30,12,-3); g.closePath(); fillStroke(g);   // hunched back
+  inked(g,'#eccaa2',2); g.beginPath(); g.arc(0,-30,8,0,7); fillStroke(g);               // head
+  inked(g,'#e7e2d8',2); g.beginPath(); g.arc(0,-33,8.6,Math.PI*1.02,Math.PI*1.98); fillStroke(g);  // white-haired bun
+  g.restore();
+}
+function buildMuseumBG(){
+  const {el,g}=makeCanvas(W,H);
+  g.lineJoin='round'; g.lineCap='round';
+  const F=MUS_FLOOR;
+  // ===== back wall: whitewashed plaster, warm top glow, basalt stone wainscot =====
+  g.fillStyle='#f2ead8'; g.fillRect(0,0,W,F);
+  const wg=g.createLinearGradient(0,0,0,F); wg.addColorStop(0,'rgba(242,199,90,.14)'); wg.addColorStop(1,'rgba(242,199,90,0)');
+  g.fillStyle=wg; g.fillRect(0,0,W,F);
+  drawStoneBlocks(g, 0, F-46, W, 46, 71);                                   // wainscot
+  inked(g,'#caa15a',2); g.beginPath(); g.rect(-2,F-52,W+4,8); fillStroke(g); // trim board capping it
+  // ===== floor: warm tile with grout grid + faint sheen =====
+  g.fillStyle='#cdbfa6'; g.fillRect(0,F,W,H-F);
+  g.strokeStyle='rgba(120,92,54,.20)'; g.lineWidth=1.4;
+  for(let y=F+30;y<H;y+=30){ g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+  for(let x=0;x<=W;x+=64){ g.beginPath(); g.moveTo(x,F); g.lineTo(x,H); g.stroke(); }
+  g.fillStyle='rgba(255,255,255,.05)'; g.fillRect(0,F,W,38);
+
+  // ===== (1) Jamsugut shaman flags — top-left, marker at (46,132) =====
+  (function(){ const px=24, py=58, cols=[MIN.red,MIN.gold,MIN.green,MIN.blue,MIN.plum];
+    inked(g,'#7a4f2a',3); g.beginPath(); g.moveTo(px,py); g.lineTo(px+128,py-8); g.stroke();   // slanted pole
+    for(let i=0;i<5;i++){ const fx=px+12+i*23, fy=py-2-i*1.5;
+      inked(g,cols[i],2); g.beginPath(); g.moveTo(fx,fy); g.lineTo(fx+15,fy); g.lineTo(fx+15,fy+80); g.lineTo(fx+7.5,fy+71); g.lineTo(fx,fy+80); g.closePath(); fillStroke(g);
+      g.fillStyle='rgba(255,255,255,.20)'; g.fillRect(fx+2,fy+2,4,74); } })();
+
+  // ===== (2) Nets & Ranks board — left-centre wall, marker at (300,256) =====
+  (function(){ const bx=258, by=204, bw=84, bh=70;
+    inked(g,'#7a4f2a',3); rr(g,bx-5,by-5,bw+10,bh+10,4); fillStroke(g);
+    inked(g,'#bfe0ea',2); rr(g,bx,by,bw,bh,3); fillStroke(g);
+    [0,1,2].forEach(i=>{ const yy=by+13+i*18;                              // three divers, deeper by rank
+      g.fillStyle=MIN.ink; g.beginPath(); g.arc(bx+15,yy,3.4,0,7); g.fill(); rr(g,bx+12,yy+4,6,8,2); g.fill();
+      g.strokeStyle='rgba(74,58,44,.55)'; g.lineWidth=1; g.beginPath(); g.moveTo(bx+26,yy+3); g.lineTo(bx+bw-8,yy+3); g.stroke(); }); })();
+
+  // ===== (3) diver mannequin in a wooden alcove — centre, marker at (434,236) =====
+  (function(){ const ax=406, ay=150, aw=58, ah=150, mx=ax+aw/2, my=ay+ah;
+    inked(g,'#8a5a30',3); rr(g,ax-6,ay-6,aw+12,ah+12,4); fillStroke(g);
+    inked(g,'#caa978',2); rr(g,ax,ay,aw,ah,3); fillStroke(g);
+    g.fillStyle='rgba(0,0,0,.10)'; g.fillRect(ax,ay,aw,ah*0.5);
+    inked(g,'#f3ede1',2.4);
+    g.beginPath(); rr(g,mx-9,my-58,18,34,6); fillStroke(g);                // legs/hips
+    g.beginPath(); g.ellipse(mx,my-66,11,13,0,0,7); fillStroke(g);         // torso
+    g.beginPath(); g.arc(mx,my-86,8,0,7); fillStroke(g);                   // head
+    inked(g,'#e4eef0',2); g.beginPath(); g.arc(mx-15,my-8,7,0,7); fillStroke(g); })();  // taewak at feet
+
+  // ===== (4) framed sunset-sea photo — upper centre-right, marker at (589,112) =====
+  (function(){ const wx=546,wy=66,ww=90,wh=64;
+    inked(g,'#6e4a2a',3); rr(g,wx-6,wy-6,ww+12,wh+12,4); fillStroke(g);
+    g.save(); rr(g,wx,wy,ww,wh,3); g.clip();
+    g.fillStyle='#f6b27a'; g.fillRect(wx,wy,ww,wh);
+    g.fillStyle='#f2c75a'; g.fillRect(wx,wy,ww,wh*0.45);
+    g.fillStyle='#5fa8d6'; g.fillRect(wx,wy+wh*0.6,ww,wh*0.4);
+    g.fillStyle='#fff1c4'; g.beginPath(); g.arc(wx+ww*0.5,wy+wh*0.58,12,0,7); g.fill();
+    g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1.2; for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(wx,wy+wh*0.64+i*4); g.lineTo(wx+ww,wy+wh*0.64+i*4); g.stroke(); }
+    g.restore(); })();
+
+  // ===== (5) gear pegboard: goggles · taewak · net bag — right wall, marker at (709,184) =====
+  (function(){ const bx=664,by=150,bw=92,bh=80;
+    inked(g,'#caa978',2.4); rr(g,bx,by,bw,bh,3); fillStroke(g);
+    inked(g,'#5fa8d6',2); g.beginPath(); g.arc(bx+19,by+22,7,0,7); g.arc(bx+33,by+22,7,0,7); fillStroke(g);   // goggles
+    inked(g,'#e8714a',2); g.beginPath(); g.arc(bx+70,by+25,12,0,7); fillStroke(g);                            // taewak buoy
+    inked(g,'#b88248',2); g.beginPath(); g.moveTo(bx+16,by+44); g.lineTo(bx+9,by+74); g.lineTo(bx+38,by+74); g.lineTo(bx+31,by+44); g.closePath(); fillStroke(g);  // net bag
+    g.strokeStyle='rgba(74,58,44,.5)'; g.lineWidth=1; for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(bx+16+i*4,by+44); g.lineTo(bx+9+i*7,by+74); g.stroke(); }
+    inked(g,'#7a4f2a',2); g.beginPath(); g.moveTo(bx+60,by+44); g.lineTo(bx+80,by+70); g.stroke(); })();      // hand rake
+
+  // ===== raised bulteok platform (back-centre): the grandmothers mend the net here =====
+  (function(){ const x0=300,x1=668, top=300, mid=408;
+    inked(g,'#bcae90',2.4); rr(g,x0,top,x1-x0,mid-top+8,6); fillStroke(g);  // packed-earth top
+    drawStoneBlocks(g, x0, mid-14, x1-x0, 22, 91);                          // front rim
+    drawStoneBlocks(g, x0, top, 18, mid-top, 92);                          // left rim
+    drawStoneBlocks(g, x1-18, top, 18, mid-top, 93);                       // right rim
+    inked(g,'#d8c187',2); g.beginPath(); g.ellipse((x0+x1)/2, mid-20, 118, 24,0,0,7); fillStroke(g); })();  // woven mat
+  museumGran(g, 452, 372, '#caa978', '#9d7b52');
+  museumGran(g, 538, 376, '#b6cdb0', '#6f8a78');
+
+  // ===== folk-house corner (bottom-right): thatch eave + onggi jars, marker at (846,316) =====
+  (function(){
+    inked(g,'#caa15a',3); g.beginPath(); g.moveTo(818,300); g.lineTo(W,284); g.lineTo(W,360); g.lineTo(810,360); g.closePath(); fillStroke(g);
+    g.strokeStyle='rgba(120,86,40,.5)'; g.lineWidth=1.3; for(let x=826;x<W;x+=12){ g.beginPath(); g.moveTo(x,300); g.lineTo(x-4,358); g.stroke(); } })();
+  drawOnggi(g, 856, 396, 1.05, '#80573a');
+  drawOnggi(g, 904, 408, 0.9, '#6f4a30');
+  drawOnggi(g, 836, 424, 0.78, '#8a6038');
+
+  museumBG=el;
+}
 function drawMuseum(){
-  ensureMuseumImg();
-  ctx.fillStyle='#cdbfa6'; ctx.fillRect(0,0,W,H);                 // warm fallback ground
-  if(museumImg){
-    // cover-fit: fill the frame without distorting the wide illustration
-    const s=Math.max(W/museumImg.width, H/museumImg.height);
-    const dw=museumImg.width*s, dh=museumImg.height*s;
-    ctx.drawImage(museumImg, (W-dw)/2, (H-dh)/2, dw, dh);
-  } else { ctx.fillStyle='#7a5230'; ctx.font='600 20px "Gowun Batang",serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('Haenyeo Museum', W/2, H/2); }
+  if(!museumBG) buildMuseumBG();
+  ctx.drawImage(museumBG, 0,0, W,H);
   // exit mat
   inked(ctx,'#d8c089',2);ctx.setLineDash([4,3]);rr(ctx,museumExit.x,museumExit.y,museumExit.w,museumExit.h,5);fillStroke(ctx);ctx.setLineDash([]);
   drawMuseumMarkers();
@@ -4683,4 +4768,4 @@ function drawJoy(){
 setupRetina();
 requestAnimationFrame(frame);
 /* preload interior backdrops right away so first entry isn't laggy */
-setTimeout(()=>{ ensureShopImg(); ensureMuseumImg(); }, 0);
+setTimeout(()=>{ ensureShopImg(); buildMuseumBG(); }, 0);

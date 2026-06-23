@@ -38,6 +38,8 @@ const buildings=[
 ];
 /* the kitchen trades through the night: 17:00 → 03:00 (the clock wraps past midnight) */
 function kitchenOpen(){ return G.time>=17*60 || G.time<3*60; }
+/* the market keeps daytime hours: 09:00 → 20:00 */
+function marketOpen(){ return G.time>=9*60 && G.time<20*60; }
 /* the Pojangmacha lives in two spots: folded away under the bulteok by day, and
    raised next to it (on the left) once it opens for the evening. */
 function pojangRect(){
@@ -403,6 +405,7 @@ function tickClock(dt){
   // gentle nudges — sleeping is the player's choice; the day rolls over by itself at dawn
   if(!tickClock._late && G.time>=20*60){ tickClock._late=true; toast('Evening · rest whenever you\'re ready'); }
   if(!tickClock._curfew && G.time>=22*60){ tickClock._curfew=true; toast('22:00 · the villagers head home for the night'); }
+  if(scene==='market' && !marketOpen()){ toast('20:00 · the Market is closing for the day.'); leaveMarket(); }
   updateEnergyHud();
 }
 let scene='title';
@@ -735,7 +738,7 @@ function doInteract(){
     else if(haveEnergy('kitchen') && typeof enterRestaurant==='function') enterRestaurant();
   }
   else if(current.type==='lounger'){ if(P.sitting) standFromLounger(); else sitOnLounger(); }
-  else if(current.type==='door'){ if(current.b.name==='home') enterHome(); else if(current.b.name==='coop') enterMarket(); else if(current.b.name==='museum') enterMuseum(); else enterShop(); }
+  else if(current.type==='door'){ if(current.b.name==='home') enterHome(); else if(current.b.name==='coop'){ if(!marketOpen()) toast('The Market is open 09:00–20:00.'); else enterMarket(); } else if(current.b.name==='museum') enterMuseum(); else enterShop(); }
   else if(current.type==='joinact') joinActivity(current.act);
   else if(current.type==='beach') startBeachClean();
   else if(current.type==='sea') openDiveStart();
@@ -1335,8 +1338,8 @@ let museumCur=null, museumT=0, museumMemIdx=0;
    Six clickable exhibits open a culture card (real haenyeo facts + an evocative
    line); the seated grandmothers share rotating, deepening memories. Examining
    all six and hearing three memories earns the "Keeper of Tradition" log.
-   Positions map onto museum.png (cover-fit); an exhibit is "active" when the
-   player stands roughly in its column inside the gallery. */
+   Positions map onto the vector gallery painted by buildMuseumBG(); an exhibit
+   is "active" when the player stands roughly in its column inside the gallery. */
 const MUSEUM_EXHIBITS=[
   {id:'flags', x:46, y:132, name:'Jamsugut', ko:'',
    fact:'Each spring the village holds the Jamsugut — a shaman rite to Yeongdeung, goddess of wind and sea — praying for calm water and every diver’s safe return.',
