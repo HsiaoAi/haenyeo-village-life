@@ -1338,8 +1338,8 @@ let museumCur=null, museumT=0, museumMemIdx=0;
    Six clickable exhibits open a culture card (real haenyeo facts + an evocative
    line); the seated grandmothers share rotating, deepening memories. Examining
    all six and hearing three memories earns the "Keeper of Tradition" log.
-   Positions map onto the vector gallery painted by buildMuseumBG(); an exhibit
-   is "active" when the player stands roughly in its column inside the gallery. */
+   Positions map onto museum.png (cover-fit); an exhibit is "active" when the
+   player stands roughly in its column inside the gallery. */
 const MUSEUM_EXHIBITS=[
   {id:'flags', x:46, y:132, name:'Jamsugut', ko:'',
    fact:'Each spring the village holds the Jamsugut — a shaman rite to Yeongdeung, goddess of wind and sea — praying for calm water and every diver’s safe return.',
