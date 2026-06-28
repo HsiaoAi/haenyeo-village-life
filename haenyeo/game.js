@@ -860,6 +860,7 @@ function newDay(){
   $('clkDate').textContent=SEASONS[G.season]+' · Day '+G.day;
   $('clkTime').textContent=fmtTime(G.time);
   toast('Day '+G.day);
+  saveGame();   // checkpoint each morning
 }
 $('sleepBtn').onclick=()=>{
   newDay();
@@ -2497,11 +2498,40 @@ $('storyNext').onclick=()=>{
   storyIdx++; showStory();
 };
 $('storySkip').onclick=endStory;
-showStory();
+
+/* ---- Tier 0 persistence: serialize the whole game-state object G to localStorage ---- */
+const SAVE_KEY='hvl.save', SAVE_V=1;
+let _started=false, _loadedSave=false;
+function saveGame(){
+  if(!_started) return;                          // don't persist a fresh, never-played state
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:SAVE_V, t:Date.now(), G})); }catch(e){}
+}
+function loadGame(){
+  let raw; try{ raw=localStorage.getItem(SAVE_KEY); }catch(e){ return false; }
+  if(!raw) return false;
+  let s; try{ s=JSON.parse(raw); }catch(e){ return false; }
+  if(!s || s.v!==SAVE_V || !s.G) return false;   // unknown/old schema → ignore (bump SAVE_V + migrate later)
+  Object.assign(G, s.G); _loadedSave=true; return true;
+}
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+/* push the loaded numbers into the HUD — Start/boot otherwise hard-codes Day 1 / 0 won */
+function syncHud(){
+  $('clkDate').textContent=SEASONS[G.season]+' · Day '+G.day;
+  $('clkTime').textContent=fmtTime(G.time);
+  $('moneyV').textContent=String(G.money);
+  updateEnergyHud(); updateWeatherHud(); updateMealBadge();
+}
+/* flush on the events that actually lose progress: tab close + backgrounding (mobile) */
+addEventListener('beforeunload', saveGame);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') saveGame(); });
+
+/* a returning player skips the intro and lands on the title; Start resumes their save */
+if(loadGame()) endStory(); else showStory();
 
 $('startBtn').onclick=()=>{ $('pTitle').classList.add('hidden'); scene='village';
-  rollWeather(true);
-  $('clkDate').textContent=SEASONS[0]+' · Day 1'; };
+  _started=true;
+  if(!_loadedSave) rollWeather(true);   // a fresh game rolls today's weather; a resumed save keeps its own
+  syncHud(); saveGame(); };
 
 function restartGame(){
   G.day=1; G.money=0; G.time=6*60; G.season=0; G.catch={}; G.catchQ={}; G.trash={}; G.renown=0; G.beachHealth=60; G.eco=0; G.energy=100; G.factsSeen={}; G.cultureLog={}; G.cultureMem=0; G.cultureKeeper=false; G.dives=0; G.beachRuns=0; G.soldWon=0; G.netMendedDay=0; G.talkedToday={}; G.songToday=false; G.pettedToday={}; G.caveToday=false; G.meal=null; G.preparedMeal=null; tickClock._late=false; tickClock._curfew=false; tickClock._forced=false; G.weather='sunny';
@@ -2518,5 +2548,6 @@ function restartGame(){
   $('moneyV').textContent='0';
   $('clkTime').textContent='6:00'; $('clkDate').textContent=SEASONS[0]+' · Day 1'; updateWeatherHud();
   $('pTitle').classList.remove('hidden'); scene='title';
+  clearSave(); _started=false; _loadedSave=false;   // a restart wipes the save so the next session is truly fresh
 }
 $('restartBtn').onclick=restartGame;
