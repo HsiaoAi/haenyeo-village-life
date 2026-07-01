@@ -122,6 +122,40 @@
   .ph-tips li .n{position:absolute;left:0;top:1px;width:17px;height:17px;border-radius:50%;background:var(--teal);color:#fff;
     font-family:'Space Mono',monospace;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 
+  /* workation app */
+  .ph-wk-hero{border-radius:16px;padding:18px 16px;color:#fff;text-align:center;margin-bottom:6px;
+    background:linear-gradient(160deg,#f2a65a,#e0653e);box-shadow:0 8px 18px rgba(0,0,0,.18);}
+  .ph-wk-hero .t{font-family:'Gowun Batang',serif;font-weight:700;font-size:18px;line-height:1.18;}
+  .ph-wk-hero .s{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.92;margin-top:8px;}
+  .ph-wk-hero .w{font-size:12px;margin-top:9px;opacity:.96;}
+  .ph-wk-about p{font-size:13px;line-height:1.6;margin:0 0 8px;color:var(--ink);}
+  .ph-wk-about b{color:var(--coral-d);}
+  .ph-wk-link{font-family:'Space Mono',monospace;font-size:11px;color:#2f86a6;word-break:break-all;}
+  .ph-wk-day{border-bottom:1px dashed rgba(99,70,30,.26);}
+  .ph-wk-dayh{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;
+    border:none;background:none;cursor:pointer;font-family:'Gowun Batang',serif;font-size:14.5px;font-weight:700;color:var(--ink2);text-align:left;}
+  .ph-wk-dayh .dt{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--ink-soft);font-weight:700;margin-left:7px;}
+  .ph-wk-dayh .chev{transition:transform .2s;color:var(--coral-d);font-size:17px;}
+  .ph-wk-day.open .ph-wk-dayh .chev{transform:rotate(90deg);}
+  .ph-wk-slots{display:none;padding:2px 0 10px;}
+  .ph-wk-day.open .ph-wk-slots{display:block;animation:phFade .2s ease;}
+  .ph-wk-slot{display:flex;gap:10px;padding:6px 0 6px 4px;}
+  .ph-wk-slot .tm{flex:none;width:92px;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;color:#9a6a13;line-height:1.5;}
+  .ph-wk-slot .ac{font-family:'Gowun Batang',serif;font-size:13px;color:var(--ink);line-height:1.5;}
+  .ph-wk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px;}
+  .ph-wk-ph{aspect-ratio:1/1;border:none;border-radius:10px;background:#d9cbb0 center/cover no-repeat;cursor:pointer;padding:0;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+  .ph-wk-ph:active{opacity:.7;}
+  .ph-wk-empty{font-size:12.5px;line-height:1.6;color:var(--ink-soft);background:rgba(92,191,176,.12);border-radius:12px;padding:14px;}
+  .ph-wk-empty b{color:var(--coral-d);}
+  .ph-wk-lb{position:absolute;inset:0;background:rgba(10,20,24,.93);display:none;flex-direction:column;z-index:20;padding:14px;}
+  .ph-wk-lb.show{display:flex;animation:phFade .2s ease;}
+  .ph-wk-lb .x{align-self:flex-end;width:30px;height:30px;border:none;border-radius:9px;background:rgba(255,255,255,.16);
+    color:#fff;font-size:14px;cursor:pointer;}
+  .ph-wk-lb .img{flex:1;min-height:0;margin:10px 0;border-radius:14px;background-size:contain;background-repeat:no-repeat;background-position:center;}
+  .ph-wk-lb .cap{color:#f6efde;font-family:'Gowun Batang',serif;font-size:13px;line-height:1.5;text-align:center;min-height:1.2em;}
+  .ph-wk-lb .cap.empty{opacity:.4;font-style:italic;}
+
   /* music app */
   .ph-mhero{display:flex;align-items:center;gap:13px;padding:13px;border-radius:15px;margin:2px 0 6px;
     background:linear-gradient(160deg,rgba(243,198,89,.16),rgba(232,113,74,.08));box-shadow:inset 0 0 0 1.4px rgba(99,70,30,.24);}
@@ -232,6 +266,7 @@
     divelog:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5c0-1.4 1.1-2.3 4-2.3h8c2.9 0 4 .9 4 2.3v3c0 2.4-2 3.8-4.4 3.8-1.7 0-2.6-1-3.6-2.6-1-1.6-3-1.6-4 0-1 1.6-1.9 2.6-3.6 2.6C2 15.3 4 13.9 4 11.5z" fill="rgba(255,255,255,.18)"/><path d="M9.5 18.5c1.5 1 3.5 1 5 0"/></svg>`,
     weather:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2" fill="rgba(255,255,255,.25)"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18"/></svg>`,
     tips:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="rgba(255,255,255,.18)"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r="1" fill="#fff" stroke="none"/></svg>`,
+    workation:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L18 8h2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" fill="rgba(255,255,255,.18)"/><circle cx="12" cy="13" r="3.4"/></svg>`,
     phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="rgba(255,255,255,.1)"/><path d="M10 5.5h4"/><circle cx="12" cy="18.4" r=".9" fill="currentColor" stroke="none"/></svg>`,
     music:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.6" fill="rgba(255,255,255,.3)"/><circle cx="16.5" cy="16" r="2.6" fill="rgba(255,255,255,.3)"/></svg>`,
     callPick:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 3.2c.5-.1 1 .2 1.2.7l1.1 2.7c.2.5.1 1-.3 1.4l-1.2 1c.9 1.8 2.4 3.3 4.2 4.2l1-1.2c.4-.4.9-.5 1.4-.3l2.7 1.1c.5.2.8.7.7 1.2l-.6 2.7c-.1.5-.6.9-1.1.9C9.3 19.6 4.4 14.7 3.9 8c0-.5.3-1 .9-1.1z"/></svg>`,
@@ -252,8 +287,35 @@
     {id:'divelog', kr:'Dive Log', en:'Dive Log', bg:'linear-gradient(160deg,#6fd0c0,#3f9e8c)'},
     {id:'weather', kr:'Weather',     en:'Weather',  bg:'linear-gradient(160deg,#f7d264,#e0a836)'},
     {id:'tips',    kr:'Tips',   en:'Tips',     bg:'linear-gradient(160deg,#b85f82,#8e3f5e)'},
+    {id:'workation',kr:'Workation',en:'Workation',bg:'linear-gradient(160deg,#f2a65a,#e0653e)'},
   ];
-  const APPBAR_BG = {market:'#2f86a6',contacts:'#d3552f',music:'#cf9320',divelog:'#3f9e8c',weather:'#cf9320',tips:'#8e3f5e'};
+  const APPBAR_BG = {market:'#2f86a6',contacts:'#d3552f',music:'#cf9320',divelog:'#3f9e8c',weather:'#cf9320',tips:'#8e3f5e',workation:'#c9502f'};
+
+  /* Real event this app documents — the "Jeju Digital Nomad Workation" by NomadHer.
+     A personal/meta scrapbook layered on the game; purely display, touches no game state. */
+  const WK = {
+    title:'Jeju Digital Nomad Workation',
+    tagline:'She Can Create Anywhere',
+    host:'NomadHer',
+    hostNote:'a global community for female travelers & digital nomads',
+    hostedBy:'Hyo (NomadHer founder) & Soyoung',
+    dates:'June 28 – July 3, 2026',
+    place:'Hamdeok Beach, Jeju',
+    url:'nomadher.com/travel-camps/jeju-digital-nomad-workation',
+    schedule:[
+      {d:'Day 1', date:'Jun 28', items:[['15:00','Check-in & Opening'],['16:00–18:00','Camp Orientation'],['19:00–20:00','Welcome Dinner']]},
+      {d:'Day 2', date:'Jun 29', items:[['09:00','Morning Check-in'],['10:00–13:00','Learn Haenyeo Diving — haenyeo school + traditional meal'],['13:00–18:00','Afternoon Coworking']]},
+      {d:'Day 3', date:'Jun 30', items:[['09:00','Morning Check-in'],['10:00–11:00','Beach Plogging — with Diphda, a Jeju ocean-protection org'],['11:00–12:00','Upcycling Craft Workshop — dolphin keyring from old haenyeo wetsuits'],['13:00–18:00','Afternoon Coworking']]},
+      {d:'Day 4', date:'Jul 1',  items:[['09:00','Morning Check-in'],['10:00–13:00','Vibecoding Workshop'],['13:00–18:00','Afternoon Coworking'],['15:00–16:00','Matcha Ceremony Workshop']]},
+      {d:'Day 5', date:'Jul 2',  items:[['06:00–07:00','Wellness Morning Yoga'],['09:00','Morning Check-in'],['10:00–13:00','Mentoring Session'],['13:00–18:00','Afternoon Coworking']]},
+      {d:'Day 6', date:'Jul 3',  items:[['09:00–11:00','Final Project Submission'],['16:00–17:00','Awards for Best Creators']]},
+    ],
+  };
+  /* Fill these in later — keyed by photo number (1-based). Blank = no caption shown. */
+  const WK_CAPTIONS = {
+    // 1:'Opening night at Hamdeok Beach',
+    // 2:'Haenyeo diving lesson',
+  };
 
   /* ---------------- DOM ---------------- */
   const btn = document.createElement('button');
@@ -520,7 +582,87 @@
       h += `</ol>`;
       return h;
     }
+    if(id==='workation'){
+      let h = `<div class="ph-wk-hero">
+        <div class="t">${WK.title}</div>
+        <div class="s">${WK.tagline}</div>
+        <div class="w">${WK.dates} · ${WK.place}</div>
+      </div>`;
+      h += `<div class="ph-sec">About</div>
+      <div class="ph-wk-about">
+        <p><b>Host:</b> ${WK.host} — ${WK.hostNote}</p>
+        <p><b>Hosted by:</b> ${WK.hostedBy}</p>
+        <p><b>When:</b> ${WK.dates}</p>
+        <p><b>Where:</b> ${WK.place}</p>
+        <p><b>Web:</b> <span class="ph-wk-link">${WK.url}</span></p>
+      </div>`;
+      h += `<div class="ph-sec">Schedule</div>`;
+      WK.schedule.forEach((day,di)=>{
+        h += `<div class="ph-wk-day${di===0?' open':''}">
+          <button class="ph-wk-dayh"><span>${day.d}<span class="dt">${day.date}</span></span><span class="chev">›</span></button>
+          <div class="ph-wk-slots">`;
+        day.items.forEach(it=>{ h += `<div class="ph-wk-slot"><span class="tm">${it[0]}</span><span class="ac">${it[1]}</span></div>`; });
+        h += `</div></div>`;
+      });
+      h += `<div class="ph-sec">Photo album</div>
+        <div class="ph-wk-grid" id="wkGrid"></div>
+        <div class="ph-note">Tap a photo to view it larger.</div>`;
+      return h;
+    }
     return '';
+  }
+  /* ---- workation photo album: probe assets/workation-photos/photoN.(jpg|jpeg|png|webp),
+     appending thumbnails until the first gap. Purely client-side; missing files just stop it. */
+  let wkLB = null;
+  function ensureWkLB(){
+    if(wkLB) return wkLB;
+    wkLB = document.createElement('div');
+    wkLB.className = 'ph-wk-lb';
+    wkLB.innerHTML = `<button class="x" title="Close">✕</button><div class="img"></div><div class="cap"></div>`;
+    const close = ()=> wkLB.classList.remove('show');
+    wkLB.querySelector('.x').onclick = close;
+    wkLB.addEventListener('click', e=>{ if(e.target===wkLB) close(); });
+    $$('.ph-screen').appendChild(wkLB);
+    return wkLB;
+  }
+  function openWkPhoto(src, num){
+    const lb = ensureWkLB();
+    lb.querySelector('.img').style.backgroundImage = `url("${src}")`;
+    const cap = lb.querySelector('.cap');
+    const txt = WK_CAPTIONS[num];
+    cap.textContent = txt || 'Add a caption in WK_CAPTIONS';
+    cap.classList.toggle('empty', !txt);
+    lb.classList.add('show');
+    if(typeof tone==='function') tone(600,.05,'sine',.04);
+  }
+  function loadWkPhotos(){
+    const grid = content.querySelector('#wkGrid'); if(!grid) return;
+    const EXTS = ['jpg','jpeg','png','webp'];
+    let found = 0; const MAX = 60;
+    const tryLoad = (base, ok, fail)=>{        // try each extension for one photo number
+      let k = 0;
+      (function next(){
+        if(k >= EXTS.length) return fail();
+        const im = new Image();
+        im.onload = ()=> ok(im.src);
+        im.onerror = ()=>{ k++; next(); };
+        im.src = `${base}.${EXTS[k]}`;
+      })();
+    };
+    (function probe(i){
+      if(i > MAX) return;
+      tryLoad(`assets/workation-photos/photo${i}`, src=>{
+        found++;
+        const cell = document.createElement('button');
+        cell.className = 'ph-wk-ph';
+        cell.style.backgroundImage = `url("${src}")`;
+        cell.onclick = ()=> openWkPhoto(src, i);
+        grid.appendChild(cell);
+        probe(i+1);
+      }, ()=>{
+        if(found === 0) grid.innerHTML = `<div class="ph-wk-empty">No photos yet — drop your snapshots into <b>assets/workation-photos/</b> named <b>photo1.jpg</b>, <b>photo2.jpg</b> … and they'll appear here.</div>`;
+      });
+    })(1);
   }
 
   function openApp(id){
@@ -570,6 +712,14 @@
         const sy = content.scrollTop;
         content.innerHTML = appHTML('music'); wire(); content.scrollTop = sy;
       });
+    }
+    // workation: collapsible day schedule + lazy-loaded photo album
+    if(id==='workation'){
+      if(wkLB) wkLB.classList.remove('show');
+      content.querySelectorAll('.ph-wk-dayh').forEach(hd=>{
+        hd.onclick = ()=>{ hd.closest('.ph-wk-day').classList.toggle('open'); if(typeof tone==='function') tone(520,.04,'sine',.04); };
+      });
+      loadWkPhotos();
     }
     homeView.style.display='none';
     appView.classList.add('show');
