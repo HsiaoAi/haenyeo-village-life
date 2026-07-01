@@ -540,6 +540,11 @@
       <div class="en">Haenyeo Village Life</div>
       <div class="blurb">You've come home to a small <b>Jeju village</b> to take up your late grandmother's place among the sea women. Walk the stone lanes, get to know the divers, and find your rhythm — the sea will still be there tomorrow.</div>
       <div class="pbtns"><button class="btn coral" id="startBtn">Arrive in the village</button></div>
+      <div id="cloudBox" style="margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:7px">
+        <button class="btn ghost" id="cloudSignIn" style="display:none">Sign in with Google</button>
+        <button class="btn ghost" id="cloudSignOut" style="display:none">Sign out</button>
+        <div id="cloudStatus" style="font-size:11px;opacity:.7"></div>
+      </div>
       <div class="blurb" style="font-size:12px;opacity:.72;margin-top:18px">Move: drag anywhere / arrow keys · Talk &amp; enter: tap the prompt or press Space</div>
     </div>
   </div>
@@ -739,11 +744,13 @@
   <div class="toast" id="toast"></div>
 </div></div>
 
-<script src="game.js?v=68"></script>
+<script src="game.js?v=69"></script>
 <script src="render-atashinchi.js?v=73"></script>
 <script src="restaurant.js?v=11"></script>
 <script src="phone.js?v=2"></script>
 <script src="music.js"></script>
 <script src="weather.js?v=3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="cloud.js?v=1"></script>
 </body>
 </html>

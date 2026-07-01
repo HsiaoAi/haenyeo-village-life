@@ -2504,14 +2504,19 @@ const SAVE_KEY='hvl.save', SAVE_V=1;
 let _started=false, _loadedSave=false;
 function saveGame(){
   if(!_started) return;                          // don't persist a fresh, never-played state
-  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:SAVE_V, t:Date.now(), G})); }catch(e){}
+  const payload={v:SAVE_V, t:Date.now(), G};
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }catch(e){}
+  if(typeof cloudPush==='function') cloudPush(payload);   // best-effort cloud sync when signed in (cloud.js)
+}
+function applySave(s){                           // validate + merge a payload into G (shared by local load + cloud pull)
+  if(!s || s.v!==SAVE_V || !s.G) return false;   // unknown/old schema → ignore (bump SAVE_V + migrate later)
+  Object.assign(G, s.G); _loadedSave=true; return true;
 }
 function loadGame(){
   let raw; try{ raw=localStorage.getItem(SAVE_KEY); }catch(e){ return false; }
   if(!raw) return false;
   let s; try{ s=JSON.parse(raw); }catch(e){ return false; }
-  if(!s || s.v!==SAVE_V || !s.G) return false;   // unknown/old schema → ignore (bump SAVE_V + migrate later)
-  Object.assign(G, s.G); _loadedSave=true; return true;
+  return applySave(s);
 }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 /* push the loaded numbers into the HUD — Start/boot otherwise hard-codes Day 1 / 0 won */
