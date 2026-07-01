@@ -38,6 +38,7 @@ haenyeo/
   phone.js                    # in-game phone UI
   music.js                    # audio
   weather.js                  # tide / weather system
+  cloud.js                    # optional Supabase cloud save (not yet configured)
   Jeju Cultural Assets.html   # museum content page
   *.png / *.jpg               # backgrounds and story art
 docs/                         # design specs
@@ -51,6 +52,58 @@ uploads/                      # source image assets
 - Vanilla JavaScript + HTML5 Canvas, no dependencies or build step.
 - Web fonts via Google Fonts (Gowun Batang, Gaegu, Space Mono).
 - Multiple swappable renderers for different illustration styles.
+
+## Cloud save (optional — not yet configured)
+
+Progress is saved to the browser's `localStorage` automatically (per-browser, no
+setup). Cloud save via **Supabase + Google login** is wired up in `cloud.js` but
+**dormant** — until the two keys below are filled, the game runs on local save only
+and the title screen shows "Cloud save: not configured".
+
+To turn it on:
+
+1. **Create a Supabase project** ([supabase.com](https://supabase.com)). From
+   **Project Settings → API**, copy the **Project URL** and the **anon / public** key.
+
+2. **Create the `saves` table** — run in the SQL Editor:
+
+   ```sql
+   create table if not exists public.saves (
+     user_id    uuid primary key references auth.users on delete cascade,
+     data       jsonb not null,
+     updated_at timestamptz not null default now()
+   );
+   alter table public.saves enable row level security;
+   create policy "own save read"   on public.saves for select using (auth.uid() = user_id);
+   create policy "own save insert" on public.saves for insert with check (auth.uid() = user_id);
+   create policy "own save update" on public.saves for update using (auth.uid() = user_id);
+   ```
+
+   Row Level Security means each player can only read/write their own row, so the
+   anon key is safe to ship in client code.
+
+3. **Enable Google login** — in Google Cloud Console create an OAuth **Web
+   application** client; add the authorized redirect URI
+   `https://<your-project-ref>.supabase.co/auth/v1/callback`. Paste the Google
+   **Client ID** + **secret** into Supabase → **Authentication → Providers → Google**.
+
+4. **Allow the game's URL** — Supabase → **Authentication → URL Configuration**:
+   - **Site URL:** `https://hsiaoai.github.io/haenyeo-village-life/haenyeo/`
+   - **Redirect URLs:** add that same URL (and `http://localhost:8000/` for local testing).
+
+5. **Paste the keys** into the top of `haenyeo/cloud.js`:
+
+   ```js
+   const SUPABASE_URL      = 'https://<your-project-ref>.supabase.co';
+   const SUPABASE_ANON_KEY = 'eyJhbGci...';   // anon / public key
+   ```
+
+   Then bump `cloud.js?v=1` → `?v=2` in `index.html` (cache-busting convention) and push.
+
+**Behavior once live:** login is optional (guests keep playing on local save); on
+sign-in the cloud save is pulled and reconciled against local by timestamp
+(newest wins); every save also pushes to the cloud; `localStorage` stays the
+offline cache so the game still works with no connection.
 
 ## License
 
