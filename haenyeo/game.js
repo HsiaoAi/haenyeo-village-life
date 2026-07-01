@@ -1799,7 +1799,9 @@ function openDiveStart(){
                wind:'A swell is running — mind your footing when you surface.' }[G.weather]
              || 'The sea is calm today.';
   const fed = G.meal ? ' A full belly ('+G.meal.label+') will carry your breath longer.' : '';
-  $('diveStartNote').textContent = wx + fed;
+  // a small personal aside — the real haenyeo diving lesson at the Hansupul Haenyeo School (NomadHer Jeju workation)
+  const lesson = '  Taught by a certified Haenyeo instructor at the Hansupul Haenyeo School — just like ours.';
+  $('diveStartNote').textContent = wx + fed + lesson;
   $('pDiveStart').classList.remove('hidden');
 }
 $('diveStartGo').onclick=()=>{ if(!haveEnergy('dive')) return; $('pDiveStart').classList.add('hidden'); startDive(); };
