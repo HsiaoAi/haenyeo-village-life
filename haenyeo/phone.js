@@ -198,10 +198,13 @@
   @keyframes phEq{0%,100%{height:25%}50%{height:100%}}
 
   /* dolphin-tail keyring charm — hangs off the phone's edge, visible whenever the phone is open */
-  .ph-charm{position:absolute;top:14px;right:-34px;width:58px;z-index:26;cursor:pointer;}
-  .ph-charm-hang{width:58px;transform-origin:50% 5px;animation:phSway 4.6s ease-in-out infinite;
+  .ph-charm{position:absolute;top:12px;right:-42px;width:82px;z-index:26;cursor:pointer;}
+  .ph-charm-hang{width:82px;transform-origin:50% 5px;animation:phSway 4.6s ease-in-out infinite;
     filter:drop-shadow(0 4px 6px rgba(0,0,0,.42));}
-  .ph-charm-hang svg{display:block;width:100%;height:auto;}
+  .ph-charm-hang svg,.ph-charm-hang .ph-charm-img{display:block;width:100%;height:auto;}
+  /* decorative copy dangling off the phone button (visible while the phone is closed) */
+  .ph-charm-btn{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);width:54px;pointer-events:none;z-index:9;}
+  .ph-charm-btn .ph-charm-hang{width:54px;}
   .ph-charm:active .ph-charm-hang{filter:drop-shadow(0 2px 3px rgba(0,0,0,.42)) brightness(1.06);}
   @keyframes phSway{0%,100%{transform:rotate(-4.5deg)}50%{transform:rotate(4.5deg)}}
   .ph-charm-note{position:absolute;top:6px;right:62px;width:156px;padding:9px 11px;border-radius:12px 12px 3px 12px;
@@ -330,10 +333,28 @@
     // 2:'Haenyeo diving lesson',
   };
 
+  /* the dolphin-tail keyring — a drawn stand-in; swapped for the real photo at
+     assets/dolphin-keyring.png if that file exists (see the upgrade below). */
+  const CHARM_SVG = `<svg viewBox="0 0 90 172" aria-label="Dolphin-tail keyring">
+    <path d="M45,0 C43,10 47,15 45,23" fill="none" stroke="#6b4a2e" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="45" cy="31" r="9" fill="none" stroke="#9aa3ab" stroke-width="4.5"/>
+    <circle cx="45" cy="31" r="9" fill="none" stroke="#eef2f5" stroke-width="1.6"/>
+    <rect x="42.4" y="37" width="5.2" height="9" rx="2.2" fill="#c6ccd1" stroke="#868f97" stroke-width="1"/>
+    <path d="M40,47 C33,71 30,95 13,150 C25,140 37,128 45,124 C53,128 65,140 77,150 C60,95 57,71 50,47 Z" fill="#d9d3c9"/>
+    <path d="M40,49 C33,72 30,95 15,148 C26,139 37,128 45,124 C53,128 64,139 75,148 C60,95 57,72 50,49 Z" fill="#b06a3e" stroke="#241c16" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M42,58 C38,82 37,101 31,131" fill="none" stroke="#c9895b" stroke-width="4" stroke-linecap="round" opacity=".5"/>
+    <path d="M40,49 C33,72 30,95 15,148 C26,139 37,128 45,124 C53,128 64,139 75,148 C60,95 57,72 50,49 Z" fill="none" stroke="#241c16" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="0.5 5"/>
+  </svg>`;
+
   /* ---------------- DOM ---------------- */
   const btn = document.createElement('button');
   btn.id = 'phoneBtn'; btn.title = 'Phone';
   btn.innerHTML = IC.phone + `<span class="badge"></span>`;
+  // keyring dangling off the phone button — visible during play even when the phone is closed (decorative)
+  const btnCharm = document.createElement('div');
+  btnCharm.className = 'ph-charm-btn';
+  btnCharm.innerHTML = `<div class="ph-charm-hang">${CHARM_SVG}</div>`;
+  btn.appendChild(btnCharm);
   stage.appendChild(btn);
   const phoneBadge = btn.querySelector('.badge');
 
@@ -359,18 +380,7 @@
         </div>
       </div>
       <div class="ph-charm" title="Dolphin-tail keyring">
-        <div class="ph-charm-hang">
-          <svg viewBox="0 0 90 172" aria-label="Dolphin-tail keyring">
-            <path d="M45,0 C43,10 47,15 45,23" fill="none" stroke="#6b4a2e" stroke-width="3" stroke-linecap="round"/>
-            <circle cx="45" cy="31" r="9" fill="none" stroke="#9aa3ab" stroke-width="4.5"/>
-            <circle cx="45" cy="31" r="9" fill="none" stroke="#eef2f5" stroke-width="1.6"/>
-            <rect x="42.4" y="37" width="5.2" height="9" rx="2.2" fill="#c6ccd1" stroke="#868f97" stroke-width="1"/>
-            <path d="M40,47 C33,71 30,95 13,150 C25,140 37,128 45,124 C53,128 65,140 77,150 C60,95 57,71 50,47 Z" fill="#d9d3c9"/>
-            <path d="M40,49 C33,72 30,95 15,148 C26,139 37,128 45,124 C53,128 64,139 75,148 C60,95 57,72 50,49 Z" fill="#b06a3e" stroke="#241c16" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M42,58 C38,82 37,101 31,131" fill="none" stroke="#c9895b" stroke-width="4" stroke-linecap="round" opacity=".5"/>
-            <path d="M40,49 C33,72 30,95 15,148 C26,139 37,128 45,124 C53,128 64,139 75,148 C60,95 57,72 50,49 Z" fill="none" stroke="#241c16" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="0.5 5"/>
-          </svg>
-        </div>
+        <div class="ph-charm-hang">${CHARM_SVG}</div>
         <div class="ph-charm-note"><b>Dolphin-tail keyring</b> — hand-stitched from a retired haenyeo wetsuit at the NomadHer upcycling workshop. On Jeju, a passing pod is a diver's good-luck omen.</div>
       </div>
     </div>`;
@@ -882,11 +892,16 @@
   window.HaenyeoPhoneCall = { place: placeCall };
   btn.onclick = openPhone;
   ov.addEventListener('pointerdown', e=>{ if(e.target===ov) closePhone(); });
-  // dolphin-tail keyring charm: tap to toggle its note
+  // dolphin-tail keyring: tap the in-phone charm for its note; use the real photo for BOTH charms if present
   { const charm = $$('.ph-charm');
     if(charm) charm.addEventListener('click', e=>{ e.stopPropagation();
       charm.querySelector('.ph-charm-note').classList.toggle('show');
-      if(typeof tone==='function') tone(600,.05,'sine',.04); }); }
+      if(typeof tone==='function') tone(600,.05,'sine',.04); });
+    const im = new Image();
+    im.onload = ()=>{ document.querySelectorAll('.ph-charm-hang').forEach(h=>{
+      h.innerHTML = '<img class="ph-charm-img" src="'+im.src+'" alt="Dolphin-tail keyring">'; }); };
+    im.src = 'assets/dolphin-keyring.png';   // drop a transparent PNG here to use the real photo
+  }
   appbar.querySelector('.back').onclick = backHome;
   ov.querySelectorAll('.ph-home-ind').forEach(h=>{
     h.onclick = ()=>{ if(appView.classList.contains('show')) backHome(); else closePhone(); };
