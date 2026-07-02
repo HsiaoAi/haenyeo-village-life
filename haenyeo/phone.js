@@ -204,7 +204,7 @@
   .ph-charm-hang svg,.ph-charm-hang .ph-charm-img{display:block;width:100%;height:auto;}
   /* decorative copy hooked at the phone button's top-right, tail dangling down its right side
      (button hugs the screen's right edge, so it drapes over the right side rather than fully beside it) */
-  .ph-charm-btn{position:absolute;right:8px;bottom:6px;width:38px;pointer-events:none;z-index:9;}
+  .ph-charm-btn{position:absolute;right:30px;bottom:30px;width:38px;pointer-events:none;z-index:9;}
   .ph-charm-btn .ph-charm-hang{width:38px;}
   .ph-charm:active .ph-charm-hang{filter:drop-shadow(0 2px 3px rgba(0,0,0,.42)) brightness(1.06);}
   @keyframes phSway{0%,100%{transform:rotate(-4.5deg)}50%{transform:rotate(4.5deg)}}
