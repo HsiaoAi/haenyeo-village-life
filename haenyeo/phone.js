@@ -198,17 +198,17 @@
   @keyframes phEq{0%,100%{height:25%}50%{height:100%}}
 
   /* dolphin-tail keyring charm — hangs off the phone's edge, visible whenever the phone is open */
-  .ph-charm{position:absolute;top:12px;right:-42px;width:82px;z-index:26;cursor:pointer;}
+  .ph-charm{position:absolute;top:12px;left:-42px;width:82px;z-index:26;cursor:pointer;}
   .ph-charm-hang{width:82px;transform-origin:50% 5px;animation:phSway 4.6s ease-in-out infinite;
     filter:drop-shadow(0 4px 6px rgba(0,0,0,.42));}
   .ph-charm-hang svg,.ph-charm-hang .ph-charm-img{display:block;width:100%;height:auto;}
   /* decorative copy hooked at the phone button's top-right, tail dangling down its right side
      (button hugs the screen's right edge, so it drapes over the right side rather than fully beside it) */
-  .ph-charm-btn{position:absolute;right:30px;bottom:30px;width:38px;pointer-events:none;z-index:9;}
+  .ph-charm-btn{position:absolute;right:30px;bottom:16px;width:38px;pointer-events:none;z-index:9;}
   .ph-charm-btn .ph-charm-hang{width:38px;}
   .ph-charm:active .ph-charm-hang{filter:drop-shadow(0 2px 3px rgba(0,0,0,.42)) brightness(1.06);}
   @keyframes phSway{0%,100%{transform:rotate(-4.5deg)}50%{transform:rotate(4.5deg)}}
-  .ph-charm-note{position:absolute;top:6px;right:62px;width:156px;padding:9px 11px;border-radius:12px 12px 3px 12px;
+  .ph-charm-note{position:absolute;top:6px;left:62px;width:156px;padding:9px 11px;border-radius:12px 12px 12px 3px;
     background:rgba(18,38,44,.95);color:#f3ede1;font-size:11px;line-height:1.55;font-family:'Gowun Batang',serif;
     box-shadow:0 6px 16px rgba(0,0,0,.45);display:none;z-index:27;}
   .ph-charm-note.show{display:block;animation:phFade .18s ease;}
