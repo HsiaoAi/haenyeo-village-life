@@ -1773,6 +1773,7 @@ function catchStars(c){
   return Math.max(1,Math.min(3,st));
 }
 let dJellies=[],dPod=null,dCompanion=null,dBeat={active:false,p:0},dSting=0,dHintT=0;
+let dSay=null,dPodSayCd=0;   // dSay: a speech bubble over the diver; dPodSayCd throttles the "배알로!" call
 let dVents=[],dChest=null,dDash=0,dDashCd=0,dDashReq=false,lastDiveTap=0,dLowT=0;
 let divePtr={on:false,x:0,y:0};
 function divePtrSet(p){divePtr.x=p.x;divePtr.y=p.y;}
@@ -1822,9 +1823,11 @@ function startDive(){
   for(let i=0;i<5;i++){ const fr=0.16+i*0.17+Math.random()*0.07;
     dJellies.push({bx:70+Math.random()*(W-140), y:SURF+90+fr*(BED-SURF-140), ph:Math.random()*6.28, x:0}); }
   for(const j of dJellies) j.x=j.bx;
-  // on lucky days a dolphin pod crosses the bay — swim close for a blessing
-  dPod = Math.random()<0.35 ? {x:-120, y:SURF+200+Math.random()*420, dir:1, blessed:false} : null;
-  if(dPod && Math.random()<0.5){ dPod.dir=-1; dPod.x=W+120; }
+  // a dolphin pod always works the bay — it swims right up to the diver.
+  // Jeju haenyeo call "배알로!" (bae allo — "pass under the boat") as the pod nears.
+  dPod = {x:-120, y:SURF+200+Math.random()*420, dir:1, blessed:false, state:'approach'};
+  if(Math.random()<0.5){ dPod.dir=-1; dPod.x=W+120; }
+  dSay=null; dPodSayCd=0;
   // a sea creature you once freed from a ghost net sometimes returns to swim with you
   dCompanion=null;
   { const marine=Object.keys(G.rescuedAnimals||{}).filter(k=>k==='turtle'||k==='dolphin');
@@ -1952,15 +1955,31 @@ function updateDive(dt){
   }
   // low-air heartbeat
   if(sub && dBreath/maxBreath()<0.25){ dLowT-=dt; if(dLowT<=0){ dLowT=0.9; tone(88,.14,'sine',.06); } }
-  // ---- the dolphin pod passes through ----
+  // ---- a dolphin pod always works the bay — and swims right to the diver ----
+  if(dPodSayCd>0) dPodSayCd-=dt;
   if(dPod){
-    dPod.x+=dPod.dir*dt*95;
-    if(!dPod.blessed && Math.hypot(dv.x-dPod.x,dv.y-dPod.y)<100){
+    const dx=dv.x-dPod.x, dy=dv.y-dPod.y, near=Math.hypot(dx,dy)||1;
+    if(dPod.state==='leave'){
+      // having reached her, it glides on past and off-screen, then loops back to approach again
+      dPod.x+=dPod.dir*dt*130; dPod.y+=Math.sin(dTime*1.3)*dt*24;
+      if(dPod.x<-190||dPod.x>W+190){ dPod.state='approach'; dPod.x=dPod.dir<0?W+170:-170; dPod.y=SURF+160+Math.random()*460; }
+    } else {
+      // approach — steer straight toward the diver
+      dPod.x+=dx/near*dt*150; dPod.y+=dy/near*dt*128; dPod.dir=dx>=0?1:-1;
+      if(near<66) dPod.state='leave';   // reached her → pass on by
+    }
+    // haenyeo custom: as the dolphins approach, call "배알로!" — "pass under the boat"
+    if(dPod.state==='approach' && near<260 && dPodSayCd<=0){
+      dSay={text:'배알로!', sub:'bae allo — pass under, friends', t:2.8};
+      dPodSayCd=6; tone(700,.16,'sine',.05);
+    }
+    // the rich-harvest omen — the breath gift is given once per dive
+    if(!dPod.blessed && near<100){
       dPod.blessed=true; dBreath=Math.min(maxBreath(),dBreath+40);
       toast('A dolphin pod circles you — a rich harvest omen!'); tone(880,.3,'sine',.06);
     }
-    if(dPod.x<-180||dPod.x>W+180) dPod=null;
   }
+  if(dSay){ dSay.t-=dt; if(dSay.t<=0) dSay=null; }
   // ---- a rescued animal that remembers you: swims in, circles alongside a while, then drifts off ----
   if(dCompanion){ const C=dCompanion; C.t+=dt;
     if(C.state==='enter'){

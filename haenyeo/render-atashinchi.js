@@ -4619,6 +4619,28 @@ function drawDive(){
     ctx.restore();
     glabel('sumbisori! — tap',dsx,dsy-72,16,MIN.white);
   }
+  // ---- the diver's call to the dolphins: "배알로!" (bae allo — pass under the boat) ----
+  if(typeof dSay!=='undefined' && dSay){
+    const a=Math.min(1,dSay.t,(2.8-dSay.t)*3);   // quick fade in, hold, quick fade out
+    ctx.save(); ctx.globalAlpha=Math.max(0,a);
+    ctx.font='700 20px "Gowun Batang", serif';
+    const subF='600 12px "Gowun Batang", serif';
+    ctx.font=subF; const sw=dSay.sub?ctx.measureText(dSay.sub).width:0;
+    ctx.font='700 20px "Gowun Batang", serif'; const tw=ctx.measureText(dSay.text).width;
+    const bw=Math.max(tw,sw)+26, bh=dSay.sub?52:34;
+    const bx=dsx, by=dsy-58-bh/2;
+    // bubble body + tail
+    ctx.fillStyle=MIN.white; ctx.strokeStyle=MIN.ink; ctx.lineWidth=2.4; ctx.lineJoin='round';
+    rr(ctx,bx-bw/2,by-bh/2,bw,bh,9); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx-7,by+bh/2-1); ctx.lineTo(bx+2,by+bh/2+12); ctx.lineTo(bx+8,by+bh/2-1); ctx.closePath();
+    ctx.fillStyle=MIN.white; ctx.fill(); ctx.stroke();
+    // text
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='700 20px "Gowun Batang", serif'; ctx.fillStyle=MIN.ink;
+    ctx.fillText(dSay.text, bx, dSay.sub?by-8:by);
+    if(dSay.sub){ ctx.font=subF; ctx.fillStyle='rgba(60,44,32,.72)'; ctx.fillText(dSay.sub, bx, by+13); }
+    ctx.restore();
+  }
 }
 
 /* ---------------- PORTRAIT (silk medallion) ---------------- */
