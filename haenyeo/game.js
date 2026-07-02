@@ -1531,7 +1531,7 @@ function refreshShopPrompt(){
   if(!shopCur){el.classList.remove('show');return;}
   let txt='';
   if(shopCur.type==='keeper') txt='Talk to Mr. Gicheol';
-  else if(shopCur.type==='exit') txt='Leave shop';
+  else if(shopCur.type==='exit') txt='Leave Work Land';
   el.textContent=txt; el.classList.add('show');
 }
 function doShopInteract(){

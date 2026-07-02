@@ -2416,10 +2416,29 @@ function ensureShopImg(){ if(shopImgTried)return; shopImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{shopImg=im;}); } else { shopImg=im; } };
   im.src='shop_bg.webp'; }
+/* WORK LAND plaque drawn over the baked-in "DIVE SHOP" board in shop_bg (board ~x362..588, y20..86) */
+function drawWorkLandSign(g){
+  const x=356, y=15, w=244, h=76, cx=x+w/2;
+  g.save(); g.lineJoin='round'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillStyle='rgba(0,0,0,.28)'; rr(g,x+4,y+6,w,h,10); g.fill();          // soft shadow
+  g.fillStyle='#7d5330'; g.strokeStyle='#33200f'; g.lineWidth=4.5;         // wooden plaque
+  rr(g,x,y,w,h,10); g.fill(); g.stroke();
+  g.strokeStyle='rgba(40,24,12,.22)'; g.lineWidth=1;                       // wood grain
+  for(let gy=y+9; gy<y+h-5; gy+=8){ g.beginPath(); g.moveTo(x+8,gy); g.lineTo(x+w-8,gy); g.stroke(); }
+  g.strokeStyle='rgba(255,225,175,.3)'; g.lineWidth=2; rr(g,x+5,y+5,w-10,h-10,7); g.stroke();  // inner bevel
+  g.strokeStyle='#5cc2d6'; g.lineWidth=3; g.lineCap='round';              // teal wave logo (left)
+  g.beginPath(); g.moveTo(x+20,y+34); g.quadraticCurveTo(x+28,y+27,x+36,y+34); g.quadraticCurveTo(x+44,y+41,x+52,y+34); g.stroke();
+  g.fillStyle='#f5e8ca'; g.font='700 30px "Gowun Batang", Georgia, serif';
+  g.fillText('WORK LAND', cx+8, y+32);
+  g.fillStyle='#d8c299'; g.font='700 11px "Gowun Batang", Georgia, serif';
+  g.fillText('· CO-WORK BY THE SEA ·', cx+8, y+59);
+  g.restore();
+}
 function drawShop(){
   ensureShopImg();
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
   else { ctx.fillStyle='#e9ddc4'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#caa066'; ctx.fillRect(0,124,W,H-124); }
+  if(shopImg) drawWorkLandSign(ctx);                     // rebrand the baked-in DIVE SHOP board
   // shopkeeper, standing behind his counter
   drawPerson(keeper.x,keeper.y,{skin:keeper.skin,scarf:keeper.scarf,look:keeper.look,idle:1.3});
   drawShopCounter();                                     // counter drawn in front of him
