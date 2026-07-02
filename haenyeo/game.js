@@ -689,14 +689,10 @@ let current=null;
 let joinCheerT=0, joinCheerX=0, joinCheerY=0, joinAnim=null;
 function activityNow(){
   const tm=G.time;
-  if(tm>=1020||tm<180) return {key:'movie', label:'movie night', x:178, y:572};
-  if(tm>=180&&tm<300) return null;                                  // heading home / asleep
-  if(tm>=480&&tm<600) return {key:'surf', label:'surfing', x:520, y:545};
-  if(tm>=600&&tm<660) return {key:'hike', label:'morning hike', x:470, y:202};
-  if(tm>=660&&tm<720) return {key:'picnic', label:'picnic', x:470, y:560};
-  if(tm>=720&&tm<840) return {key:'skate', label:'roller skating', x:470, y:520};
-  if(tm>=840&&tm<1020) return {key:'dive', label:'diving', x:520, y:545};
-  return {key:'yoga', label:'beach yoga', x:282, y:556};            // 5:00–8:00
+  if(tm>=1020||tm<180) return {key:'movie', label:'movie night', x:178, y:572};      // 17:00–3:00 evening
+  if(tm>=180&&tm<300) return null;                                                     // 3:00–5:00 heading home / asleep
+  if(tm>=720&&tm<1020) return {key:'matcha', label:'beach matcha', x:282, y:556};      // 12:00–17:00 afternoon
+  return {key:'yoga', label:'beach yoga', x:282, y:556};                               // 5:00–12:00 morning
 }
 function joinActivity(act){
   if(joinAnim) return;

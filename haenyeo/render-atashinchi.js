@@ -1510,35 +1510,7 @@ function drawBeachCompanions(t){
     for(let i=0;i<10;i++){const sx=(i*97+300)%900, sy=86+((i*61)%62); const tw=0.4+0.6*Math.sin(t*2+i*1.7);
       ctx.globalAlpha=tw;ctx.beginPath();ctx.arc(sx,sy,1.1+(i%2)*0.5,0,7);ctx.fill();}
     ctx.restore();
-  } else if(tm>=480&&tm<600){          // 8–10 surfing in the sea
-    const surfer=(x,base,ph,col,kind)=>{
-      const y=base+Math.sin(t*1.4+ph)*5, tilt=Math.sin(t*6+ph)*0.05;
-      ctx.save();ctx.translate(x,y);ctx.scale(-1,1);ctx.rotate(tilt);   // mirrored — riding in toward the beach
-      ctx.save();ctx.rotate(-0.18);                                  // board angled, cutting across the wave
-      inked(ctx,col,2.4);ctx.beginPath();ctx.ellipse(0,12,30,7,0,0,7);fillStroke(ctx);
-      ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(-22,12);ctx.lineTo(22,12);ctx.stroke();
-      ctx.restore();
-      if(kind==='dog') drawBeachDog(ctx,0,2,0.62,'surf'); else drawBeachRobot(ctx,0,2,0.66,'surf');
-      ctx.restore();
-      // spray/foam flicking off the leading edge
-      ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.lineCap='round';
-      for(let i=0;i<4;i++){const pr=((t*32+i*12+ph*9)%26); ctx.globalAlpha=Math.max(0,1-pr/26);
-        ctx.beginPath();ctx.arc(x-26-pr*0.5, y+12-pr*0.5, 1.7,0,7);ctx.stroke();}
-      ctx.globalAlpha=1;
-    };
-    // surf the open water lane near the shore, well clear of the working haenyeo divers
-    surfer(655,548,0,MIN.gold,'dog');
-    surfer(628,592,1,MIN.verm,'robot');
-  } else if(tm>=600&&tm<660){          // 10–11 hiking on the mountain — with rucksacks
-    const k=(t*0.07)%1;
-    const hx=130+k*500, hy=108+Math.sin(hx*0.02)*9;   // climbing across the rolling hill
-    drawHikePack(ctx,hx,hy,0.42,MIN.teal,13,-46,'back');
-    drawBeachDog(ctx,hx,hy,0.42,'side');
-    drawHikePack(ctx,hx,hy,0.42,MIN.teal,13,-46,'front');
-    drawHikePack(ctx,hx+28,hy+3,0.46,MIN.verm,15,-56,'back');
-    drawBeachRobot(ctx,hx+28,hy+3,0.46,'side');
-    drawHikePack(ctx,hx+28,hy+3,0.46,MIN.verm,15,-56,'front');
-  } else if(tm>=660&&tm<720){          // 11–12 picnic lunch on the beach (野餐墊)
+  } else if(tm>=720&&tm<1020){         // 12–17 beach matcha — a quiet tea break on the mat
     // checkered picnic blanket on the sand
     ctx.save();ctx.translate(282,566);
     ctx.fillStyle='rgba(20,12,8,.14)';ctx.beginPath();ctx.ellipse(0,9,54,9,0,0,7);ctx.fill();
@@ -1548,51 +1520,28 @@ function drawBeachCompanions(t){
     for(let i=0;i<11;i++)for(let j=0;j<3;j++){ if((i+j)%2)continue; ctx.fillRect(-52+i*10,-9+j*8,10,8); }
     ctx.restore();
     ctx.strokeStyle=MIN.ink;ctx.lineWidth=2.2;rr(ctx,-52,-9,104,24,4);ctx.stroke();
-    // picnic basket set off to the side of the mat
-    inked(ctx,'#caa86a',2);rr(ctx,32,-17,20,11,3);fillStroke(ctx);
-    ctx.strokeStyle='#a9763e';ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(42,-17,9,Math.PI,0);ctx.stroke();
-    // two bowls of steaming ramyeon between them — soft egg, gim, green onion, chopsticks
-    const ramyeon=(bx,by,flip)=>{ ctx.save();ctx.translate(bx,by);
+    // a little cast-iron teapot set off to the side of the mat
+    inked(ctx,'#3f4a44',2);rr(ctx,32,-13,20,13,5);fillStroke(ctx);                                          // pot body
+    ctx.strokeStyle='#3f4a44';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.arc(42,-14,7,Math.PI,0);ctx.stroke();   // handle
+    ctx.beginPath();ctx.moveTo(52,-8);ctx.quadraticCurveTo(60,-7,58,-2);ctx.stroke();                       // spout
+    inked(ctx,MIN.gold,1.6);ctx.beginPath();ctx.arc(42,-13,2,0,7);fillStroke(ctx);                          // lid knob
+    // two bowls of frothy matcha between them — bright green, gentle steam
+    const matcha=(bx,by)=>{ ctx.save();ctx.translate(bx,by);
       ctx.fillStyle='rgba(20,12,8,.14)';ctx.beginPath();ctx.ellipse(0,4.5,10,2.8,0,0,7);ctx.fill();
-      inked(ctx,MIN.white,2);ctx.beginPath();ctx.moveTo(-9,-2);ctx.quadraticCurveTo(-7.5,5,0,5);ctx.quadraticCurveTo(7.5,5,9,-2);ctx.closePath();fillStroke(ctx);
-      ctx.strokeStyle=MIN.verm;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-7.6,1.4);ctx.lineTo(7.6,1.4);ctx.stroke();   // bowl stripe
-      inked(ctx,'#e8a23c',1.6);ctx.beginPath();ctx.ellipse(0,-2,8.4,2.8,0,0,7);fillStroke(ctx);                            // broth
-      ctx.strokeStyle='#f3d9b0';ctx.lineWidth=1.3;ctx.lineCap='round';                                                     // wavy noodles
-      for(const nx of [-4,-1,2]){ctx.beginPath();ctx.arc(nx,-2.4,2,Math.PI,0);ctx.stroke();}
-      inked(ctx,'#fff',1.1);ctx.beginPath();ctx.ellipse(4.2,-3,2.5,1.8,0,0,7);fillStroke(ctx);                             // soft egg
-      ctx.fillStyle='#f0a73a';ctx.beginPath();ctx.arc(4.2,-3,1,0,7);ctx.fill();
-      inked(ctx,'#2e3a30',1.1);rr(ctx,-7,-6.5,3.6,4.4,0.7);fillStroke(ctx);                                                // sheet of gim
-      ctx.fillStyle='#69a35c';for(const sx of [-2,0.6,2.4]){ctx.beginPath();ctx.arc(sx,-3.8,0.7,0,7);ctx.fill();}          // green onion
-      ctx.strokeStyle='#a9763e';ctx.lineWidth=1.3;ctx.lineCap='round';                                                     // chopsticks on the rim
-      ctx.beginPath();ctx.moveTo(flip*-9,-7);ctx.lineTo(flip*8,-3);ctx.moveTo(flip*-9,-5.4);ctx.lineTo(flip*8,-1.6);ctx.stroke();
-      ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=1.3;                                                            // steam wisps
-      for(const wx of [-3,2.5]){ctx.beginPath();ctx.moveTo(wx,-7);
-        ctx.quadraticCurveTo(wx+Math.sin(t*2.2+wx)*2.4,-12,wx+Math.sin(t*2.2+wx)*1.2,-16);ctx.stroke();}
+      inked(ctx,MIN.white,2);ctx.beginPath();ctx.moveTo(-9,-2);ctx.quadraticCurveTo(-8,5,0,5);ctx.quadraticCurveTo(8,5,9,-2);ctx.closePath();fillStroke(ctx);   // chawan bowl
+      ctx.strokeStyle=MIN.teal;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-8,1.2);ctx.lineTo(8,1.2);ctx.stroke();     // rim band
+      inked(ctx,'#8fbf3f',1.6);ctx.beginPath();ctx.ellipse(0,-2,8.2,2.8,0,0,7);fillStroke(ctx);                        // matcha surface
+      ctx.fillStyle='rgba(255,255,255,.5)';for(const fx of [-3,1,3.5]){ctx.beginPath();ctx.arc(fx,-2.4,0.8,0,7);ctx.fill();}   // froth
+      ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=1.3;ctx.lineCap='round';                                    // steam wisps
+      for(const wx of [-2.5,2.5]){ctx.beginPath();ctx.moveTo(wx,-6);
+        ctx.quadraticCurveTo(wx+Math.sin(t*2.2+wx)*2.2,-11,wx+Math.sin(t*2.2+wx)*1.1,-15);ctx.stroke();}
       ctx.restore(); };
-    ramyeon(-15,6,1); ramyeon(15,6,-1);
+    matcha(-15,6); matcha(15,6);
     ctx.restore();
-    // the dog & robot sit on the mat, turned in toward the shared meal
+    // the dog & robot sit on the mat, turned in toward the tea
     ctx.save();ctx.scale(-1,1);drawBeachDog(ctx,-246,562+bob(0)*0.5,0.68,'sit');ctx.restore();
     drawBeachRobot(ctx,318,556+bob(1)*0.5,0.72,'sit');
-  } else if(tm>=720&&tm<840){          // 12–14 roller skating along the path
-    const ph=((t*0.1)%2), k=ph<1?ph:2-ph, dir=ph<1?1:-1, bx=170+k*520;
-    const wheels=(x)=>{ ctx.fillStyle=MIN.ink;for(const fx of [-9,-3,4,10]){ctx.beginPath();ctx.arc(x+fx,259,2,0,7);ctx.fill();} };
-    const speed=(x)=>{ ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.lineCap='round';
-      for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x-dir*(14+i*9),250-i*5);ctx.lineTo(x-dir*(26+i*9),250-i*5);ctx.stroke();} };
-    speed(bx); drawBeachDog(ctx,bx,253,0.66,'side'); wheels(bx);
-    speed(bx-52*dir); drawBeachRobot(ctx,bx-52*dir,253,0.7,'side'); wheels(bx-52*dir);
-  } else if(tm>=840&&tm<1080){         // 14–18 diving in the sea
-    const dive=(x,base,ph,kind)=>{
-      const y=base+Math.sin(t*1.5+ph)*4;
-      ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+6,18,5,0,0,7);ctx.stroke(); // waterline ring
-      ctx.save();ctx.beginPath();ctx.rect(x-30,y-52,60,(y+5)-(y-52));ctx.clip();                                          // show only the upper body
-      if(kind==='dog') drawBeachDog(ctx,x,y+16,0.5,'side'); else drawBeachRobot(ctx,x,y+16,0.52,'side');
-      ctx.restore();
-      ctx.fillStyle='rgba(255,255,255,.6)';for(let i=0;i<3;i++){const by=y-((t*22+i*9+ph*10)%26);ctx.beginPath();ctx.arc(x+11+i*2,by,1.6,0,7);ctx.fill();}  // bubbles
-    };
-    dive(665,524,0,'dog');
-    dive(800,568,1,'robot');
-  } else if(tm>=300){                   // 5:00 onward — calm dawn beach yoga (tree pose); before 5:00 the shore is empty
+  } else if(tm>=300){                   // 5:00–12:00 morning beach yoga (tree pose); before 5:00 the shore is empty
     // a thin yoga mat unrolled flat on the sand (slight 3/4 view) with a soft
     // contact shadow underneath so it rests on the ground; one end lightly rolled.
     const mat=(mx,my,col)=>{ ctx.save();ctx.translate(mx,my);
