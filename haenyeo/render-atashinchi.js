@@ -2416,6 +2416,28 @@ function ensureShopImg(){ if(shopImgTried)return; shopImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{shopImg=im;}); } else { shopImg=im; } };
   im.src='shop_bg.webp'; }
+/* dark wooden shelf tag (cream serif text, thin gold rule) — covers a baked-in label */
+function drawShelfTag(g,x,y,w,h,text){
+  g.save(); g.lineJoin='round'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillStyle='#3a241a'; g.strokeStyle='#1c110b'; g.lineWidth=2.4; rr(g,x,y,w,h,4); g.fill(); g.stroke();
+  g.strokeStyle='rgba(201,161,90,.75)'; g.lineWidth=1; rr(g,x+2.5,y+2.5,w-5,h-5,3); g.stroke();
+  g.fillStyle='#e9d4a6'; g.font='700 10px "Gowun Batang", Georgia, serif';
+  g.fillText(text, x+w/2, y+h/2+0.5);
+  g.restore();
+}
+/* relabel the diving-sites poster header → Work Land notice board (keeps the island map below) */
+function drawPosterHeader(g){
+  const x=599, y=33, w=108, h=40, cx=x+w/2;
+  g.save(); g.textAlign='center'; g.textBaseline='middle';
+  g.fillStyle='#e9dcbf'; g.fillRect(x,y,w,h);
+  g.fillStyle='rgba(120,95,55,.16)'; g.fillRect(x,y,w,3);
+  g.strokeStyle='rgba(90,64,34,.5)'; g.lineWidth=1; g.beginPath(); g.moveTo(x+6,y+h-3); g.lineTo(x+w-6,y+h-3); g.stroke();
+  g.fillStyle='#5a3d22'; g.font='700 12px "Gowun Batang", Georgia, serif';
+  g.fillText('WORK LAND', cx, y+15);
+  g.fillStyle='#7a5730'; g.font='700 8px "Gowun Batang", Georgia, serif';
+  g.fillText('· NOTICE BOARD ·', cx, y+30);
+  g.restore();
+}
 /* WORK LAND plaque drawn over the baked-in "DIVE SHOP" board in shop_bg (board ~x362..588, y20..86) */
 function drawWorkLandSign(g){
   const x=356, y=15, w=244, h=76, cx=x+w/2;
@@ -2438,7 +2460,12 @@ function drawShop(){
   ensureShopImg();
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
   else { ctx.fillStyle='#e9ddc4'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#caa066'; ctx.fillRect(0,124,W,H-124); }
-  if(shopImg) drawWorkLandSign(ctx);                     // rebrand the baked-in DIVE SHOP board
+  if(shopImg){                                           // rebrand the baked-in DIVE SHOP art → Work Land
+    drawWorkLandSign(ctx);
+    drawShelfTag(ctx,102,96,160,22,'WETSUITS & DIVE WEAR');
+    drawShelfTag(ctx,40,566,130,24,'MASKS & FINS');
+    drawPosterHeader(ctx);
+  }
   // shopkeeper, standing behind his counter
   drawPerson(keeper.x,keeper.y,{skin:keeper.skin,scarf:keeper.scarf,look:keeper.look,idle:1.3});
   drawShopCounter();                                     // counter drawn in front of him
@@ -4145,6 +4172,11 @@ function drawBeach(){
     for(let x=W;x>=0;x-=24)ctx.lineTo(x,134+Math.sin(x*0.05)*7);ctx.closePath();ctx.fill();
     ctx.drawImage(beachDeco(),0,0,W,H);
   }
+  // Jeju keepsakes resting on the sand — drawn here (before litter/player) so they never block cleanup
+  drawPolaroid(ctx,'assets/jeju/plogging.jpg?v=1', 116, 306, 86, -3,
+    'Beach plogging with Diphda — a morning filling sacks with what the tide left behind.', 'NomadHer · Jeju');
+  drawPolaroid(ctx,'assets/jeju/yoga.jpg?v=1', 852, 118, 86, 3,
+    'Sunrise yoga on the sand, before the world woke up.', 'NomadHer · Jeju');
   // gliding gulls over a healthy shore
   if(hi>0.02){ ctx.globalAlpha=hi*0.8;
     for(let i=0;i<3;i++){ const gx=((t*26*(1+i*0.2)+i*340)%(W+80))-40, gy=40+i*22+Math.sin(t*1.1+i)*5;
