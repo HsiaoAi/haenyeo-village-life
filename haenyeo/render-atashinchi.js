@@ -613,58 +613,94 @@ function gearTank(g,x,y){
   g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=1;g.beginPath();g.moveTo(-3.4,-4);g.lineTo(-3.4,4);g.stroke();
   g.restore();
 }
-/* Jeju village gear shop — corrugated roof, plaster+basalt wall, big display window, bench & hanging sign */
-function drawGearShop(g,b){
-  const x=b.x,y=b.y,w=b.w,h=b.h;
-  const roofH=Math.round(h*0.30);
-  const wallTop=y+roofH-2, wallBot=y+h, wallH=wallBot-wallTop;
-  g.save();
-  g.fillStyle='rgba(20,12,8,.16)';g.beginPath();g.ellipse(x+w/2,y+h+4,w*0.56,9,0,0,7);g.fill();
-  // ---- rough concrete / plaster wall ----
-  inked(g,'#bdb6a8',2.4);g.beginPath();g.rect(x,wallTop,w,wallH);fillStroke(g);
-  const rng=mulberry32(48);
-  g.fillStyle='rgba(110,100,86,.18)';
-  for(let i=0;i<28;i++){g.beginPath();g.arc(x+rng()*w,wallTop+rng()*wallH,1+rng()*2.4,0,7);g.fill();}
-  // basalt stone left pier
-  const pierW=Math.round(w*0.30);
-  drawStoneBlocks(g,x,wallTop,pierW,wallH,71);
-  g.strokeStyle=MIN.ink;g.lineWidth=2.4;g.strokeRect(x,wallTop,pierW,wallH);
-  // ---- big display window ----
-  const wx=x+pierW+6, wy=wallTop+9, ww=(x+w)-wx-5, wh=wallBot-wy-13;
-  inked(g,'#7a4a28',2.6);rr(g,wx-3,wy-3,ww+6,wh+8,2);fillStroke(g);
-  g.fillStyle='#d2e2da';rr(g,wx,wy,ww,wh,1);g.fill();
-  g.fillStyle='#fff6e0';g.fillRect(wx,wy,ww,3);              // light bar
-  // ---- dive gear on display for window-shopping ----
-  g.save();g.beginPath();g.rect(wx,wy,ww,wh);g.clip();
-  g.fillStyle='rgba(255,240,210,.3)';g.fillRect(wx,wy,ww,wh);          // warm interior
-  const shelfY=wy+wh*0.54;
-  g.strokeStyle='rgba(110,70,40,.55)';g.lineWidth=2;g.beginPath();g.moveTo(wx+2,shelfY);g.lineTo(wx+ww-2,shelfY);g.stroke();
-  g.fillStyle='rgba(255,255,255,.18)';g.fillRect(wx+2,shelfY-1.5,ww-4,1.5);
-  gearMask(g,   wx+ww*0.27, wy+wh*0.27);
-  gearFins(g,   wx+ww*0.73, wy+wh*0.25);
-  gearWetsuit(g,wx+ww*0.28, wy+wh*0.80);
-  gearTank(g,   wx+ww*0.74, wy+wh*0.78);
+/* a blue-glass curtain-wall panel with a metal frame, mullion grid & reflection */
+function drawGlassPanel(g,x,y,w,h,cols,rows){
+  const base='#93bdd4', dark='#6c9cb9', edge='#41647c', mull='rgba(40,62,78,.5)';
+  inked(g,edge,2);g.beginPath();g.rect(x-1.5,y-1.5,w+3,h+3);fillStroke(g);   // frame
+  g.fillStyle=base;g.fillRect(x,y,w,h);
+  g.fillStyle=dark;g.fillRect(x,y+h*0.52,w,h*0.48);                          // darker lower half
+  g.save();g.beginPath();g.rect(x,y,w,h);g.clip();                           // diagonal sky reflection
+  g.fillStyle='rgba(255,255,255,.26)';
+  g.beginPath();g.moveTo(x+w*0.12,y);g.lineTo(x+w*0.4,y);g.lineTo(x+w*0.08,y+h);g.lineTo(x-w*0.2,y+h);g.closePath();g.fill();
+  g.beginPath();g.moveTo(x+w*0.6,y);g.lineTo(x+w*0.72,y);g.lineTo(x+w*0.42,y+h);g.lineTo(x+w*0.3,y+h);g.closePath();g.fill();
   g.restore();
-  g.strokeStyle='rgba(90,60,30,.4)';g.lineWidth=1.2;g.beginPath();g.moveTo(wx+ww/2,wy);g.lineTo(wx+ww/2,wy+wh);g.stroke();
-  // ---- round wall lamp above window ----
-  inked(g,'#3a3a3a',1.6);g.beginPath();g.arc(wx+5,wallTop+5,3,0,7);fillStroke(g);
-  g.fillStyle='#fff3cf';g.beginPath();g.arc(wx+5,wallTop+5,1.6,0,7);g.fill();
-  // ---- wooden bench / counter under the window ----
-  inked(g,'#6e4327',2.2);rr(g,wx-4,wallBot-11,ww+8,6,1.5);fillStroke(g);
-  g.fillStyle='#caa06a';g.fillRect(wx,wallBot-5,3,5);g.fillRect(wx+ww-3,wallBot-5,3,5);
-  // ---- corrugated tin roof + concrete ridge cap ----
-  drawCorrugatedRoof(g,x-7,y,w+14,roofH);
-  g.fillStyle='#cfc7b8';g.strokeStyle=MIN.ink;g.lineWidth=1.8;
-  g.beginPath();g.ellipse(x+7,y+2,11,5.5,-0.18,0,7);fillStroke(g);
-  // ---- hanging wooden signboard on the pier ----
-  const sbx=x+3, sby=wallTop+20, sbw=pierW-2, sbh=15;
-  g.strokeStyle=MIN.ink;g.lineWidth=1.2;
-  g.beginPath();g.moveTo(sbx+4,wallTop+13);g.lineTo(sbx+2,sby);g.moveTo(sbx+sbw-4,wallTop+13);g.lineTo(sbx+sbw-2,sby);g.stroke();
-  inked(g,'#ece0c4',2);rr(g,sbx,sby,sbw,sbh,2);fillStroke(g);
-  g.fillStyle='#e8943a';g.beginPath();g.arc(sbx+6,sby+5.5,2.6,0,7);g.fill();
-  g.fillStyle=MIN.greenD;g.beginPath();g.arc(sbx+6,sby+3.2,0.9,0,7);g.fill();
-  g.fillStyle=MIN.ink2;g.font='700 7px "Gowun Batang",serif';g.textAlign='center';g.textBaseline='middle';
-  g.fillText('gear', sbx+sbw*0.5+3, sby+10);
+  g.strokeStyle=mull;g.lineWidth=1.1;                                        // mullion grid
+  for(let c=1;c<cols;c++){const cx=x+w*c/cols;g.beginPath();g.moveTo(cx,y);g.lineTo(cx,y+h);g.stroke();}
+  for(let r=1;r<rows;r++){const cy=y+h*r/rows;g.beginPath();g.moveTo(x,cy);g.lineTo(x+w,cy);g.stroke();}
+  g.strokeStyle=edge;g.lineWidth=1.6;g.strokeRect(x,y,w,h);
+}
+/* ISLAND WORK LAND — modern two-story workation / coworking building.
+   Staggered flat-roof blocks, blue-glass curtain wall, warm wood cladding,
+   glass balcony rail, glass entrance & a Jeju basalt planter out front. */
+function drawCoworkingSpace(g,b){
+  const x=b.x, y=b.y, w=b.w, h=b.h, baseY=y+h;
+  g.save();g.lineJoin='round';g.lineCap='round';
+  const tile='#e3ded3', tileSh='#cfc8b8', wood='#c08a4e',
+        edge='#41647c', para='#efeade', paraSh='#d6cfc0',
+        steel='#aeb4bb', navy='#28384c';
+  // contact shadow
+  g.fillStyle='rgba(20,12,8,.16)';g.beginPath();g.ellipse(x+w/2,baseY+4,w*0.6,9,0,0,7);g.fill();
+  // ---- massing ----
+  const lwW=Math.round(w*0.36), lwX=x, lwTop=y+Math.round(h*0.34);
+  const mbX=lwX+lwW, mbW=(x+w)-mbX, mbTop=y+4;
+  const midY=y+Math.round(h*0.54);
+  const lwH=baseY-lwTop, mbH=baseY-mbTop;
+
+  // ===== LEFT LOW WING =====
+  inked(g,tile,2.4);g.beginPath();g.rect(lwX,lwTop,lwW,lwH);fillStroke(g);
+  g.fillStyle=tileSh;g.fillRect(mbX-4,lwTop,4,lwH);                          // shaded edge by main block
+  const wgX=lwX+7, wgW=lwW-13;                                              // wing windows — two stacked panes
+  drawGlassPanel(g,wgX,lwTop+9,wgW,lwH*0.32,2,1);
+  drawGlassPanel(g,wgX,lwTop+9+lwH*0.32+6,wgW,lwH*0.40,2,2);
+  inked(g,para,2);g.beginPath();g.rect(lwX-2,lwTop-5,lwW+4,6);fillStroke(g);// wing flat-roof parapet
+  g.fillStyle=paraSh;g.fillRect(lwX-2,lwTop,lwW+4,1.6);
+
+  // ===== MAIN TALL BLOCK =====
+  inked(g,tile,2.6);g.beginPath();g.rect(mbX,mbTop,mbW,mbH);fillStroke(g);
+  const wpW=Math.round(mbW*0.24), wpX=mbX+mbW-wpW;                          // wood accent cladding, right slice
+  inked(g,wood,2.2);g.beginPath();g.rect(wpX,mbTop,wpW,mbH);fillStroke(g);
+  g.strokeStyle='rgba(90,55,25,.45)';g.lineWidth=1;
+  for(let px=wpX+3;px<wpX+wpW;px+=4){g.beginPath();g.moveTo(px,mbTop+2);g.lineTo(px,baseY-2);g.stroke();}
+  const gcX=mbX+5, gcY=mbTop+7, gcW=wpX-gcX-4, gcH=baseY-gcY-3;            // two-story glass curtain wall
+  drawGlassPanel(g,gcX,gcY,gcW,gcH,3,4);
+  const railY=midY;                                                        // second-floor glass balcony rail
+  g.fillStyle='rgba(150,190,212,.42)';g.strokeStyle=edge;g.lineWidth=1.3;
+  g.beginPath();g.rect(gcX-3,railY-9,gcW+6,9);fillStroke(g);
+  g.strokeStyle=steel;g.lineWidth=2;g.beginPath();g.moveTo(gcX-3,railY-9);g.lineTo(gcX+gcW+3,railY-9);g.stroke();
+  g.lineWidth=1.3;for(let px=gcX-1;px<=gcX+gcW+1;px+=Math.max(8,gcW/5)){g.beginPath();g.moveTo(px,railY-9);g.lineTo(px,railY);g.stroke();}
+  inked(g,para,2.4);g.beginPath();g.rect(mbX-3,mbTop-6,mbW+6,7);fillStroke(g);// main flat-roof parapet (staggered)
+  g.fillStyle=paraSh;g.fillRect(mbX-3,mbTop+1,mbW+6,2);
+  inked(g,'#c9c3b6',1.8);g.beginPath();g.rect(gcX+4,mbTop-11,12,6);fillStroke(g);// rooftop vent box
+
+  // ---- ground-floor glass entrance (double door) ----
+  const dW=Math.round(gcW*0.36), dX=gcX+gcW*0.5-dW/2, dY=baseY-Math.round(gcH*0.30), dH=baseY-3-dY;
+  inked(g,'#37474d',2);g.beginPath();g.rect(dX,dY,dW,dH);fillStroke(g);
+  g.fillStyle='rgba(184,216,232,.6)';g.fillRect(dX+1.6,dY+1.6,dW-3.2,dH-3.2);
+  g.strokeStyle=steel;g.lineWidth=1.3;g.beginPath();g.moveTo(dX+dW/2,dY);g.lineTo(dX+dW/2,dY+dH);g.stroke();
+  g.strokeStyle='#37474d';g.lineWidth=2;
+  g.beginPath();g.moveTo(dX+dW/2-3,dY+dH*0.45);g.lineTo(dX+dW/2-3,dY+dH*0.68);g.moveTo(dX+dW/2+3,dY+dH*0.45);g.lineTo(dX+dW/2+3,dY+dH*0.68);g.stroke();
+
+  // ---- signboard on the fascia: "WORK LAND" ----
+  const sgX=gcX+2, sgY=railY+2, sgW=gcW-4, sgH=12;
+  inked(g,navy,1.8);rr(g,sgX,sgY,sgW,sgH,2);fillStroke(g);
+  g.fillStyle='#7fd0e0';g.beginPath();g.arc(sgX+7,sgY+sgH/2,2.6,0,7);g.fill();     // logo dot
+  g.fillStyle='#eef6fb';g.font='700 6px "Gowun Batang",serif';g.textAlign='center';g.textBaseline='middle';
+  g.fillText('WORK LAND',sgX+sgW*0.5+3,sgY+sgH/2+0.5);
+
+  // ---- low basalt planter + shrub to the left (Jeju grounding, clear of the glass) ----
+  const plX=lwX-24, plW=22, plY=baseY-3, plH=9, bcx=plX+plW*0.5, bby=plY;
+  g.fillStyle='rgba(20,12,8,.14)';g.beginPath();g.ellipse(bcx,plY+plH+1,plW*0.7,4,0,0,7);g.fill();
+  const blob=(bx,by,rx,ry,col)=>{inked(g,col,1.7);g.beginPath();g.ellipse(bx,by,rx,ry,0,0,7);fillStroke(g);};
+  blob(bcx-5,bby-6,7,7,MIN.greenD);
+  blob(bcx+5,bby-7,7,8,MIN.green);
+  blob(bcx,bby-12,7,7.5,MIN.greenL);
+  // simple basalt kerb (dark porous stone) — robust at this small size
+  inked(g,'#2c2732',2);rr(g,plX,plY,plW,plH,2);fillStroke(g);
+  g.fillStyle='rgba(255,255,255,.06)';g.fillRect(plX+2,plY+1.5,plW-4,1.5);
+  g.strokeStyle='rgba(10,8,14,.5)';g.lineWidth=1;
+  g.beginPath();g.moveTo(plX+plW*0.5,plY+1.5);g.lineTo(plX+plW*0.5,plY+plH-1.5);g.stroke();
+  g.fillStyle='rgba(8,6,12,.4)';const pr=mulberry32(53);
+  for(let k=0;k<7;k++){g.beginPath();g.arc(plX+2+pr()*(plW-4),plY+2+pr()*(plH-4),0.6+pr()*1,0,7);g.fill();}
   g.restore();
 }
 /* modern renovated Jeju stone cottage — basalt walls, blue metal roof, warm-lit glass, deck, fairy lights */
@@ -868,7 +904,7 @@ function drawPojangmachaUp(g,b){
 function drawBuilding(g,b){
   if(b.name==='home'){ drawJejuHouse(g,b); return; }
   if(b.name==='coop'){ drawMarketGate(g,b); return; }
-  if(b.name==='store'){ drawGearShop(g,b); return; }
+  if(b.name==='store'){ drawCoworkingSpace(g,b); return; }
   if(b.name==='house3'){ drawModernStoneHouse(g,b); return; }
   if(b.name==='museum'){ drawMuseumBuilding(g,b); return; }
   if(b.name==='pojangmacha'){ drawPojangmacha(g,b); return; }
@@ -1915,7 +1951,7 @@ function drawVillage(){
       const lg=ctx.createRadialGradient(gx,gy,2,gx,gy,40);
       lg.addColorStop(0,`rgba(255,180,80,${nt*0.7})`); lg.addColorStop(1,'rgba(255,180,80,0)');
       ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(gx,gy,40,0,7); ctx.fill(); ctx.restore(); } }
-  // a lantern lit outside the gear shop through the evening, so its doorway isn't left dark
+  // a lantern lit outside Work Land through the evening, so its doorway isn't left dark
   { const sb=buildings.find(b=>b.name==='store');
     if(sb){ const lx=sb.x+sb.w-13, ly=sb.y+sb.h-24, lit=nt>0.06;
       if(lit){ ctx.save(); ctx.globalCompositeOperation='screen';
@@ -3602,10 +3638,42 @@ function ensureHomeImg(){ if(homeImgTried)return; homeImgTried=true;
 const HOME_CAULDRON={x:206, y:224};   // hearth iron cauldron — steam rises here
 const HOME_TABLETOP={x:480, y:388};   // dining table top — plated bowl sits here
 const HOME_GRAMO   ={x:300, y:492};   // gramophone — music notes drift up here
+/* ---- Jeju workation keepsakes: real photos painted into the scenes as tilted polaroids ---- */
+const JEJU_IMGS={};
+function jejuImg(src){
+  if(src in JEJU_IMGS) return JEJU_IMGS[src];
+  JEJU_IMGS[src]=null; const im=new Image(); im.onload=()=>{ JEJU_IMGS[src]=im; }; im.src=src;
+  return null;
+}
+/* a tilted polaroid centred at (cx,cy): photo + word-wrapped first-person caption + credit */
+function drawPolaroid(g, src, cx, cy, w, tilt, caption, credit){
+  const im=jejuImg(src);
+  const pad=Math.round(w*0.055), iw=w-2*pad;
+  const ih=(im&&im.naturalWidth)? iw*(im.naturalHeight/im.naturalWidth) : iw*0.72;
+  const fs=Math.max(8, Math.round(w*0.06));
+  g.save(); g.translate(cx,cy); g.rotate((tilt||0)*Math.PI/180);
+  g.font=fs+'px "Gowun Batang",serif';
+  const words=(caption||'').split(' '), lines=[]; let line='';
+  for(const wd of words){ const test=line?line+' '+wd:wd; if(g.measureText(test).width>iw && line){ lines.push(line); line=wd; } else line=test; }
+  if(line) lines.push(line);
+  const lineH=Math.round(fs*1.3), capBlock=lines.length*lineH + (credit?Math.round(fs*0.85)+4:0);
+  const H0=pad+ih+5+capBlock+pad, x0=-w/2, y0=-H0/2;
+  g.fillStyle='rgba(20,12,8,.30)'; rr(g,x0+3,y0+5,w,H0,4); g.fill();                 // drop shadow
+  g.fillStyle='#fffdf6'; rr(g,x0,y0,w,H0,4); g.fill();                                // paper
+  g.strokeStyle='rgba(0,0,0,.14)'; g.lineWidth=1; g.stroke();
+  if(im) g.drawImage(im,x0+pad,y0+pad,iw,ih); else { g.fillStyle='#d9cbb0'; g.fillRect(x0+pad,y0+pad,iw,ih); }
+  g.fillStyle='#4a3a2c'; g.textAlign='center'; g.textBaseline='top'; g.font=fs+'px "Gowun Batang",serif';
+  let ty=y0+pad+ih+5; for(const ln of lines){ g.fillText(ln,0,ty); ty+=lineH; }
+  if(credit){ g.fillStyle='#9a8a70'; g.font='700 '+Math.round(fs*0.72)+'px "Space Mono",monospace'; g.fillText(credit,0,ty+1); }
+  g.restore();
+}
 function drawHome(){
   ensureHomeImg();
   if(homeImg && homeImg.complete && homeImg.naturalWidth){ ctx.drawImage(homeImg,0,0,W,H); }
   else { if(!homeBG) buildHomeBG(); ctx.drawImage(homeBG,0,0,W,H); }   // procedural fallback while the art loads
+  // Jeju keepsake: matcha ceremony, taped to the home wall
+  drawPolaroid(ctx,'assets/jeju/matcha.jpg?v=1', 118, 116, 126, -4,
+    'Matcha morning — whisking green froth, jet-lagged and grinning with women from ten countries.', 'NomadHer · Jeju');
   const t=performance.now()*0.001;
   // hot steam curling up from the hearth cauldron (the kitchen is always simmering)
   ctx.save(); ctx.globalCompositeOperation='screen';
