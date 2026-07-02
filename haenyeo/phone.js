@@ -901,7 +901,7 @@
     const im = new Image();
     im.onload = ()=>{ document.querySelectorAll('.ph-charm-hang').forEach(h=>{
       h.innerHTML = '<img class="ph-charm-img" src="'+im.src+'" alt="Dolphin-tail keyring">'; }); };
-    im.src = 'assets/dolphin-keyring.png?v=1';   // the real keepsake photo (transparent PNG)
+    im.src = 'assets/dolphin-keyring.png?v=2';   // the real keepsake photo (transparent PNG)
   }
   appbar.querySelector('.back').onclick = backHome;
   ov.querySelectorAll('.ph-home-ind').forEach(h=>{
