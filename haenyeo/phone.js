@@ -202,10 +202,10 @@
   .ph-charm-hang{width:82px;transform-origin:50% 5px;animation:phSway 4.6s ease-in-out infinite;
     filter:drop-shadow(0 4px 6px rgba(0,0,0,.42));}
   .ph-charm-hang svg,.ph-charm-hang .ph-charm-img{display:block;width:100%;height:auto;}
-  /* decorative copy hooked at the phone button's top-left, tail dangling down its side
-     (button sits in the bottom corner, so it drapes beside it rather than straight below) */
-  .ph-charm-btn{position:absolute;right:52px;bottom:2px;width:40px;pointer-events:none;z-index:9;}
-  .ph-charm-btn .ph-charm-hang{width:40px;}
+  /* decorative copy hooked at the phone button's top-right, tail dangling down its right side
+     (button hugs the screen's right edge, so it drapes over the right side rather than fully beside it) */
+  .ph-charm-btn{position:absolute;right:4px;bottom:2px;width:38px;pointer-events:none;z-index:9;}
+  .ph-charm-btn .ph-charm-hang{width:38px;}
   .ph-charm:active .ph-charm-hang{filter:drop-shadow(0 2px 3px rgba(0,0,0,.42)) brightness(1.06);}
   @keyframes phSway{0%,100%{transform:rotate(-4.5deg)}50%{transform:rotate(4.5deg)}}
   .ph-charm-note{position:absolute;top:6px;right:62px;width:156px;padding:9px 11px;border-radius:12px 12px 3px 12px;
