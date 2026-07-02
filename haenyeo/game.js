@@ -33,7 +33,7 @@ const buildings=[
   {x:690,y:120, w:122, h:96,  name:'coop',  label:'Co-op', en:'Co-op',      roof:'#3a6e8c'},
   {x:420,y:482, w:96,  h:78,  name:'bulteok',label:'Bulteok', en:'Bulteok',    roof:null},
   {x:268,y:474, w:128, h:96,  name:'pojangmacha', label:'Pojangmacha', en:'Haenyeo Kitchen', roof:null},   // position is state-driven — see pojangRect()
-  {x:120,y:300, w:112, h:84,  name:'store', label:'Gear', en:'Gear shop', roof:'#5a8c7a'},
+  {x:120,y:300, w:112, h:84,  name:'store', label:'Work Land', en:'Island Work Land', roof:'#5a8c7a'},
   {x:720,y:300, w:112, h:82,  name:'museum',label:'Museum', en:'Haenyeo Museum', roof:'#6a6f8c'},
 ];
 /* the kitchen trades through the night: 17:00 → 03:00 (the clock wraps past midnight) */
@@ -145,7 +145,7 @@ const NPC_TALK = {
       { label:'Any gossip?', lines:[
         "Did you catch the smell of Okbun's stew today? I 'accidentally' walked past it three times.",
         "Migyeong's been muttering at her ledger again. The mainland buyers must be haggling hard.",
-        "The cat had kittens behind the gear shop. Don't tell Mr. Gicheol — he pretends he doesn't feed them." ]},
+        "The cat had kittens behind Work Land. Don't tell Mr. Gicheol — he pretends he doesn't feed them." ]},
       { label:'How are you?', lines:[
         "The urchins are fat this season. My net's full and my arms are sore — happy sore.",
         "Honestly? Glad you came home. Diving's more fun with someone my own age." ]},
@@ -715,7 +715,7 @@ function refreshPrompt(){
   else if(current.type==='bulteok') txt='Examine · Bulteok';
   else if(current.type==='pojangmacha') txt=kitchenOpen()?'Open the Kitchen':'The Kitchen — opens 17:00–03:00';
   else if(current.type==='lounger') txt=P.sitting?'Stand up':'Rest on the lounger';
-  else if(current.type==='door') txt = current.b.name==='home'?'Go inside':(current.b.name==='coop'?'Enter market':(current.b.name==='museum'?'Enter the museum':'Enter shop'));
+  else if(current.type==='door') txt = current.b.name==='home'?'Go inside':(current.b.name==='coop'?'Enter market':(current.b.name==='museum'?'Enter the museum':'Enter Work Land'));
   else if(current.type==='joinact') txt='Join the '+current.act.label;
   else if(current.type==='beach') txt='Clean the beach';
   else if(current.type==='sea') txt='Dive';
@@ -1083,7 +1083,7 @@ function buildChange(){
     c.className='suitcard'+(on?' on':'')+(owned?'':' locked');
     c.innerHTML='<div class="sw '+id+'"></div>'+
       '<div class="si"><div class="sn">'+s.name+'</div>'+
-      '<div class="sd">Breath '+s.breath+(owned?'':' · buy at the gear shop ('+s.cost+' won)')+'</div></div>'+
+      '<div class="sd">Breath '+s.breath+(owned?'':' · buy at Work Land ('+s.cost+' won)')+'</div></div>'+
       '<div class="stag">'+(on?'WORN':(owned?'WEAR':'LOCKED'))+'</div>';
     if(owned && !on) c.onclick=()=>{ G.suit=id; tone(440,.12,'sine',.05); toast('Now wearing: '+s.name); buildChange(); };
     list.appendChild(c);
@@ -1180,7 +1180,7 @@ function updateMealBadge(){
   else el.classList.remove('show');
 }
 
-/* ---------------- GEAR SHOP (menu overlay, optional) ---------------- */
+/* ---------------- ISLAND WORK LAND — co-work + gear outfitter (menu overlay, optional) ---------------- */
 const GEAR_ICON={
   wetsuit:`<svg viewBox="0 0 32 32"><g stroke="#4a3a2c" stroke-width="2" stroke-linejoin="round"><path d="M12 4h8l1 4-2 2v5l1 11h-5l-1-7-1 7H8l1-11V10L7 8z" fill="#39424d"/></g><path d="M16 11v9" stroke="#6f7a85" stroke-width="1.6"/></svg>`,
   net:`<svg viewBox="0 0 32 32"><path d="M6 12h20l-3 15H9z" fill="#cdb98a" stroke="#4a3a2c" stroke-width="2" stroke-linejoin="round"/><path d="M6 12c1-4 19-4 20 0" fill="none" stroke="#4a3a2c" stroke-width="2"/><g stroke="#8a6a3a" stroke-width="1"><path d="M11 13l1 13M16 12v15M21 13l-1 13M7 17h18M8 22h16"/></g></svg>`,
@@ -1549,7 +1549,7 @@ function openBuyConfirm(kind){
     dialogBg='shop'; scene='dialogue-open';
     drawPortrait(keeper);
     $('dlgName').firstChild.textContent=keeper.roman;
-    $('dlgRole').textContent='Gear shop owner';
+    $('dlgRole').textContent='Work Land host';
     $('dlgHearts').textContent='';
     $('dlgText').textContent=s.note+'  Breath '+SUITS.traditional.breath+' → '+s.breath+'.  Cost: '+s.cost+' won.'+(afford?'':' (You can\'t afford it yet.)');
     const btns=$('dlgBtns');btns.innerHTML='';
