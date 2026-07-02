@@ -429,6 +429,16 @@
     text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:4px;}
 
   .hidden{display:none!important;}
+
+  /* Jeju workation keepsake — a framed polaroid taped beside a panel, first-person diary caption.
+     Absolutely pinned to the card's side so it never pushes the panel's buttons off-screen. */
+  .jeju-polaroid{position:absolute;top:46px;left:100%;margin-left:16px;width:184px;background:#fffdf6;padding:8px 8px 7px;
+    border-radius:4px;box-shadow:0 7px 18px rgba(0,0,0,.32);border:1px solid rgba(0,0,0,.06);transform:rotate(2.5deg);}
+  .jeju-polaroid img{display:block;width:100%;border-radius:2px;}
+  .jeju-polaroid .cap{font-family:'Gowun Batang',serif;font-size:10.5px;line-height:1.45;color:#4a3a2c;margin-top:6px;text-align:left;}
+  .jeju-polaroid .src{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:#9a8a70;margin-top:4px;text-align:right;}
+  @media (max-width:720px){ .jeju-polaroid{position:static;left:auto;margin:13px auto 2px;transform:rotate(-2deg);} }
 </style>
 </head>
 <body style="font-family: &quot;Gowun Batang&quot;">
@@ -590,6 +600,11 @@
       <div class="en">Ready your breath</div>
       <div class="selllist" id="diveStartList"></div>
       <div class="blurb" id="diveStartNote" style="font-size:13px"></div>
+      <div class="jeju-polaroid">
+        <img src="assets/jeju/diving.jpg?v=1" alt="Hansupul Haenyeo School">
+        <div class="cap">Day 2 — Hansupul Haenyeo School. Ten of us in borrowed wetsuits, taewak floats under our arms, learning to hold one breath and trust the sea.</div>
+        <div class="src">NomadHer · Jeju workation</div>
+      </div>
       <div class="pbtns">
         <button class="btn coral" id="diveStartGo">Dive in</button>
         <button class="btn ghost" id="diveStartClose">Not yet</button>
