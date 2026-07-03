@@ -1483,6 +1483,18 @@ function drawBeachCompanions(t){
       ctx.globalAlpha=Math.min(1,joinCheerT)*(1-hp); ctx.beginPath();
       ctx.moveTo(hx,hy+3); ctx.bezierCurveTo(hx-4,hy-1,hx-2,hy-4,hx,hy-1.6); ctx.bezierCurveTo(hx+2,hy-4,hx+4,hy-1,hx,hy+3); ctx.fill(); }
     ctx.globalAlpha=1; ctx.restore(); }
+  // the dog & robot out surfing the waves, all day (on the sea, right of the coastline)
+  const surf=(fn,sx,sy,s,ph,board)=>{
+    const by=Math.sin(t*1.6+ph)*3, tilt=Math.sin(t*1.2+ph)*0.05;
+    ctx.save(); ctx.translate(sx,sy+by); ctx.rotate(tilt);
+    ctx.fillStyle='rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(0,9,30,6,0,0,7); ctx.fill();      // foam wake
+    inked(ctx,board,2.2); ctx.beginPath(); ctx.ellipse(0,4,26,8,0,0,7); fillStroke(ctx);                  // surfboard
+    ctx.fillStyle='rgba(255,255,255,.28)'; ctx.beginPath(); ctx.ellipse(-7,2,9,2.6,0,0,7); ctx.fill();
+    ctx.restore();
+    fn(ctx, sx, sy+by-3, s, 'side');                                                                     // rider on the board
+  };
+  surf(drawBeachDog, 790, 512, 0.58, 0, MIN.verm);
+  surf(drawBeachRobot, 858, 548, 0.6, 1.7, MIN.teal);
   // daytime beach corner — hand-drawn lounge set (thatched umbrella over two
   // wooden deck chairs on a straw mat, with cats), cleared from 18:00 onward
   if(tm>=300&&tm<1020){
@@ -1537,9 +1549,7 @@ function drawBeachCompanions(t){
     ctx.fillStyle='rgba(255,255,255,.22)';ctx.fillRect(cx-28,cy-6,42,3);
     inked(ctx,'#2a2228',2.2);ctx.beginPath();ctx.arc(cx-28,cy+13,8,0,7);fillStroke(ctx);ctx.beginPath();ctx.arc(cx+28,cy+13,8,0,7);fillStroke(ctx);
     ctx.fillStyle='#9aa0a8';ctx.beginPath();ctx.arc(cx-28,cy+13,3.2,0,7);ctx.fill();ctx.beginPath();ctx.arc(cx+28,cy+13,3.2,0,7);ctx.fill();
-    // dog & robot sitting on top of the car, facing the screen (they also appear in the home)
-    drawBeachDog(ctx,cx-16,cy-8+bob(0)*0.3,0.5,'side');
-    drawBeachRobot(ctx,cx+16,cy-8+bob(1)*0.3,0.52,'side');
+    // (the dog & robot are out surfing now — the drive-in car sits empty)
     ctx.restore();
     // faint stars above
     ctx.save();ctx.fillStyle='#fdf8e6';
