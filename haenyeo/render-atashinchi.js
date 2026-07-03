@@ -3714,7 +3714,14 @@ function drawHome(){
   drawPolaroid(ctx,'assets/jeju/matcha.jpg?v=1', 118, 116, 126, -4,
     'Matcha morning — whisking green froth, jet-lagged and grinning with women from ten countries.', 'NomadHer · Jeju');
   const t=performance.now()*0.001;
-  // the beach dog & robot moved in — doing their yoga on the home floor
+  // the beach dog & robot moved in — doing their yoga on mats on the home floor
+  const homeMat=(mx,my,col)=>{ ctx.save(); ctx.translate(mx,my);
+    ctx.fillStyle='rgba(20,12,8,.16)'; ctx.beginPath(); ctx.ellipse(0,7,30,6,0,0,7); ctx.fill();   // contact shadow
+    inked(ctx,shade(col,-18),1.6); rr(ctx,-26,-4,52,11,5); fillStroke(ctx);                          // near edge
+    inked(ctx,col,2); rr(ctx,-26,-6,52,11,5); fillStroke(ctx);                                       // top surface
+    ctx.strokeStyle='rgba(255,255,255,.24)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(0,5); ctx.stroke();
+    ctx.restore(); };
+  homeMat(700,506,MIN.teal); homeMat(762,506,MIN.verm);
   drawBeachDog(ctx, 700, 500, 0.72, 'yoga');
   drawBeachRobot(ctx, 762, 500, 0.74, 'yoga');
   // hot steam curling up from the hearth cauldron (the kitchen is always simmering)
