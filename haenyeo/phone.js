@@ -143,9 +143,13 @@
   .ph-wk-slot .tm{flex:none;width:92px;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;color:#9a6a13;line-height:1.5;}
   .ph-wk-slot .ac{font-family:'Gowun Batang',serif;font-size:13px;color:var(--ink);line-height:1.5;}
   .ph-wk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px;}
-  .ph-wk-ph{aspect-ratio:1/1;border:none;border-radius:10px;background:#d9cbb0 center/cover no-repeat;cursor:pointer;padding:0;
+  .ph-wk-ph{position:relative;aspect-ratio:1/1;border:none;border-radius:10px;background:#d9cbb0 center/cover no-repeat;cursor:pointer;padding:0;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
   .ph-wk-ph:active{opacity:.7;}
+  .ph-wk-ph.is-video::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:32px;height:32px;border-radius:50%;background:rgba(18,30,36,.55);}
+  .ph-wk-ph.is-video::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-38%,-50%);
+    border-left:12px solid rgba(255,255,255,.95);border-top:8px solid transparent;border-bottom:8px solid transparent;}
   .ph-wk-empty{font-size:12.5px;line-height:1.6;color:var(--ink-soft);background:rgba(92,191,176,.12);border-radius:12px;padding:14px;}
   .ph-wk-empty b{color:var(--coral-d);}
   .ph-wk-lb{position:absolute;inset:0;background:rgba(10,20,24,.93);display:none;flex-direction:column;z-index:20;padding:14px;}
@@ -153,6 +157,7 @@
   .ph-wk-lb .x{align-self:flex-end;width:30px;height:30px;border:none;border-radius:9px;background:rgba(255,255,255,.16);
     color:#fff;font-size:14px;cursor:pointer;}
   .ph-wk-lb .img{flex:1;min-height:0;margin:10px 0;border-radius:14px;background-size:contain;background-repeat:no-repeat;background-position:center;}
+  .ph-wk-lb .vid{flex:1;min-height:0;margin:10px 0;border-radius:14px;width:100%;object-fit:contain;background:#000;}
   .ph-wk-lb .cap{color:#f6efde;font-family:'Gowun Batang',serif;font-size:13px;line-height:1.5;text-align:center;min-height:1.2em;}
   .ph-wk-lb .cap.empty{opacity:.4;font-style:italic;}
 
@@ -329,9 +334,16 @@
     ],
   };
   /* Fill these in later — keyed by photo number (1-based). Blank = no caption shown. */
-  const WK_CAPTIONS = {
-    // 1:'Opening night at Hamdeok Beach',
-    // 2:'Haenyeo diving lesson',
+  const WK_CAPTIONS = {          // photoN.jpg captions
+    1:'Hansupul Haenyeo School — my first real breath-hold dive.',
+    2:'The lesson before the water: the old rules of the sea.',
+    3:'Matcha ceremony with the crew.',
+    4:'Rooftop meditation over Hamdeok.',
+    5:'Sunrise beach yoga.',
+    6:'Vibecoding all afternoon — building something of my own.',
+  };
+  const WK_CLIP_CAPTIONS = {     // clipN.mp4 captions
+    1:'Beach plogging with Diphda — cleaning the shore.',
   };
 
   /* the dolphin-tail keyring — a drawn stand-in; swapped for the real photo at
@@ -657,20 +669,25 @@
     if(wkLB) return wkLB;
     wkLB = document.createElement('div');
     wkLB.className = 'ph-wk-lb';
-    wkLB.innerHTML = `<button class="x" title="Close">✕</button><div class="img"></div><div class="cap"></div>`;
-    const close = ()=> wkLB.classList.remove('show');
+    wkLB.innerHTML = `<button class="x" title="Close">✕</button><div class="img"></div><video class="vid" controls playsinline loop style="display:none"></video><div class="cap"></div>`;
+    const close = ()=>{ wkLB.classList.remove('show'); const v=wkLB.querySelector('.vid'); if(v){ try{v.pause();}catch(e){} } };
     wkLB.querySelector('.x').onclick = close;
     wkLB.addEventListener('click', e=>{ if(e.target===wkLB) close(); });
     $$('.ph-screen').appendChild(wkLB);
     return wkLB;
   }
-  function openWkPhoto(src, num){
+  function openWkMedia(src, caption, isVideo){
     const lb = ensureWkLB();
-    lb.querySelector('.img').style.backgroundImage = `url("${src}")`;
-    const cap = lb.querySelector('.cap');
-    const txt = WK_CAPTIONS[num];
-    cap.textContent = txt || 'Add a caption in WK_CAPTIONS';
-    cap.classList.toggle('empty', !txt);
+    const img=lb.querySelector('.img'), vid=lb.querySelector('.vid'), cap=lb.querySelector('.cap');
+    if(isVideo){
+      img.style.display='none'; vid.style.display='';
+      vid.src=src; try{ vid.currentTime=0; vid.play().catch(()=>{}); }catch(e){}
+    } else {
+      try{ vid.pause(); }catch(e){} vid.removeAttribute('src'); vid.style.display='none';
+      img.style.display=''; img.style.backgroundImage=`url("${src}")`;
+    }
+    cap.textContent = caption || '';
+    cap.classList.toggle('empty', !caption);
     lb.classList.add('show');
     if(typeof tone==='function') tone(600,.05,'sine',.04);
   }
@@ -678,7 +695,7 @@
     const grid = content.querySelector('#wkGrid'); if(!grid) return;
     const EXTS = ['jpg','jpeg','png','webp'];
     let found = 0; const MAX = 60;
-    const tryLoad = (base, ok, fail)=>{        // try each extension for one photo number
+    const tryImg = (base, ok, fail)=>{         // try each extension for one item
       let k = 0;
       (function next(){
         if(k >= EXTS.length) return fail();
@@ -688,20 +705,38 @@
         im.src = `${base}.${EXTS[k]}`;
       })();
     };
-    (function probe(i){
-      if(i > MAX) return;
-      tryLoad(`assets/workation-photos/photo${i}`, src=>{
+    // 1) still photos: photo1, photo2, … until the first gap
+    (function probePhoto(i){
+      if(i > MAX) return probeClip(1);
+      tryImg(`assets/workation-photos/photo${i}`, src=>{
         found++;
         const cell = document.createElement('button');
         cell.className = 'ph-wk-ph';
         cell.style.backgroundImage = `url("${src}")`;
-        cell.onclick = ()=> openWkPhoto(src, i);
+        cell.onclick = ()=> openWkMedia(src, WK_CAPTIONS[i], false);
         grid.appendChild(cell);
-        probe(i+1);
-      }, ()=>{
-        if(found === 0) grid.innerHTML = `<div class="ph-wk-empty">No photos yet — drop your snapshots into <b>assets/workation-photos/</b> named <b>photo1.jpg</b>, <b>photo2.jpg</b> … and they'll appear here.</div>`;
-      });
+        probePhoto(i+1);
+      }, ()=> probeClip(1));
     })(1);
+    // 2) video clips: clip1.mp4 (+ optional clipN.jpg poster) until the first gap
+    function probeClip(i){
+      if(i > MAX) return finish();
+      const v = document.createElement('video'); let done=false;
+      v.onloadedmetadata = ()=>{ if(done) return; done=true; found++;
+        const src = v.src;
+        const cell = document.createElement('button');
+        cell.className = 'ph-wk-ph is-video';
+        cell.style.backgroundImage = `url("assets/workation-photos/clip${i}.jpg")`;
+        cell.onclick = ()=> openWkMedia(src, WK_CLIP_CAPTIONS[i], true);
+        grid.appendChild(cell);
+        probeClip(i+1);
+      };
+      v.onerror = ()=>{ if(done) return; done=true; finish(); };
+      v.preload='metadata'; v.src = `assets/workation-photos/clip${i}.mp4`;
+    }
+    function finish(){
+      if(found === 0) grid.innerHTML = `<div class="ph-wk-empty">No photos yet — drop your snapshots into <b>assets/workation-photos/</b> named <b>photo1.jpg</b>, <b>photo2.jpg</b> … and they'll appear here.</div>`;
+    }
   }
 
   function openApp(id){
