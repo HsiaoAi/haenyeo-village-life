@@ -395,7 +395,7 @@ const LOUNGER={x:140,y:588};   // the right-hand deck chair under the beach para
 // out past the shoreline: the moored dive boat + the three haenyeo working the water (must match drawSea)
 const DIVE_TARGETS=[{x:878,y:548},{x:655,y:510},{x:795,y:553},{x:705,y:598}];
 const SPEED=3.4;   // walking pace (was 2.4 — a brisker stroll)
-const CLOCK_RATE=15;   // in-game minutes per real second — the day flows on its own
+const CLOCK_RATE=7;    // in-game minutes per real second — the day flows on its own (slower, ~3.4 min/day)
 function tickClock(dt){
   G.time+=dt*CLOCK_RATE; G.energy=Math.max(0, G.energy-dt*ENERGY_TIME_DRAIN);   // the day slowly tires you
   if(G.time>=24*60){ G.time-=24*60; tickClock._past=true; }   // past midnight, on through the small hours
