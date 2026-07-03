@@ -1474,7 +1474,7 @@ function buildVillageBG(){
 }
 /* The beach robot & his dog — drawn live so they can pack up and walk home as evening falls. */
 function drawBeachCompanions(t){
-  const tm=(typeof G!=='undefined')?G.time:600;
+  const tm=1200;   // the drive-in beach movie plays all day now (was a yoga/matcha/movie day-cycle)
   const bob=ph=>Math.sin(t*1.8+ph)*1.1;
   ctx.save();
   // a burst of hearts when the diver joins the dog & robot's activity
@@ -1893,8 +1893,6 @@ function drawVillage(){
   ctx.restore();
   drawSea();
   drawBeachCompanions(tc);   // robot + dog on the sand; they head home at dusk
-  // yoga keepsake propped on the sand by the beach loungers
-  drawPolaroid(ctx,'assets/jeju/yoga.jpg?v=1', 252, 556, 72, -4, 'Sunrise beach yoga at Hamdeok.', 'NomadHer');
   // the Pojangmacha on the sand — folded under the bulteok by day, raised beside it after 17:00
   { if(typeof pojangRect==='function') drawPojangmacha(ctx, pojangRect()); }
   // village pets — cat & Jeju dog wandering the lanes
