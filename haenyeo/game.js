@@ -1520,9 +1520,8 @@ function updateShop(dt){
   refreshShopPrompt();
 }
 function shopNearest(){
-  let best=null,bd=44;
-  const fx=shopCounter.x+shopCounter.w/2, fy=shopCounter.y+shopCounter.h+6;   // talk across the counter front
-  const dk=Math.hypot(P.x-fx,P.y-fy); if(dk<56){bd=dk;best={type:'keeper'};}
+  let best=null;
+  // no shopkeeper in the coworking space — only the exit is interactive
   if(P.x>exitZone.x-10&&P.x<exitZone.x+exitZone.w+10&&P.y>exitZone.y-24) best={type:'exit'};
   return best;
 }

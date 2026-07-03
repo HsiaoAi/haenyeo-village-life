@@ -2461,9 +2461,7 @@ function drawShop(){
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
   else { ctx.fillStyle='#e9ddc4'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#caa066'; ctx.fillRect(0,124,W,H-124); }
   // shop_bg is now the Work Land coworking interior (sea-view art) — no label overlays needed
-  // shopkeeper, standing behind his counter
-  drawPerson(keeper.x,keeper.y,{skin:keeper.skin,scarf:keeper.scarf,look:keeper.look,idle:1.3});
-  drawShopCounter();                                     // counter drawn in front of him
+  // Work Land is a self-serve coworking space now — no shopkeeper NPC, no counter
   // player
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
   // no floating keeper name — walking up shows the "Talk to Mr. Gicheol" prompt,
