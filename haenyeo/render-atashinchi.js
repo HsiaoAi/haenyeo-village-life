@@ -1893,6 +1893,8 @@ function drawVillage(){
   ctx.restore();
   drawSea();
   drawBeachCompanions(tc);   // robot + dog on the sand; they head home at dusk
+  // yoga keepsake propped on the sand by the beach loungers
+  drawPolaroid(ctx,'assets/jeju/yoga.jpg?v=1', 252, 556, 72, -4, 'Sunrise beach yoga at Hamdeok.', 'NomadHer');
   // the Pojangmacha on the sand — folded under the bulteok by day, raised beside it after 17:00
   { if(typeof pojangRect==='function') drawPojangmacha(ctx, pojangRect()); }
   // village pets — cat & Jeju dog wandering the lanes
@@ -4168,8 +4170,6 @@ function drawBeach(){
   // Jeju keepsakes resting on the sand — drawn here (before litter/player) so they never block cleanup
   drawPolaroid(ctx,'assets/jeju/plogging.jpg?v=1', 116, 306, 86, -3,
     'Beach plogging with Diphda — a morning filling sacks with what the tide left behind.', 'NomadHer · Jeju');
-  drawPolaroid(ctx,'assets/jeju/yoga.jpg?v=1', 852, 118, 86, 3,
-    'Sunrise yoga on the sand, before the world woke up.', 'NomadHer · Jeju');
   // gliding gulls over a healthy shore
   if(hi>0.02){ ctx.globalAlpha=hi*0.8;
     for(let i=0;i<3;i++){ const gx=((t*26*(1+i*0.2)+i*340)%(W+80))-40, gy=40+i*22+Math.sin(t*1.1+i)*5;
