@@ -1537,7 +1537,9 @@ function drawBeachCompanions(t){
     ctx.fillStyle='rgba(255,255,255,.22)';ctx.fillRect(cx-28,cy-6,42,3);
     inked(ctx,'#2a2228',2.2);ctx.beginPath();ctx.arc(cx-28,cy+13,8,0,7);fillStroke(ctx);ctx.beginPath();ctx.arc(cx+28,cy+13,8,0,7);fillStroke(ctx);
     ctx.fillStyle='#9aa0a8';ctx.beginPath();ctx.arc(cx-28,cy+13,3.2,0,7);ctx.fill();ctx.beginPath();ctx.arc(cx+28,cy+13,3.2,0,7);ctx.fill();
-    // (dog & robot moved to the player's home — the drive-in car sits empty now)
+    // dog & robot sitting on top of the car, facing the screen (they also appear in the home)
+    drawBeachDog(ctx,cx-16,cy-8+bob(0)*0.3,0.5,'side');
+    drawBeachRobot(ctx,cx+16,cy-8+bob(1)*0.3,0.52,'side');
     ctx.restore();
     // faint stars above
     ctx.save();ctx.fillStyle='#fdf8e6';
