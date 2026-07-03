@@ -2415,7 +2415,7 @@ let shopImg=null, shopImgTried=false;
 function ensureShopImg(){ if(shopImgTried)return; shopImgTried=true;
   const im=new Image();
   im.onload=()=>{ if(im.decode){ im.decode().catch(()=>{}).then(()=>{shopImg=im;}); } else { shopImg=im; } };
-  im.src='shop_bg.webp'; }
+  im.src='shop_bg.webp?v=2'; }
 /* dark wooden shelf tag (cream serif text, thin gold rule) — covers a baked-in label */
 function drawShelfTag(g,x,y,w,h,text){
   g.save(); g.lineJoin='round'; g.textAlign='center'; g.textBaseline='middle';
@@ -2460,12 +2460,7 @@ function drawShop(){
   ensureShopImg();
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
   else { ctx.fillStyle='#e9ddc4'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#caa066'; ctx.fillRect(0,124,W,H-124); }
-  if(shopImg){                                           // rebrand the baked-in DIVE SHOP art → Work Land
-    drawWorkLandSign(ctx);
-    drawShelfTag(ctx,102,96,160,22,'WETSUITS & DIVE WEAR');
-    drawShelfTag(ctx,40,566,130,24,'MASKS & FINS');
-    drawPosterHeader(ctx);
-  }
+  // shop_bg is now the Work Land coworking interior (sea-view art) — no label overlays needed
   // shopkeeper, standing behind his counter
   drawPerson(keeper.x,keeper.y,{skin:keeper.skin,scarf:keeper.scarf,look:keeper.look,idle:1.3});
   drawShopCounter();                                     // counter drawn in front of him
