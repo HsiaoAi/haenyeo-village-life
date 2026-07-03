@@ -2461,6 +2461,9 @@ function drawShop(){
   if(shopImg){ ctx.drawImage(shopImg,0,0,W,H); }
   else { ctx.fillStyle='#e9ddc4'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#caa066'; ctx.fillRect(0,124,W,H-124); }
   // shop_bg is now the Work Land coworking interior (sea-view art) — no label overlays needed
+  // Jeju keepsake: the vibecoding session, propped on the floor by the desk
+  drawPolaroid(ctx,'assets/jeju/work.jpg?v=1', 120, 470, 82, -4,
+    'Vibecoding at Work Land — building something of my own, all afternoon by the sea.', 'NomadHer · Jeju');
   // Work Land is a self-serve coworking space now — no shopkeeper NPC, no counter
   // player
   drawPerson(P.x,P.y,{skin:'#eccaa2',scarf:MIN.gold,face:P.face,moving:P.moving,phase:P.anim,player:true,modern:(typeof G!=='undefined'&&G.suit==='modern')});
